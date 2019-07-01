@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <node name="joy_node" pkg="joy" type="joy_node" />
+　<node name="my_robo_drive" pkg="my_robo_simulation" type="my_robo_drive" output="screen"/>
+
+</launch>
