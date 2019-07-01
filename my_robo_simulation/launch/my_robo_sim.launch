@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+<!-- include gazebo.launch,and launch gazebo,diff_drive_controller-->
+ <include file="$(find my_robo_description)/launch/gazebo.launch"/>
+
+<!-- launch rviz-->
+  <arg name="rvizconfig" default="$(find my_robo_description)/rviz/urdf.rviz"/> 
+
+  
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+</launch>
