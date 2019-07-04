@@ -74,10 +74,6 @@ private:
     // 次の位置を格納する箱
 
 
-
-
-
-
 public:
     my_robo();
     //~my_robo();
@@ -90,16 +86,12 @@ public:
 
     }
 
-    void cal_sharedDWA_J(){
-
-    }
-
     // 予測軌道を計算する関数
     void cal_predict_position(DWA_var& DWA, my_robo_spec spec, std::vector<std::vector<float>> CandVel,
       std::vector<std::vector<float>>&  PredictTraj, my_robo_sensor& sensor);
 
 
-    // 次の時刻を計算する関数
+    // 次の時刻のロボットの位置を計算する関数
     position robot_model( position p_now, float cand_v , float cand_w , float dt,  my_robo_sensor& sensor){
         position p_next;
         p_next.x = p_now.x +  cand_v * cos(p_now.th) * dt * cos( p_now.th + dt/2);
@@ -108,10 +100,19 @@ public:
         return p_next;
     }
 
+    // 障害物との入力相当距離(SharedDWAのd_Uにあたる)を求め,Admを返す
+    void cal_Dist(std::vector<std::vector<float>>& CandVel, DWA_var& DWA, sensor_msgs::LaserScan& scan, my_robo_spec& spec);
 
-    // joyの速度司令との差を計算する関数
+    // 評価関数を計算する Dはsat係数.あらかじめ計算しておく
+    double cal_J_sharedDWA(double adm, float u[2], float ug[2], double D, double vmax);
 
-    // 
+    // 速度コストのsaturation係数を求める
+    double cal_vel_sat( std::vector<std::vector<float>>& CandVel,  std::vector<std::vector<float>>& PredictTraj );
+
+
+
+
+    
 };
 
 #endif

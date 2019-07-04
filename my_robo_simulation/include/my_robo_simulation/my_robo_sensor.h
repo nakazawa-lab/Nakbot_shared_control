@@ -33,7 +33,7 @@ public:
 
     void cb_odom(const nav_msgs::Odometry::ConstPtr &msg)
     {
-        ROS_INFO("odom vel %f", msg->twist.twist.linear.x);
+        // ROS_INFO("odom vel %f", msg->twist.twist.linear.x);
 	    odom = *msg;
     }
 
@@ -62,7 +62,7 @@ public:
         ROS_INFO("z_ang: %f\n",joy_cmd_vel[1]);
     }
 
-       void cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg){
+    void cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg){
         // // ジョイスティック左側
         // // 上→axes[1]の正方向
         // // 左→axes[0]の正方向
@@ -84,6 +84,7 @@ public:
             countj++;
         }
     }
+
 };
 
 
