@@ -11,7 +11,7 @@
             
             // modified 0624 ROS biblep.36
             // "program": "enter program name, for example ${workspaceFolder}/a.out",
-            "program":"${workspaceRoot}/../../devel/lib/my_robo_simulation/my_robo_simulation" ,
+            "program":"${workspaceRoot}/../../../devel/lib/my_robo_simulation/my_robo_drive" ,
 
             "args": [],
             "stopAtEntry": false,
