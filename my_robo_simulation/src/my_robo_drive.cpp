@@ -127,7 +127,8 @@ void my_robo::controlloop(){
 }
 
 // スペック上の最大加速度と今の速度からDynamicWindowを求める vector<vector<float>>型のDWA.CanVelに格納される
-void my_robo::cal_DWA(my_robo_spec& spec, my_robo_sensor& sensor, DWA_var& DWA){
+// CandVel[i][0] = v [i][1]=w
+void my_robo::cal_DWA(){
     ROS_INFO("Calculate DWA start.");
     // 現在の速度(odonm)から刻み時間後に到達可能な最大、最小速度を求める。それを一時保存しておく
     float max_dwa_vel = sensor.odom.twist.twist.linear.x  + spec.x_max_acc * DWA.dt;
