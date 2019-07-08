@@ -231,9 +231,9 @@ void my_robo::cal_Dist(std::vector<std::vector<float>>& CandVel, DWA_var& DWA, s
     // センサデータから計算される,障害物の位置(scan.data)
 
     // <<やること>>
-    // 1 (v,w)を一つ取り出す
-    int candSize = CandVel.size();
 
+    int candSize = CandVel.size();
+    // 1 (v,w)を一つ取り出す
     // 5 1から4をすべての候補に対して繰り返す
     //   ただ、(v,w)がともに0のときは距離1となる
     for(int i=0; i<candSize; i++){
@@ -262,8 +262,11 @@ void my_robo::cal_Dist(std::vector<std::vector<float>>& CandVel, DWA_var& DWA, s
             // indexとindex+1
             int index = 0;
             float deg = index * scan.angle_increment;
-            while(abs(deg-th)<scan.angle_increment){
+            // 0708remote変更　不等式条件を逆にした
+            // 
+            while(abs(deg-th)>scan.angle_increment){
                 index++;
+                deg = index * scan.angle_increment;
                 if(index > scan.ranges.size() - 2) break;
             }
 
