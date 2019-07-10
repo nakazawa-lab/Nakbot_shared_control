@@ -1,3 +1,4 @@
+// 最新版0710　1900頃
 #include"my_robo_simulation/my_robo_drive.h"
 #include<vector>
 #include<algorithm>
@@ -364,8 +365,8 @@ void my_robo::cal_Dist(){
                 DWA.isCollision.push_back(false);
                 d_U = 1;
                 DWA.CandVel[i].push_back(d_U);
-                ROS_INFO("i:%d", i);
-                ROS_INFO("timeout while cal D_U.break\n");
+                //ROS_INFO("i:%d", i);
+                //ROS_INFO("timeout while cal D_U.break\n");
                 break;
             }
 
@@ -508,15 +509,18 @@ void my_robo::DWAloop(){
     while(ros::ok()){
         ros::spinOnce();
         ROS_INFO("get DWA loop.");
+        ROS_INFO("countj:%d",sensor.countj);
 
 
         if(sensor.latest_scan.ranges.size()==0){
             ROS_INFO("no LRF data.waiting...");
             usleep(1000);
+            //ROS_INFO("check2");
         }
         else{
+            //ROS_INFO("check3");
             check_joy();
-            ROS_INFO("finish check joy\n");
+            //ROS_INFO("finish check joy\n");
 
             cal_DWA();
             //ROS_INFO("finish cal DWA\n");
@@ -552,6 +556,7 @@ void my_robo::DWAloop(){
         //ROS_INFO("clear vector");
 
         rate.sleep();
+        //ROS_INFO("check1");
     }
    
 }

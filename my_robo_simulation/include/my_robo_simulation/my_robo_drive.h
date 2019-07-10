@@ -19,11 +19,12 @@
 
     // DWAのセッティング
 struct DWA_var{
-    float looprate = 2;          // Hz
-    float dt = 1 / looprate;
+    float looprate = 4;          // Hz
+    //float dt = 1 / looprate;
+    float dt =0.5;
     float PredictTime = 3;
     float k_heading = 1;
-    float k_velocity = 2;
+    float k_velocity = 1;
 
 
     // 予測軌道 [index][時刻index][time,x,y,theta]

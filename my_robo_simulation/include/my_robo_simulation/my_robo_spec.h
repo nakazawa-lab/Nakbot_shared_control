@@ -22,7 +22,7 @@ public:
 
     // ロボットの速度、加速度の分解能
     float vel_res = 0.1;
-    float ang_res = 0.087;    // 5degくらい
+    float ang_res = 0.18;    // 10degくらい
 
     // スペックをパラメータから取得する関数
     void get_spec_param(ros::NodeHandle n, my_robo_spec& spec){
