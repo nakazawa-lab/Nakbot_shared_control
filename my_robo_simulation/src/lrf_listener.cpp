@@ -88,7 +88,7 @@ void my_robo::check_joy(){
     // ROS_INFO("spec.z: %f\n",spec.z_max_ang);
 
     ROS_INFO("x_joy: %f", sensor.joy_cmd_vel[0]);
-    ROS_INFO("z_ang: %f\n", sensor.joy_cmd_vel[1]);
+    ROS_INFO("z_joy: %f\n", sensor.joy_cmd_vel[1]);
 
     vel.linear.x = sensor.joy_cmd_vel[0];
     vel.angular.z = sensor.joy_cmd_vel[1];
