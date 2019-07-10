@@ -54,3 +54,43 @@ int main(int argc, char **argv){c
   return 0;
 }
 */
+
+void my_robo::clear_vector(){
+  // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
+  DWA.CandVel.clear();
+  DWA.PredictTraj.clear();
+  DWA.isCollision.clear();
+  // ROS_INFO("candsize:%d",DWA.CandVel.size());
+  // ROS_INFO("predict:%d",DWA.PredictTraj.size());
+  // ROS_INFO("isCollisiton:%d",DWA.isCollision.size());
+}
+
+void my_robo::check_joy(){
+
+  if (sensor.countj != 0)
+  {
+    // joyからの速度司令の計算
+    // sensor.joy_cmd_vel[0] 速度
+    // sensor.joy_cmd_vel[1] 角速度
+
+    // ジョイスティック左側
+    // 上→axes[1]の正方向
+    // 左→axes[0]の正方向
+    sensor.joy_cmd_vel[0] = spec.x_max_vel * sensor.joy.axes[1];
+    //cmd_vel.linear.y =joy_msg.axes[2];
+
+    if (sensor.joy.axes[1] >= 0)
+      sensor.joy_cmd_vel[1] = spec.z_max_ang * sensor.joy.axes[0];
+    else
+      sensor.joy_cmd_vel[1] = -1 * spec.z_max_ang * sensor.joy.axes[0];
+
+    // ROS_INFO("spec.x: %f",spec.x_max_vel);
+    // ROS_INFO("spec.z: %f\n",spec.z_max_ang);
+
+    ROS_INFO("x_joy: %f", sensor.joy_cmd_vel[0]);
+    ROS_INFO("z_ang: %f\n", sensor.joy_cmd_vel[1]);
+
+    vel.linear.x = sensor.joy_cmd_vel[0];
+    vel.angular.z = sensor.joy_cmd_vel[1];
+  }
+}

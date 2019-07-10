@@ -19,16 +19,22 @@
 
     // DWAのセッティング
 struct DWA_var{
-    float dt = 0.05;
+    float looprate = 2;          // Hz
+    float dt = 1 / looprate;
     float PredictTime = 3;
-    float k_heading = 0.1;
-    float k_velocity = 0.1;
+    float k_heading = 1;
+    float k_velocity = 2;
 
-    // 予測軌道 [index][時刻,x,y,theta]
-    std::vector<std::vector<float>>  PredictTraj;
+
+    // 予測軌道 [index][時刻index][time,x,y,theta]
+    std::vector<std::vector<std::vector<float>>>  PredictTraj;
 
     // 候補となる(v,w)の対
+    // [index][v,w,d_U]
     std::vector<std::vector<float>> CandVel;
+
+    // 衝突判定用フラグ
+    std::vector<bool> isCollision;
 };
 
 // 次の位置を格納する箱
@@ -80,15 +86,14 @@ public:
 
     void controlloop();
 
-    void cal_DWA(my_robo_spec& spec, my_robo_sensor& sensor, DWA_var& DWA);
+    void cal_DWA();
 
     void cal_J_DWA(){
 
     }
 
     // 予測軌道を計算する関数
-    void cal_predict_position(DWA_var& DWA, my_robo_spec spec, std::vector<std::vector<float>> CandVel,
-      std::vector<std::vector<float>>&  PredictTraj, my_robo_sensor& sensor);
+    void cal_predict_position();
 
 
     // 次の時刻のロボットの位置を計算する関数
@@ -101,15 +106,19 @@ public:
     }
 
     // 障害物との入力相当距離(SharedDWAのd_Uにあたる)を求め,Admを返す
-    void cal_Dist(std::vector<std::vector<float>>& CandVel, DWA_var& DWA, sensor_msgs::LaserScan& scan, my_robo_spec& spec);
+    void cal_Dist();
 
     // 評価関数を計算する Dはsat係数.あらかじめ計算しておく
-    double cal_J_sharedDWA(double adm, float u[2], float ug[2], double D, double vmax);
+    int cal_J_sharedDWA(double D);
 
     // 速度コストのsaturation係数を求める
-    double cal_vel_sat( std::vector<std::vector<float>>& CandVel,  std::vector<std::vector<float>>& PredictTraj );
+    double cal_vel_sat();
 
+    void DWAloop();
 
+    void clear_vector();
+
+    void check_joy();
 
 
     

@@ -22,7 +22,7 @@ public:
 
     // ロボットの速度、加速度の分解能
     float vel_res = 0.1;
-    float ang_res = 0.1;    // 5.7degくらい
+    float ang_res = 0.087;    // 5degくらい
 
     // スペックをパラメータから取得する関数
     void get_spec_param(ros::NodeHandle n, my_robo_spec& spec){
@@ -40,7 +40,7 @@ public:
         n.getParam("/my_robo/diff_drive_controller/linear/x/min_acceleration",spec.x_min_acc);
         n.getParam("/my_robo/diff_drive_controller/angular/z/min_acceleration",spec.z_min_acc);
 
-        ROS_INFO("finish getparam:max_x %f",spec.x_max_vel);
+        //ROS_INFO("finish getparam:max_x %f",spec.x_max_vel);
 
         //return spec;
     }
