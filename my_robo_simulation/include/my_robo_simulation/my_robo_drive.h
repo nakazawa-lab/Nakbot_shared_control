@@ -19,10 +19,11 @@
 
     // DWAのセッティング
 struct DWA_var{
-    float looprate = 4;          // Hz
-    //float dt = 1 / looprate;
-    float dt =0.5;
-    float PredictTime = 3;
+    float dt =1;
+    float dt_traj=0.1;
+    //float looprate = 2;          // Hz
+    float looprate = 0.2;
+    float PredictTime = 2;
     float k_heading = 1;
     float k_velocity = 1;
 
@@ -78,6 +79,9 @@ private:
 
     DWA_var DWA;
 
+    ros::Publisher pub_mark;
+    ros::Publisher pub_mark_arr;
+
     // 次の位置を格納する箱
 
 
@@ -121,7 +125,9 @@ public:
 
     void check_joy();
 
+    void pub_marker(position p);
 
+    void pub_marker_array();
     
 };
 

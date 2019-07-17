@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <!--<arg name="rvizconfig" default="$(find info_lecture)/rviz/marker1.rviz" />-->
+
+  <node name="predictTraj_test" pkg="my_robo_simulation" type="predictTraj_test" />
+ <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" /> -->
+<node name="rviz" pkg="rviz" type="rviz"  required="true" />
+</launch>
