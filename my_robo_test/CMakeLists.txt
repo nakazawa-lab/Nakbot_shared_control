@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(my_robo_simulation)
+project(my_robo_test)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,9 +8,11 @@ project(my_robo_simulation)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  move_base
-  my_robo_description
   message_generation
+  my_robo_description
+  my_robo_simulation
+  roscpp
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -70,7 +72,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
+#   std_msgs
 # )
 
 ################################################
@@ -103,9 +105,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-#  LIBRARIES my_robo_simulation
-  CATKIN_DEPENDS move_base my_robo_description rospy message_runtime
+#  INCLUDE_DIRS include
+#  LIBRARIES my_robo_test
+#  CATKIN_DEPENDS message_generation my_robo_description my_robo_simulation roscpp std_msgs
 #  DEPENDS system_lib
 )
 
@@ -116,14 +118,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include
+# include
   ${catkin_INCLUDE_DIRS}
-  ${GAZEBO_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/my_robo_simulation.cpp
+#   src/${PROJECT_NAME}/my_robo_test.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -134,7 +135,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/my_robo_simulation_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/my_robo_test_node.cpp)
+#add_executable(${PROJECT_NAME}_node src/predictTraj_test.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -150,6 +152,7 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+#target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -191,29 +194,10 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_my_robo_simulation.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_my_robo_test.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-add_executable(my_robo_drive src/lrf_listener.cpp src/my_robo_drive.cpp src/joy_listener.cpp src/cal_dwa.cpp)
-add_executable(predictTraj_test src/predictTraj_test.cpp)
-## add_dependencies(basic_simple_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(my_robo_drive ${catkin_LIBRARIES})
-target_link_libraries(predictTraj_test ${catkin_LIBRARIES})
-
-#install(TARGETS my_robo_lrf_controller
-#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
-
-#install(DIRECTORY include/${PROJECT_NAME}/
-#  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#)
-
-#install(DIRECTORY launch models rviz worlds
-#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-#)

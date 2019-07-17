@@ -2,9 +2,14 @@
 #include"my_robo_simulation/my_robo_drive.h"
 #include<vector>
 #include<algorithm>
+#include"visualization_msgs/Marker.h"
+#include "visualization_msgs/MarkerArray.h"
+
 
 #define DEG2RAD M_PI/180
 #define RAD2DEG 180/M_PI
+
+#define SHAREDDWA
 
 my_robo::my_robo(){
     spec.get_spec_param(n,spec);
@@ -17,6 +22,10 @@ my_robo::my_robo(){
     sub_joy = n.subscribe("/joy", 10, &my_robo_sensor::cb_joy,&(this->sensor));
     pub_cmd = n.advertise<geometry_msgs::Twist>("/cmd_vel",10);
 
+    pub_mark = n.advertise<visualization_msgs::Marker>("/visualization_marker", 1);
+
+pub_mark_arr=n.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1);
+
     // pubする速度指令の初期化
     vel.linear.x=0;
     vel.angular.z=0;
@@ -24,6 +33,8 @@ my_robo::my_robo(){
     // joyの初期化
     sensor.joy_cmd_vel[0]=0;
     sensor.joy_cmd_vel[1]=0;
+
+    spec.set_resolution(spec.x_max_acc*DWA.dt/8,spec.z_max_acc*DWA.dt/8);
 
     //sub_lrf=n.subscribe("/laserscan", 10, chatterCallback);
 
@@ -175,6 +186,16 @@ void my_robo::cal_DWA(){
     DWA.CandVel[i].push_back(sensor.odom.twist.twist.angular.z);        //[i][1]に角速度要素
     //ROS_INFO("CandVel:%f,%f",DWA.CandVel[i][0],DWA.CandVel[i][1]);
     i++;
+
+    //もし速度0がDWAに含まれていれば、それも候補に加える
+    if( 0 >= min_dwa_vel && 0 <= max_dwa_ang && 0 >= min_dwa_ang && 0 <= max_dwa_ang){
+        DWA.CandVel.push_back(std::vector<float>());
+        DWA.CandVel[i].push_back(0);  //[i][0]に速度要素
+        DWA.CandVel[i].push_back(0); //[i][1]に角速度要素
+        //ROS_INFO("CandVel:%f,%f",DWA.CandVel[i][0],DWA.CandVel[i][1]);
+        i++;
+    }
+
     while(true){
         float g = min_dwa_ang;
 
@@ -205,17 +226,16 @@ void my_robo::cal_DWA(){
 
 
 // 予測軌道を計算する関数 内部でmy_robo.robot_modelを呼びだす
-void my_robo::cal_predict_position(){
-    float time = DWA.dt;
-
-    ROS_INFO("candidate size is %d", DWA.CandVel.size());
+void my_robo::cal_predict_position()
+{
+    //ROS_INFO("candidate size is %d", DWA.CandVel.size());
 
     // すべての候補に対して
     for (int i = 0; i < DWA.CandVel.size(); i++)
     {
         //ROS_INFO("loop %d / %d", i, DWA.CandVel.size());
         //初期化
-        time = DWA.dt;
+        float time = DWA.dt_traj;
 
         // 今の位置にもどす
         position p{sensor.odom.pose.pose.position.x, sensor.odom.pose.pose.position.y, sensor.odom.pose.pose.orientation.w};
@@ -225,8 +245,7 @@ void my_robo::cal_predict_position(){
         DWA.PredictTraj.push_back(std::vector<std::vector<float>>());
         //ROS_INFO("push empty vector");
 
-
-        while (time < DWA.PredictTime)
+        while (time <= DWA.PredictTime)
         {
             // 位置の更新
             position np;
@@ -245,13 +264,20 @@ void my_robo::cal_predict_position(){
 
             if (i == 4)
             {
-                ROS_INFO("i=4,traj: x=%f,y=%f", np.x, np.y);
+                //ROS_INFO("i=4,traj: x=%f,y=%f", np.x, np.y);
             }
 
-            time += DWA.dt;
+            time += DWA.dt_traj;
         }
+        // position pp;
+        // pp.x = DWA.PredictTraj[i][8][0];
+        // pp.y = DWA.PredictTraj[i][8][1];
+        // pub_marker(pp);
+
+       
         //ROS_INFO("TrajSize%d", DWA.PredictTraj.back().size());
     }
+     pub_marker_array();
     //ROS_INFO("candidate size is %d",DWA.CandVel.size());
     //ROS_INFO("finish cal traj\n");
 }
@@ -310,13 +336,13 @@ double my_robo::cal_vel_sat(){
         
         }
     }
-    ROS_INFO("number not collision:%d",count);
+    //ROS_INFO("number not collision:%d",count);
 
     // 予測時刻あとの座標はPredictTraj[j-1][x][y][th]
     // クリアランス計算
     // クリアランスをどうやって求めるか？
     double D = clearance / count ;
-    ROS_INFO("D:%lf\n",D);
+    //ROS_INFO("D:%lf\n",D);
     return D;
 }
 
@@ -409,31 +435,33 @@ void my_robo::cal_Dist(){
                 float v_inev = sqrt(abs(2 * spec.x_min_acc * d_lin));
                 float w_inev = sqrt(abs(2 * spec.z_min_acc * d_ang));
 
-                ROS_INFO("v_inev%f",v_inev);
-                ROS_INFO("w_inev%f",w_inev);
-                ROS_INFO("v%f",v);
-                ROS_INFO("w%f",w);
+                //  ROS_INFO("v_inev%f",v_inev);
+                //  ROS_INFO("w_inev%f",w_inev);
+                //  ROS_INFO("v%f",v);
+                //  ROS_INFO("w%f",w);
                 // ROS_INFO("d:%f.",d);
                 // ROS_INFO("th:%f.",th);
                 // ROS_INFO("time:%f.",time);
                 // 4-a-3 d_uを求める
                 if(v >= v_inev || w >= w_inev)d_U = 0; 
-                else d_U = std::min(abs(v_inev- v / v_inev) ,abs( w_inev - w / w_inev));
+                else d_U = std::min(abs((v_inev- v) / v_inev) ,abs( (w_inev - w) / w_inev));
 
                 DWA.CandVel[i].push_back(d_U);
-                ROS_INFO("i:%d", i);
-                ROS_INFO("collision.");
-                ROS_INFO("d_U%f",d_U);
+                // ROS_INFO("i:%d", i);
+                // ROS_INFO("collision.");
+                //ROS_INFO("abs(v_inev- v / v_inev)%f",abs( (v_inev - v) / v_inev));
+                //ROS_INFO("abs( w_inev - w / w_inev)%f",abs( (w_inev - w) / w_inev));
+                //ROS_INFO("d_U%f",d_U);
 
                 // Dの計算に使うので、もし予測時刻内の衝突であればフラグを立てる
                 if(time < DWA.PredictTime){
-                    ROS_INFO("collision in predict time.");
-                    ROS_INFO("break\n.");
+                    //ROS_INFO("collision in predict time.");
+                    //ROS_INFO("break\n.");
                     DWA.isCollision.push_back(true);
                 }else{
                     DWA.isCollision.push_back(false);
-                    ROS_INFO("collision out of predict time.");
-                    ROS_INFO("break\n.");
+                    //ROS_INFO("collision out of predict time.");
+                    //ROS_INFO("break\n.");
                 }
                 break;
             }
@@ -460,6 +488,9 @@ int my_robo::cal_J_sharedDWA(double D){
         if(sensor.joy_cmd_vel[1]==0){      
             head = abs (DWA.CandVel[i][1]);
         }
+        if(sensor.joy_cmd_vel[0]=0 & sensor.joy_cmd_vel !=0){
+            head = abs(DWA.CandVel[i][1] - sensor.joy_cmd_vel[1]) / M_PI;
+        }
         else{
             head = abs(atan2(DWA.CandVel[i][0],DWA.CandVel[i][1]) - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
         }
@@ -480,22 +511,24 @@ int my_robo::cal_J_sharedDWA(double D){
             cost=temp;
             index=i;
 
-            ROS_INFO("i:%d", i);
+            //ROS_INFO("i:%d", i);
             // ROS_INFO("now vel:%f, %f", sensor.odom.twist.twist.linear.x, sensor.odom.twist.twist.angular.z); 
             // ROS_INFO("joy vel:%f, %f", sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
             // ROS_INFO("cand vel:%f, %f", DWA.CandVel[i][0], DWA.CandVel[i][1]);
             // ROS_INFO("joy atan2:%f", atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]));
             // ROS_INFO("cand atan2:%f ", atan2(DWA.CandVel[i][0],DWA.CandVel[i][1]));
 
-            ROS_INFO("adm:%lf", adm);
-            ROS_INFO("head:%lf", head);
-            ROS_INFO("velocity:%lf", velocity);
-            ROS_INFO("cost:%lf\n", temp);
+            //ROS_INFO("adm:%lf", adm);
+             ROS_INFO("head:%lf", head);
+             ROS_INFO("velocity:%lf", velocity);
+            // ROS_INFO("cost:%lf\n", temp);
         }
     }
     // ROS_INFO("finish cal_J");
-    ROS_INFO("index:%d\n",index);
-    ROS_INFO("pubvel:%f,%f",DWA.CandVel[index][0],DWA.CandVel[index][1]);
+    //ROS_INFO("index:%d\n",index);
+    //ROS_INFO("pubvel:%f,%f",DWA.CandVel[index][0],DWA.CandVel[index][1]);
+
+    ROS_INFO("cost:%f",cost);
     return index;
 }
 
@@ -506,11 +539,16 @@ void my_robo::DWAloop(){
     ros::Rate rate(DWA.looprate);
 
 
+
     while(ros::ok()){
         ros::spinOnce();
         ROS_INFO("get DWA loop.");
-        ROS_INFO("countj:%d",sensor.countj);
+        //ROS_INFO("countj:%d",sensor.countj);
 
+            // position p;
+            // p.x=1;
+            // p.y=2;
+            // pub_marker(p);
 
         if(sensor.latest_scan.ranges.size()==0){
             ROS_INFO("no LRF data.waiting...");
@@ -521,7 +559,7 @@ void my_robo::DWAloop(){
             //ROS_INFO("check3");
             check_joy();
             //ROS_INFO("finish check joy\n");
-
+#ifdef SHAREDDWA
             cal_DWA();
             //ROS_INFO("finish cal DWA\n");
 
@@ -529,27 +567,29 @@ void my_robo::DWAloop(){
             //ROS_INFO("finish cal predict pos\n");
 
             sensor.cal_obs(sensor.latest_scan,10,70,sensor.odom.pose.pose.position.x,sensor.odom.pose.pose.position.y);
-            ROS_INFO("candidate size is %d",DWA.CandVel.size());   
+            //ROS_INFO("candidate size is %d",DWA.CandVel.size());   
             //ROS_INFO("finish cal obs\n");
 
-            cal_Dist();
-            //ROS_INFO("finish cal Dist\n");
+            // cal_Dist();
+            // //ROS_INFO("finish cal Dist\n");
 
-            double D = cal_vel_sat();
-            //ROS_INFO("finish cal val_sat\n");
+            // double D = cal_vel_sat();
+            // //ROS_INFO("finish cal val_sat\n");
 
-            int index = cal_J_sharedDWA(D);
+            // int index = cal_J_sharedDWA(D);
 
-            if( sensor.joy_cmd_vel[0] >= 0){
-            vel.linear.x=DWA.CandVel[index][0];
-            vel.angular.z=DWA.CandVel[index][1];
-            }
+            // if( sensor.joy_cmd_vel[0] >= 0){
+            // vel.linear.x=DWA.CandVel[index][0];
+            // vel.angular.z=DWA.CandVel[index][1];
+            // }
+            // ROS_INFO("pubvel:%f,%f,d_U=%f.",vel.linear.x,vel.angular.z,DWA.CandVel[index][2]);
+#endif
         }
 
 
         pub_cmd.publish(vel);
-        ROS_INFO("vel:%f,%f.",vel.linear.x,vel.angular.z);
-        ROS_INFO("pub vel.\n");
+        
+        //ROS_INFO("pub vel.\n");
 
 
         clear_vector();

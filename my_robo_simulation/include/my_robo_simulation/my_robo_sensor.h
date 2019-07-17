@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "std_msgs/String.h"
-#include "geometry_msgs/Twist.h"    //odometry
+#include "geometry_msgs/Twist.h"    
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/Joy.h"
 
@@ -61,7 +61,7 @@ public:
             
             obs.back().push_back(xo);
             obs.back().push_back(yo);
-            ROS_INFO("obs x:%f, y:%f",xo,yo);
+            //ROS_INFO("obs x:%f, y:%f",xo,yo);
          }
         }
 
@@ -125,7 +125,7 @@ public:
             ROS_INFO("first joy sub.");
             countj++;
         }
-        ROS_INFO("count j:%d",countj);
+        //ROS_INFO("count j:%d",countj);
     }
 
 };

@@ -1,0 +1,53 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/kitajima/catkin_ws/devel/include",
+                "/opt/ros/melodic/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/amcl/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/base_local_planner/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/carrot_planner/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/clear_costmap_recovery/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/costmap_2d/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/dwa_local_planner/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/global_planner/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/map_server/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/move_base/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/move_slow_and_clear/include",
+                "/home/kitajima/catkin_ws/src/my_robo/my_robo_description/include",
+                "/home/kitajima/catkin_ws/src/my_robo/my_robo_joy_teleop/my_robo_joy_teleop/include",
+                "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/include",
+                "/home/kitajima/catkin_ws/src/my_robo/my_robo_test/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/nav_core/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/navfn/include",
+                "/home/kitajima/catkin_ws/src/gmapping/openslam_gmapping/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/rotate_recovery/include",
+                "/home/kitajima/catkin_ws/src/sample_vs_code/include",
+                "/home/kitajima/catkin_ws/src/teleop_twist_joy/include",
+                "/home/kitajima/catkin_ws/src/gmapping/geometry2/tf2/include",
+                "/home/kitajima/catkin_ws/src/gmapping/geometry2/tf2_bullet/include",
+                "/home/kitajima/catkin_ws/src/gmapping/geometry2/tf2_eigen/include",
+                "/home/kitajima/catkin_ws/src/gmapping/geometry2/tf2_geometry_msgs/include",
+                "/home/kitajima/catkin_ws/src/gmapping/geometry2/tf2_kdl/include",
+                "/home/kitajima/catkin_ws/src/gmapping/geometry2/tf2_msgs/include",
+                "/home/kitajima/catkin_ws/src/gmapping/geometry2/tf2_ros/include",
+                "/home/kitajima/catkin_ws/src/gmapping/geometry2/tf2_sensor_msgs/include",
+                "/home/kitajima/catkin_ws/src/turtlebot3_simulations/turtlebot3_fake/include",
+                "/home/kitajima/catkin_ws/src/turtlebot3_simulations/turtlebot3_gazebo/include",
+                "/home/kitajima/catkin_ws/src/turtlebot3/turtlebot3_slam/include",
+                "/home/kitajima/catkin_ws/src/gmapping/navigation/voxel_grid/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

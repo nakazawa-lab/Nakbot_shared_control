@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="my_robo" xmlns:xacro="http://ros.org/wiki/xacro">
 <property name="M_PI" value="3.14159274"/>
-  <!-- Init colour -->  
+  <!-- Init colour -->
 <!--
   <material name="black">
       <color rgba="0.0 0.0 0.0 1.0"/>
@@ -113,7 +113,7 @@
     <child link="left_wheel_link"/>
     <origin rpy="-1.5707 0 0" xyz="0 0.1425 -0.0175"/>
     <axis xyz="0 0 1"/>
-    <limit velocity="1.0" effort="6.0"/>	<!--decide mortor power-->
+    <limit velocity="1.0" effort="5.0"/>	<!--decide mortor power-->
     <dynamics damping="0.2"/>                   <!--damping of axes of mortor-->
   </joint>
 
@@ -150,7 +150,7 @@
     <child link="right_wheel_link"/>
     <origin rpy="1.5707 0 0" xyz="0 -0.1425 -0.0175"/>
     <axis xyz="0 0 -1"/>
-    <limit velocity="1.0" effort="6.0"/>
+    <limit velocity="1.0" effort="5.0"/>
     <dynamics damping="0.2"/>               
   </joint>
 
@@ -206,7 +206,7 @@
 		      </geometry>
 		    </collision>
 		  </link>
-		  
+
 		<!--back caster-->
 		  <joint name="back_caster_joint" type="fixed">
 		<!--   <parent link="back_caster_assist_link"/>-->
@@ -234,7 +234,7 @@
 		  </link>
 
 	<!-- end caster-->
-	</xacro:macro> 
+	</xacro:macro>
 	<xacro:caster_macro parent="caster_assist_link"/>
 
 
@@ -386,7 +386,7 @@
     </plugin>
 
 </gazebo>
- 
+
  <gazebo reference="base_link">
    <selfCollide>true</selfCollide>
     <mu1 value="0.5" />
@@ -441,7 +441,7 @@
 
 <!-- sensor-->
     <gazebo reference="laser">
-      <sensor type="ray" name="${prefix}"> 
+      <sensor type="ray" name="${prefix}">
    <!--   <sensor type="gpu_ray" name="laser"> -->
         <pose>0 0 0 0 0 0</pose>
         <visualize>false</visualize>
@@ -466,7 +466,7 @@
             <stddev>0.01</stddev>
           </noise>
         </ray>
-       <plugin name="gazebo_ros_lidar_controller" filename="libgazebo_ros_laser.so"> 
+       <plugin name="gazebo_ros_lidar_controller" filename="libgazebo_ros_laser.so">
     <!--  <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_gpu_laser.so"> -->
           <topicName>/scan</topicName>
           <frameName>laser</frameName>
@@ -476,7 +476,7 @@
     </gazebo>
 
 
-</xacro:macro> 
+</xacro:macro>
 <xacro:laser_macro parent="base_link" prefix="laser_sensor" xyz="0.125 0 0.0675"/>
 
 
@@ -503,7 +503,7 @@
           <noise>
             <type>gaussian</type>
             <mean>0.0</mean>
-            <stddev>0.007</stddev> 
+            <stddev>0.007</stddev>
           </noise>
         </camera>
 

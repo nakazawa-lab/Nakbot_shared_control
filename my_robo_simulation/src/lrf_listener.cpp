@@ -1,4 +1,7 @@
 #include"my_robo_simulation/my_robo_drive.h"
+#include"visualization_msgs/Marker.h"
+#include "visualization_msgs/MarkerArray.h"
+#include<random>
 
 /*
 void my_robo::cb_lrf(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -93,4 +96,84 @@ void my_robo::check_joy(){
     vel.linear.x = sensor.joy_cmd_vel[0];
     vel.angular.z = sensor.joy_cmd_vel[1];
   }
+}
+
+void my_robo::pub_marker(position p){
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "/base_link";
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "basic_shapes";
+    marker.id = 0;
+
+    marker.type = visualization_msgs::Marker::CUBE;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = (ros::Duration)0.5;
+
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1;
+    marker.pose.position.x=p.x;
+    marker.pose.position.y=p.y;
+    marker.pose.position.z=0;
+    marker.pose.orientation.x=0;
+    marker.pose.orientation.y=0;
+    marker.pose.orientation.z=0;
+    marker.pose.orientation.w=1;
+    marker.color.r = 0.0f;
+    marker.color.g = 1.0f;
+    marker.color.b = 0.0f;
+    marker.color.a = 1.0f;
+    pub_mark.publish(marker);
+}
+
+// k番目の速度候補
+void my_robo::pub_marker_array()
+{
+  visualization_msgs::MarkerArray marker_array;
+  marker_array.markers.resize(DWA.PredictTraj[0].size() * DWA.PredictTraj.size()/2);
+
+  int k=0;
+// 候補の数だけループ
+  for (int i=0; i<DWA.PredictTraj.size()/2;i++){
+    //ROS_INFO("start put marker.");
+
+    float GREEN= (double)rand()/RAND_MAX;
+
+    //予測時刻の数だけループ
+    for (int j = 0; j < DWA.PredictTraj[i].size()/2; j++)
+    {
+ 
+       //ROS_INFO("start loop.");
+
+      marker_array.markers[k].header.frame_id = "base_link";
+      marker_array.markers[k].header.stamp = ros::Time::now();
+      marker_array.markers[k].ns = "cmd_vel_display";
+      marker_array.markers[k].id = k;
+      marker_array.markers[k].lifetime = (ros::Duration)DWA.dt;
+
+      // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
+      marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
+      marker_array.markers[k].action = visualization_msgs::Marker::ADD;
+      marker_array.markers[k].scale.x = 0.05;
+      marker_array.markers[k].scale.y = 0.05;
+      marker_array.markers[k].scale.z = 0.05;
+      marker_array.markers[k].pose.position.x = DWA.PredictTraj[i][j][0];
+      marker_array.markers[k].pose.position.y = DWA.PredictTraj[i][j][2];
+      marker_array.markers[k].pose.position.z = 0;
+      marker_array.markers[k].pose.orientation.x = 0;
+      marker_array.markers[k].pose.orientation.y = 0;
+      marker_array.markers[k].pose.orientation.z = 0;
+      marker_array.markers[k].pose.orientation.w = 1;
+
+      marker_array.markers[k].color.r = 0.0f;
+      marker_array.markers[k].color.g = GREEN;
+      marker_array.markers[k].color.b = 0.0f;
+      marker_array.markers[k].color.a = 1.0f;
+      k++;
+    }
+
+  }
+    pub_mark_arr.publish(marker_array);
+ROS_INFO("pub marker array.");
+
 }
