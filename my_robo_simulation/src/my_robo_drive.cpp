@@ -398,7 +398,7 @@ void my_robo::cal_Dist(){
 
             d_lin = v * time;
             d_ang = w * time;
-            d = sqrt(2*r*r * (1 - cos(d_ang)));     // 余弦定理
+            d = sqrt(2*r*r * (1 + cos(d_ang)));     // 余弦定理
             th = acos((v * sin(d_ang)) / (d * w) );
 
             // ROS_INFO("c2.");
