@@ -100,7 +100,7 @@ void my_robo::check_joy(){
 
 void my_robo::pub_marker(position p){
     visualization_msgs::Marker marker;
-    marker.header.frame_id = "/base_link";
+    marker.header.frame_id = "/odom";
     marker.header.stamp = ros::Time::now();
     marker.ns = "basic_shapes";
     marker.id = 0;
