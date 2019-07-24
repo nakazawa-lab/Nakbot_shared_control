@@ -1,4 +1,7 @@
 #include "ros/ros.h"
+#include<tf/transform_broadcaster.h>
+#include "geometry_msgs/Twist.h"    
+#include "nav_msgs/Odometry.h"
 
 #ifndef MY_ROBO_SPEC
 #define MY_ROBO_SPEC
@@ -8,21 +11,21 @@ class my_robo_spec
 {
 public:
     // ロボットの最大速度,加速度
-    float x_max_vel;
-    float z_max_ang;
+    double x_max_vel;
+    double z_max_ang;
 
-    float x_min_vel;
-    float z_min_ang;
+    double x_min_vel;
+    double z_min_ang;
 
-    float x_max_acc;
-    float x_min_acc;
+    double x_max_acc;
+    double x_min_acc;
 
-    float z_max_acc;
-    float z_min_acc;
+    double z_max_acc;
+    double z_min_acc;
 
     // ロボットの速度、加速度の分解能
-    float vel_res;
-    float ang_res;    // 10degくらい
+    double vel_res;
+    double ang_res;    // 10degくらい
 
     // スペックをパラメータから取得する関数
     void get_spec_param(ros::NodeHandle n, my_robo_spec& spec){
@@ -45,7 +48,7 @@ public:
         //return spec;
     }
 
-    void set_resolution(float Vres,float Wres){
+    void set_resolution(double Vres,double Wres){
         vel_res = Vres;
         ang_res = Wres;
     }

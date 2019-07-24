@@ -47,6 +47,7 @@
         "optional": "cpp",
         "string_view": "cpp",
         "system_error": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "numeric": "cpp"
     }
 }

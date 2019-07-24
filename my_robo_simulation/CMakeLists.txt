@@ -199,12 +199,12 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(my_robo_drive src/lrf_listener.cpp src/my_robo_drive.cpp src/joy_listener.cpp src/cal_dwa.cpp)
-add_executable(predictTraj_test src/predictTraj_test.cpp)
+add_executable(my_robo_drive src/drive_util.cpp src/my_robo_drive.cpp src/joy_listener.cpp src/my_robo_sensor.cpp)
+#add_executable(predictTraj_test src/predictTraj_test.cpp)
 ## add_dependencies(basic_simple_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(my_robo_drive ${catkin_LIBRARIES})
-target_link_libraries(predictTraj_test ${catkin_LIBRARIES})
+#target_link_libraries(predictTraj_test ${catkin_LIBRARIES})
 
 #install(TARGETS my_robo_lrf_controller
 #  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
