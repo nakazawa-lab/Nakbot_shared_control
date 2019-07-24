@@ -17,23 +17,28 @@
 #define MY_ROBO_DRIVE
 
 
+
     // DWAのセッティング
 struct DWA_var{
-    float dt =1;
-    float dt_traj=0.1;
+    // DWA設定の刻み.ループレイトと同じが望ましい
+    double dt =1;
+    // 軌道計算の刻み
+    double dt_traj=0.5;
+    // 軌道予測時刻
+    double PredictTime = 5;
     //float looprate = 2;          // Hz
-    float looprate = 0.2;
-    float PredictTime = 2;
-    float k_heading = 1;
-    float k_velocity = 1;
+    double looprate = 1 / dt;
+
+    double k_heading = 1;
+    double k_velocity = 1;
 
 
     // 予測軌道 [index][時刻index][time,x,y,theta]
-    std::vector<std::vector<std::vector<float>>>  PredictTraj;
+    std::vector<std::vector<std::vector<double>>>  PredictTraj;
 
     // 候補となる(v,w)の対
     // [index][v,w,d_U]
-    std::vector<std::vector<float>> CandVel;
+    std::vector<std::vector<double>> CandVel;
 
     // 衝突判定用フラグ
     std::vector<bool> isCollision;
@@ -41,9 +46,10 @@ struct DWA_var{
 
 // 次の位置を格納する箱
 struct position{
-    float x;
-    float y;
-    float th;
+    double x;
+    double y;
+    double sin_th;
+    double cos_th;
 };
 
 class my_robo{
@@ -63,12 +69,12 @@ private:
     // ロボットの最大速度,加速度 コンストラクタでパラメータから読み込む
     // [i][0]速度 [i][1]角速度
     // i=0 max vel  1 min vel   2 max acc     3 min acc
-    //std::vector<std::vector<float>> spec;
+    //std::vector<std::vector<double>> spec;
     // →specに統合
 
     // joyからの速度指令を保存する
-    float x_vel_joy;
-    float z_ang_joy;
+    double x_vel_joy;
+    double z_ang_joy;
 
     //　最終的にパブリッシュする速度司令
     geometry_msgs::Twist pub_vel;
@@ -102,13 +108,7 @@ public:
 
 
     // 次の時刻のロボットの位置を計算する関数
-    position robot_model( position p_now, float cand_v , float cand_w , float dt,  my_robo_sensor& sensor){
-        position p_next;
-        p_next.x = p_now.x +  cand_v * cos(p_now.th) * dt * cos( p_now.th + dt/2);
-        p_next.y = p_now.y  + cand_v * sin(p_now.th) * dt * sin( p_now.th + dt/2);;
-        p_next.th = p_now.th + cand_w * dt;
-        return p_next;
-    }
+    position robot_model( position p_now, double cand_v , double cand_w , double dt);
 
     // 障害物との入力相当距離(SharedDWAのd_Uにあたる)を求め,Admを返す
     void cal_Dist();
@@ -125,10 +125,19 @@ public:
 
     void check_joy();
 
-    void pub_marker(position p);
+    visualization_msgs::Marker make_pos_marker(position p);
 
-    void pub_marker_array();
+    visualization_msgs::MarkerArray make_traj_marker_array();
+
+    void pub_marker_array(visualization_msgs::MarkerArray markers){
+        pub_mark_arr.publish(markers);
+    };
+
+    void pub_marker(visualization_msgs::Marker marker){
+        pub_mark.publish(marker);
+    };
     
+    position cal_nowp(nav_msgs::Odometry& odom);
 };
 
 #endif

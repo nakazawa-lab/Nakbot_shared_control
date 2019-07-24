@@ -213,7 +213,7 @@
 		<parent link="base_link"/>
 		   <child link="back_caster"/>
 		<!--   <origin xyz="0 0 -0.02"/> -->
-		   <origin xyz="-0.130 0 -0.06"/>
+		   <origin xyz="-0.130 0 -0.071"/>
 		 </joint>
 
 		  <link name="back_caster">
