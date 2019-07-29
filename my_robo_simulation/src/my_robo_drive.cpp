@@ -113,7 +113,7 @@ my_robo::my_robo()
     sensor.joy_cmd_vel[0] = 0;
     sensor.joy_cmd_vel[1] = 0;
 
-    spec.set_resolution(spec.x_max_acc * DWA.dt / 2, spec.z_max_acc * DWA.dt / 3);
+    spec.set_resolution(spec.x_max_acc * DWA.dt / 4, spec.z_max_acc * DWA.dt / 4);
 
     //sub_lrf=n.subscribe("/laserscan", 10, chatterCallback);
 
@@ -282,6 +282,16 @@ void my_robo::cal_DWA()
         i++;
     }
 
+    // //test
+    // DWA.CandVel.push_back(std::vector<double>());
+    // DWA.CandVel[i].push_back(1.0); //[i][0]に速度要素
+    // DWA.CandVel[i].push_back(0.0); //[i][1]に角速度要素
+
+    // DWA.CandVel.push_back(std::vector<double>());
+    // DWA.CandVel[i+1].push_back(1.0); //[i][0]に速度要素
+    // DWA.CandVel[i+1].push_back(0.5); //[i][1]に角速度要素
+
+
     while (true)
     {
         double g = min_dwa_ang;
@@ -361,12 +371,11 @@ void my_robo::cal_predict_position()
         // position pp;
         // pp.x = DWA.PredictTraj[i][8][0];
         // pp.y = DWA.PredictTraj[i][8][1];
-        // pub_marker(pp);
+         //pub_marker(pp);
 
         //ROS_INFO("TrajSize%d", DWA.PredictTraj.back().size());
     }
-    visualization_msgs::MarkerArray markers = make_traj_marker_array();
-    pub_marker_array(markers);
+
     //ROS_INFO("candidate size is %d",DWA.CandVel.size());
     //ROS_INFO("finish cal traj\n");
 }
@@ -476,6 +485,7 @@ void my_robo::cal_Dist()
         {
             d_U = 1;
             DWA.CandVel[i].push_back(d_U);
+            //ROS_INFO("i=%d v=w=0 no collision.\n",i);
             //ROS_INFO("i=%d d_U%f", i,d_U);
         }
         else
@@ -494,27 +504,43 @@ void my_robo::cal_Dist()
                     DWA.isCollision.push_back(false);
                     d_U = 1;
                     DWA.CandVel[i].push_back(d_U);
-                    //ROS_INFO("i:%d", i);
-                    //ROS_INFO("timeout while cal D_U.break\n");
-                    //ROS_INFO("i=%d d_U%f\n", i,d_U);
+                    // ROS_INFO("i:%d", i);
+                    // ROS_INFO("timeout while cal D_U.break");
+                    // ROS_INFO("i=%d d_U%f\n", i,d_U);
                     break;
                 }
 
-                d_lin = v * time;
-                d_ang = w * time;
-                d = sqrt(2 * r * r * (1 + cos(d_ang))); // 余弦定理
-                th = acos((v * sin(d_ang)) / (d * w));
+                // d_linとd_angを求める
+                // dとthを求める
+                if(w == 0.0){
+                   //ROS_INFO("w=0.0");
+                    d_lin = abs(v * time);
+                    d_ang = 0;
 
+                    d = d_lin;
+                    th = 0;
+                }
+                else{
+                    d_lin = abs(v * time);
+                    d_ang = w * time;
+                    
+                    d = sqrt(2 * r * r * (1 - cos(d_ang))); // 余弦定理
+                    if(v > 0) th = acos((v * sin(d_ang)) / (d * w));  // 0からPIまででかえされる
+                    else th = -1 * acos((v * sin(d_ang)) / (d * w));
+                }
                 // ROS_INFO("c2.");
                 // ROS_INFO("d:%f.",d);
                 // ROS_INFO("th:%f.",th);
 
-                // 3 thetaを挟むようなLRFの計測値を2つ取り出す
+                // 3 thを挟むようなLRFの計測値を2つ取り出す
                 // indexとindex+1
                 int index = 0;
-                double index_th = index * sensor.latest_scan.angle_increment;
+                double index_th = 0;
+
                 // indexが数えやすいよう、最小測定角を0度としたときの角度に直す
-                double th_l = (sensor.latest_scan.angle_max - sensor.latest_scan.angle_min) / 2 + th;
+                // th_lはindexに合わせて、最小測定角から換算した角度を示す
+                // angle_max = 2.09444 ,angle_min = -2.0944を示す = 120deg
+                double th_l = sensor.latest_scan.angle_max + th;
 
                 while (abs(index_th - th_l) > sensor.latest_scan.angle_increment)
                 {
@@ -522,72 +548,83 @@ void my_robo::cal_Dist()
                     index++;
                     index_th = index * sensor.latest_scan.angle_increment;
                     //ROS_INFO("c4.");
-                    if (index > sensor.latest_scan.ranges.size() - 2)
+                    if (index > sensor.latest_scan.ranges.size() - 2){
+                        // 120度以上の方向に行ってしまう場合
+                        // ただbreakするだけでは衝突判定が出てしまうので、特殊な数字を用意しておく
+                        index = -1;
                         break;
+                    }
                 }
 
                 //ROS_INFO("range_size:%d",sensor.latest_scan.ranges.size());   //683
 
-                // ROS_INFO("time%f",time);
+                //ROS_INFO("time%f",time);
                 //ROS_INFO("index:%d",index);
                 //ROS_INFO("d:%f",d);
                 //ROS_INFO("laser:%f",sensor.latest_scan.ranges[index]);
 
                 // 4 その2つの計測値のdの値と計算された時のdの値を求める
                 // 4-a-1 計測値のどちらかより計算値が大きければ、衝突と判定、その時のd_lとd_aを求める
-                if (d > sensor.latest_scan.ranges[index] || d > sensor.latest_scan.ranges[index + 1])
-                {
-                    //ROS_INFO("spec x_min_acc z_min_acc:%f,%f",spec.x_min_acc,spec.z_min_acc);
-                    // 4-a-2 v_inevとw_inevを求める
-                    double v_inev = sqrt(abs(2 * spec.x_min_acc * d_lin));
-                    double w_inev = sqrt(abs(2 * spec.z_min_acc * d_ang));
+                if(index >= 0){
+                    if (d > sensor.latest_scan.ranges[index] || d > sensor.latest_scan.ranges[index + 1])
+                    {
+                        //ROS_INFO("spec x_min_acc z_min_acc:%f,%f",spec.x_min_acc,spec.z_min_acc);
+                        // 4-a-2 v_inevとw_inevを求める
+                        double v_inev = sqrt(abs(2 * spec.x_min_acc * d_lin));
+                        double w_inev = sqrt(abs(2 * spec.z_min_acc * d_ang));
 
-                    //  ROS_INFO("v_inev%f",v_inev);
-                    //  ROS_INFO("w_inev%f",w_inev);
-                    //  ROS_INFO("v%f",v);
-                    //  ROS_INFO("w%f",w);
-                    // ROS_INFO("d:%f.",d);
-                    // ROS_INFO("th:%f.",th);
-                    // ROS_INFO("time:%f.",time);
-                    // 4-a-3 d_uを求める
-                    if (v >= v_inev || w >= w_inev){
-                        d_U = 0;
-                        //ROS_INFO("i=%d d_U%f\n", i,d_U);
+                        // ROS_INFO("i=%d colision",i);
+                        // ROS_INFO("index:%d",index);
+                        // ROS_INFO("laser:%f",sensor.latest_scan.ranges[index]);
+                        // ROS_INFO("v_inev%f",v_inev);
+                        // ROS_INFO("w_inev%f",w_inev);
+                        // ROS_INFO("v%f",v);
+                        // ROS_INFO("w%f",w);
+                        // ROS_INFO("d:%f.",d);
+                        // ROS_INFO("th:%f.",th);
+                        // ROS_INFO("d_lin:%f.",d_lin);
+                        // ROS_INFO("d_ang:%f.",d_ang);
+                        // ROS_INFO("time:%f.",time);
+                        // 4-a-3 d_uを求める
+                        if (v >= v_inev || w >= w_inev){
+                            d_U = 0;
+                            //ROS_INFO("i=%d d_U%f\n", i,d_U);
+                        }
+                        else
+                        {
+                            d_U = std::min( abs( (v_inev - v) / v_inev) , abs((w_inev - w)/ w_inev) );
+                            // ROS_INFO("d_U=%f",d_U);
+                            // ROS_INFO("i=%d, abs(v_inev- v / v_inev)%f. abs(w_inev- w / w_inev)%f\n",i, abs((v_inev - v) / v_inev),abs((w_inev- w) / w_inev));
+
+                            //ROS_INFO("i=%d, d_U=%f",i, d_U);ROS_INFO("d:%f.",d);
+                            //ROS_INFO("d:%f.", d);
+                            //ROS_INFO("th:%f.\n", th);
+                        }
+                        DWA.CandVel[i].push_back(d_U);
+
+                        //ROS_INFO("abs( w_inev - w / w_inev)%f",abs( (w_inev - w) / w_inev));
+                        //ROS_INFO("i=%d d_U%f", i,d_U);
+
+                        // Dの計算に使うので、もし予測時刻内の衝突であればフラグを立てる
+                        if (time < DWA.PredictTime)
+                        {
+                            //ROS_INFO("collision in predict time.");
+                            //ROS_INFO("break\n.");
+                            DWA.isCollision.push_back(true);
+                        }
+                        else
+                        {
+                            DWA.isCollision.push_back(false);
+                            //ROS_INFO("collision out of predict time.");
+                            //ROS_INFO("break\n.");
+                        }
+                        break;
                     }
                     else
                     {
-                        d_U = std::min(abs((v_inev - v) / v_inev), abs((w_inev - w) / w_inev));
-                        //ROS_INFO("i=%d, abs(v_inev- v / v_inev)%f",i, abs((v_inev - v) / v_inev));
-
-                        ROS_INFO("i=%d, d_U=%f",i, d_U);
-                        ROS_INFO("d:%f.", d);
-                        ROS_INFO("th:%f.\n", th);
+                        // ループを続ける
+                        //ROS_INFO("no collision.");
                     }
-                    DWA.CandVel[i].push_back(d_U);
-                    //ROS_INFO("collision.");
-
-                    //ROS_INFO("abs( w_inev - w / w_inev)%f",abs( (w_inev - w) / w_inev));
-                    // ROS_INFO("i=%d d_U%f", i,d_U);
-
-                    // Dの計算に使うので、もし予測時刻内の衝突であればフラグを立てる
-                    if (time < DWA.PredictTime)
-                    {
-                        //ROS_INFO("collision in predict time.");
-                        //ROS_INFO("break\n.");
-                        DWA.isCollision.push_back(true);
-                    }
-                    else
-                    {
-                        DWA.isCollision.push_back(false);
-                        //ROS_INFO("collision out of predict time.");
-                        //ROS_INFO("break\n.");
-                    }
-                    break;
-                }
-                else
-                {
-                    // ループを続ける
-                    //ROS_INFO("no collision.");
                 }
             }
         }
@@ -607,18 +644,38 @@ int my_robo::cal_J_sharedDWA(double D)
         adm = 1 - DWA.CandVel[i][2];
         double head;
         // 角度コストの計算
-        if (sensor.joy_cmd_vel[1] == 0)
+        double arctan2;
+        if(DWA.CandVel[i][0] == 0 && DWA.CandVel[i][1] == 0){
+            arctan2 = 0;
+        }
+        else{
+            arctan2 = atan2(DWA.CandVel[i][0], DWA.CandVel[i][1]);
+        }
+
+        // 2 速度指令が共に０のとき
+        if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
         {
+            //ROS_INFO("both 0");
             head = abs(DWA.CandVel[i][1]);
         }
-        if (sensor.joy_cmd_vel[0] = 0 & sensor.joy_cmd_vel != 0)
+        // 1 角速度指令が0、速度指令値が0ではないとき
+        else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
         {
-            head = abs(DWA.CandVel[i][1] - sensor.joy_cmd_vel[1]) / M_PI;
+              //          ROS_INFO("only w 0");
+            head = abs(M_PI/2 - arctan2) / M_PI;
+        }
+        // 3 角速度指令が0ではなく、速度指令が0のとき
+        else if(sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0){
+                //                    ROS_INFO("only v 0");
+            //head = abs(atan2(DWA.CandVel[i][0], DWA.CandVel[i][1]));
+            head = abs((DWA.CandVel[i][1] - sensor.joy_cmd_vel[1])) / M_PI;
         }
         else
         {
-            head = abs(atan2(DWA.CandVel[i][0], DWA.CandVel[i][1]) - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
+            head = abs(arctan2 - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
         }
+
+
         // 速度コストの計算
         // double velocity = (1 - D) * (abs(DWA.CandVel[i][0]-sensor.joy_cmd_vel[0])) / spec.x_max_vel + D * abs(DWA.CandVel[i][0]) / spec.x_max_vel;
         double velocity = (abs(DWA.CandVel[i][0] - sensor.joy_cmd_vel[0])) / spec.x_max_vel;
@@ -643,17 +700,17 @@ int my_robo::cal_J_sharedDWA(double D)
             // ROS_INFO("joy atan2:%f", atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]));
             // ROS_INFO("cand atan2:%f ", atan2(DWA.CandVel[i][0],DWA.CandVel[i][1]));
 
-            //ROS_INFO("adm:%lf", adm);
-            // ROS_INFO("head:%lf", head);
-            // ROS_INFO("velocity:%lf", velocity);
-            // ROS_INFO("cost:%lf\n", temp);
+            ROS_INFO("adm:%lf", adm);
+            ROS_INFO("head:%lf", head);
+            ROS_INFO("velocity:%lf", velocity);
+            //ROS_INFO("cost:%lf\n", temp);
         }
     }
     // ROS_INFO("finish cal_J");
     //ROS_INFO("index:%d\n",index);
     //ROS_INFO("pubvel:%f,%f",DWA.CandVel[index][0],DWA.CandVel[index][1]);
 
-    ROS_INFO("cost:%f", cost);
+    ROS_INFO("cost:%f\n", cost);
     return index;
 }
 
@@ -666,7 +723,8 @@ void my_robo::DWAloop()
     while (ros::ok())
     {
         ros::spinOnce();
-        ROS_INFO("get DWA loop.");
+        ROS_INFO("\n\nget DWA loop.");
+        //ROS_INFO("atan2(0,0):%d",atan2(0,0));
         //ROS_INFO("countj:%d",sensor.countj);
 
         // position p;
@@ -686,19 +744,22 @@ void my_robo::DWAloop()
             check_joy();
             //ROS_INFO("finish check joy\n");
 #ifdef SHAREDDWA
+        if(sensor.odom.twist.twist.linear.x >=0){
             cal_DWA();
             //ROS_INFO("finish cal DWA\n");
 
             cal_predict_position();
             //ROS_INFO("finish cal predict pos\n");
 
-            visualization_msgs::MarkerArray markers = sensor.cal_obs(sensor.latest_scan, 5, 80, sensor.odom.pose);
-            pub_marker_array(markers);
+            //visualization_msgs::MarkerArray markers = sensor.cal_obs(sensor.latest_scan, 5, 80, sensor.odom.pose);
+            //pub_marker_array(markers);
             //ROS_INFO("candidate size is %d",DWA.CandVel.size());
             //ROS_INFO("finish cal obs\n");
 
             cal_Dist();
             //ROS_INFO("finish cal Dist\n");
+            visualization_msgs::MarkerArray markers = make_traj_marker_array();
+            pub_marker_array(markers);
 
             //double D = cal_vel_sat();
             // //ROS_INFO("finish cal val_sat\n");
@@ -706,17 +767,19 @@ void my_robo::DWAloop()
 
             int index = cal_J_sharedDWA(D);
 
-            // if(sensor.joy_cmd_vel[0] >= 0){
-            // vel.linear.x=DWA.CandVel[index][0];
-            // vel.angular.z=DWA.CandVel[index][1];
-            // }
+            if(sensor.joy_cmd_vel[0] >= 0){
+            vel.linear.x=DWA.CandVel[index][0];
+            vel.angular.z=DWA.CandVel[index][1];
+            }
+        
             ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, DWA.CandVel[index][2]);
+        }
 #endif
         }
 
         pub_cmd.publish(vel);
 
-        ROS_INFO("pub vel.\n");
+        //ROS_INFO("pub vel.\n");
 
         clear_vector();
         //ROS_INFO("clear vector");
