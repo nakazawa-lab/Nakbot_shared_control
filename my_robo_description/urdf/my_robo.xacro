@@ -54,7 +54,7 @@
 
 
    <link name="base_link">
-    <visual>
+    <visual name = "base">
       <geometry>
         <box size="0.300 0.25 0.065"/>
       </geometry>
@@ -90,12 +90,19 @@
     </visual>
 
 
-   <collision>
+   <collision nane = "base">
       <geometry>
-        <box size="0.300 0.250 0.465"/>
+        <box size="0.300 0.250 0.065"/>
       </geometry>
-	<origin xyz="0 0 0.20" rpy="0 0 0"/>
+	<origin xyz="0 0 0" rpy="0 0 0"/>
     </collision>
+
+    <collision nane = "body">
+       <geometry>
+         <box size="0.200 0.250 0.4"/>
+       </geometry>
+   <origin xyz="-0.05 0 0.2325" rpy="0 0 0"/>
+     </collision>
 
    <inertial>
     <origin xyz="-0.05 0 0.0575"/>
@@ -113,7 +120,7 @@
     <child link="left_wheel_link"/>
     <origin rpy="-1.5707 0 0" xyz="0 0.1425 -0.0175"/>
     <axis xyz="0 0 1"/>
-    <limit velocity="1.0" effort="5.0"/>	<!--decide mortor power-->
+    <limit velocity="1.0" effort="2.0"/>	<!--decide mortor power-->
     <dynamics damping="0.2"/>                   <!--damping of axes of mortor-->
   </joint>
 
@@ -150,8 +157,8 @@
     <child link="right_wheel_link"/>
     <origin rpy="1.5707 0 0" xyz="0 -0.1425 -0.0175"/>
     <axis xyz="0 0 -1"/>
-    <limit velocity="1.0" effort="5.0"/>
-    <dynamics damping="0.2"/>               
+    <limit velocity="1.0" effort="2.0"/>
+    <dynamics damping="0.2"/>
   </joint>
 
   <link name="right_wheel_link">
@@ -503,7 +510,8 @@
           <noise>
             <type>gaussian</type>
             <mean>0.0</mean>
-            <stddev>0.007</stddev>
+            <!-- <stddev>0.007</stddev> -->
+            <stddev>0.000</stddev>
           </noise>
         </camera>
 
