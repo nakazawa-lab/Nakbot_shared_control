@@ -62,7 +62,7 @@ void my_robo_sensor::cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg)
     //ROS_INFO("count j:%d",countj);
 }
 
-visualization_msgs::MarkerArray my_robo_sensor::pub_markers(std::vector<std::vector<double>> obs)
+visualization_msgs::MarkerArray my_robo_sensor::make_obs_markers(std::vector<std::vector<double>> obs)
 {
     visualization_msgs::MarkerArray marker_array;
     marker_array.markers.resize(obs.size());
@@ -85,7 +85,7 @@ visualization_msgs::MarkerArray my_robo_sensor::pub_markers(std::vector<std::vec
         marker_array.markers[k].header.stamp = ros::Time::now();
         marker_array.markers[k].ns = "cmd_vel_display";
         marker_array.markers[k].id = k;
-        marker_array.markers[k].lifetime = (ros::Duration)0.5;
+        marker_array.markers[k].lifetime = (ros::Duration)1;
 
         // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
         marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
@@ -107,6 +107,9 @@ visualization_msgs::MarkerArray my_robo_sensor::pub_markers(std::vector<std::vec
         marker_array.markers[k].color.a = 1.0f;
         k++;
     }
-    ROS_INFO("pub marker array.");
     return marker_array;
+}
+
+void my_robo_sensor::pub_joy_marker(){
+    
 }
