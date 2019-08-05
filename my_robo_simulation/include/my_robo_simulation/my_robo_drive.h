@@ -21,11 +21,11 @@
     // DWAのセッティング
 struct DWA_var{
     // DWA設定の刻み.ループレイトと同じが望ましい
-    double dt =0.15;
+    double dt =0.25;
     // 軌道計算の刻み
     double dt_traj=0.2;
     // 軌道予測時刻
-    double PredictTime = 5;
+    double PredictTime = 3 ;
     //double looprate = 2;          // Hz
     double looprate = 1 / dt;
 
@@ -33,8 +33,10 @@ struct DWA_var{
     double k_velocity = 1;
 
 
-    // 予測軌道 [index][時刻index][time,x,y,theta]
+    // 予測軌道 [index][時刻index][time,x,y,sin cos]
     std::vector<std::vector<std::vector<double>>>  PredictTraj;
+
+    std::vector<std::vector<double>> Joy_PredictTraj;
 
     // 候補となる(v,w)の対
     // [index][v,w,d_U]
@@ -111,7 +113,11 @@ public:
     position robot_model( position p_now, double cand_v , double cand_w , double dt);
 
     // 障害物との入力相当距離(SharedDWAのd_Uにあたる)を求め,Admを返す
+    // すべてのLRFの点を用いたバージョン
     void cal_Dist();
+
+    // LRFの代表点を用いたバージョン
+    void cal_Dist2();
 
     // 評価関数を計算する Dはsat係数.あらかじめ計算しておく
     int cal_J_sharedDWA(double D);
@@ -127,7 +133,7 @@ public:
 
     visualization_msgs::Marker make_pos_marker(position p);
 
-    visualization_msgs::MarkerArray make_traj_marker_array();
+    visualization_msgs::MarkerArray make_traj_marker_array(int index);
 
     void pub_marker_array(visualization_msgs::MarkerArray markers){
         pub_mark_arr.publish(markers);
@@ -138,6 +144,8 @@ public:
     };
     
     position cal_nowp(nav_msgs::Odometry& odom);
+
+    void say_log();
 };
 
 #endif

@@ -10,6 +10,7 @@ void my_robo::clear_vector(){
   DWA.CandVel.clear();
   DWA.PredictTraj.clear();
   DWA.isCollision.clear();
+  DWA.Joy_PredictTraj.clear();
   // ROS_INFO("candsize:%d",DWA.CandVel.size());
   // ROS_INFO("predict:%d",DWA.PredictTraj.size());
   // ROS_INFO("isCollisiton:%d",DWA.isCollision.size());
@@ -75,19 +76,22 @@ visualization_msgs::Marker my_robo::make_pos_marker(position p){
 }
 
 // k番目の速度候補
-visualization_msgs::MarkerArray my_robo::make_traj_marker_array()
+visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
 {
   visualization_msgs::MarkerArray marker_array;
-  marker_array.markers.resize(DWA.PredictTraj[0].size() * DWA.PredictTraj.size());
+  marker_array.markers.resize((DWA.PredictTraj[0].size()+1) * DWA.PredictTraj.size());
 
   int k=0;
   float green=0;
   float red=0;
+  bool flag = false;  // 採用軌道を示すもの  
 // 候補の数ループ
-  for (int i=0; i<DWA.PredictTraj.size();i +=3){
+  for (int i=0; i<DWA.PredictTraj.size();i ++){
     //ROS_INFO("start put marker.");
 
     // float GREEN= (double)rand()/RAND_MAX;
+    if(i == index)flag = true;
+    else flag = false;
 
     //予測時刻の数だけループ
     for (int j = 0; j < DWA.PredictTraj[i].size(); j +=2)
@@ -104,9 +108,20 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array()
       // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
       marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
       marker_array.markers[k].action = visualization_msgs::Marker::ADD;
+
+
+      if(flag){
+      marker_array.markers[k].scale.x = 0.1;
+      marker_array.markers[k].scale.y = 0.1;
+      marker_array.markers[k].scale.z = 0.1;
+      }
+      else
+      {
       marker_array.markers[k].scale.x = 0.05;
       marker_array.markers[k].scale.y = 0.05;
       marker_array.markers[k].scale.z = 0.05;
+      }
+
       marker_array.markers[k].pose.position.x = DWA.PredictTraj[i][j][1];
       marker_array.markers[k].pose.position.y = DWA.PredictTraj[i][j][2];
       marker_array.markers[k].pose.position.z =  0;
@@ -115,10 +130,21 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array()
       marker_array.markers[k].pose.orientation.z = 0;
       marker_array.markers[k].pose.orientation.w = 1;
 
-      marker_array.markers[k].color.r = 1.0f;
-      marker_array.markers[k].color.g = DWA.CandVel[i][2];
-      marker_array.markers[k].color.b = DWA.CandVel[i][2];
-      marker_array.markers[k].color.a = 1.0f;
+      
+      if(flag){
+        marker_array.markers[k].color.r = 0.0f;
+        marker_array.markers[k].color.g = 0.0f;
+        marker_array.markers[k].color.b = 1.0f;
+        marker_array.markers[k].color.a = 1.0f;
+      }
+      else
+      {
+        marker_array.markers[k].color.r = 1.0f;
+        marker_array.markers[k].color.g = DWA.CandVel[i][2];
+        marker_array.markers[k].color.b = DWA.CandVel[i][2];
+        marker_array.markers[k].color.a = 1.0f;
+      }
+
       k++;
 
     }
@@ -131,8 +157,43 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array()
  // pub_marker_array(marker_array);
   //ROS_INFO("pub marker array.");
 
-  return marker_array;
+// joyの予測軌道を緑色で入れる
+   //予測時刻の数だけループ
 
+    for (int j = 0; j < DWA.Joy_PredictTraj.size(); j ++)
+    {
+    //ROS_INFO("start loop.");
+
+    marker_array.markers[k].header.frame_id = "/odom";
+    marker_array.markers[k].header.stamp = ros::Time::now();
+    marker_array.markers[k].ns = "cmd_vel_display";
+    marker_array.markers[k].id = k;
+    marker_array.markers[k].lifetime = (ros::Duration)(1 / DWA.looprate) * 2; //2ループ存在
+
+    // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
+    marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
+    marker_array.markers[k].action = visualization_msgs::Marker::ADD;
+    marker_array.markers[k].scale.x = 0.1;
+    marker_array.markers[k].scale.y = 0.1;
+    marker_array.markers[k].scale.z = 0.1;
+    marker_array.markers[k].pose.position.x = DWA.Joy_PredictTraj[j][1];
+    marker_array.markers[k].pose.position.y = DWA.Joy_PredictTraj[j][2];
+    marker_array.markers[k].pose.position.z = 0;
+    marker_array.markers[k].pose.orientation.x = 0;
+    marker_array.markers[k].pose.orientation.y = 0;
+    marker_array.markers[k].pose.orientation.z = 0;
+    marker_array.markers[k].pose.orientation.w = 1;
+
+    marker_array.markers[k].color.r = 0.0f;
+    marker_array.markers[k].color.g = 1.0f;
+    marker_array.markers[k].color.b = 0.0f;
+    marker_array.markers[k].color.a = 1.0f;
+    k++;
+
+    }
+
+
+  return marker_array;
 }
 
 position my_robo::cal_nowp(nav_msgs::Odometry& odom){
@@ -144,4 +205,8 @@ position my_robo::cal_nowp(nav_msgs::Odometry& odom){
   now_p.cos_th = odom.pose.pose.orientation.w * odom.pose.pose.orientation.w - odom.pose.pose.orientation.z * odom.pose.pose.orientation.z;
 
   return now_p;
+}
+
+void my_robo::say_log(){
+  //ROS_INFO();
 }

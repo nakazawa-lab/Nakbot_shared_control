@@ -60,7 +60,9 @@ public:
 
     void cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg);
 
-    visualization_msgs::MarkerArray pub_markers(std::vector<std::vector<double>> obs);
+    visualization_msgs::MarkerArray make_obs_markers(std::vector<std::vector<double>> obs);
+
+    void pub_joy_marker();
 };
 
 #endif
