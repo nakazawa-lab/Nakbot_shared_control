@@ -210,3 +210,7 @@ position my_robo::cal_nowp(nav_msgs::Odometry& odom){
 void my_robo::say_log(){
   //ROS_INFO();
 }
+
+void Detect_Lines(){
+  
+}
