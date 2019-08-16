@@ -113,3 +113,83 @@ visualization_msgs::MarkerArray my_robo_sensor::make_obs_markers(std::vector<std
 void my_robo_sensor::pub_joy_marker(){
     
 }
+
+// 線を検出する
+void my_robo_sensor::detect_line(const sensor_msgs::LaserScan &scan){
+    // 隣接する転換の距離がこの値を超えると同一直線状にあると判断する
+    double lineTh = 0.1;
+    bool sameLineflag = false;
+    int startPoint;
+    int endPoint;
+    int i=0;
+
+    while(i < scan.ranges.size() - 1){
+        if(abs(scan.ranges[i]-scan.ranges[i+1]) < lineTh){
+            sameLineflag = true;
+            startPoint = i;
+            i++;
+
+            // 次の点も直線上にあるか調べる
+            while(true){
+                if(abs(scan.ranges[i]-scan.ranges[i+1]) < lineTh){
+                    if(i==scan.ranges.size()) break;
+                    else i++;
+                }
+                else break;
+            }
+            endPoint =i;
+
+            // starpointとendpointが決まったので、新しいlineオブジェクトを保存
+            line newLine = line(startPoint, endPoint);
+            lines.push_back(newLine);
+            ROS_INFO("detect new line.");
+        }
+
+    }
+    ROS_INFO("num of line: %d",lines.size());
+
+}
+
+double line::cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserScan &scan){
+    double Dist_startToend;
+    double startX,startY,endX,endY;
+
+    // メモのルーズリーフ参照.余弦定理
+    double alpha, beta,start_theta,end_theta;
+
+    start_theta = cal_ang_fromfront(startPoint, scan);
+    end_theta =  cal_ang_fromfront(endPoint, scan);
+
+    ROS_INFO("start theta: %f, end theta: %f",start_theta, end_theta);
+
+    // 現在の位置から見た店の相対座標
+    startX = scan.ranges[startPoint] * cos(start_theta);
+    startY = scan.ranges[startPoint] * sin(start_theta);
+    endX = scan.ranges[endPoint] * cos(end_theta);
+    endY = scan.ranges[endPoint] * sin(end_theta);
+
+    Dist_startToend = sqrt( (startX - endX) * (startX - endX) + (startY - endY) * (startY - endY) );
+
+    ROS_INFO("dist start to end: %f",Dist_startToend);
+
+    // 余弦定理
+    beta = acos (((Dist_startToend * Dist_startToend) + (scan.ranges[endPoint] * scan.ranges[endPoint]) - (scan.ranges[startPoint] * scan.ranges[startPoint]))
+                / (2 * Dist_startToend * scan.ranges[endPoint]));
+
+    alpha = beta + scan.angle_increment * (endPoint - startPoint);
+    if(alpha > M_PI/2){
+        alpha = M_PI - alpha;
+    }
+
+    ROS_INFO("alpha: %f",alpha);
+
+    return alpha + start_theta;
+}
+
+double line::cal_ang_fromfront(int index, const sensor_msgs::LaserScan &scan){
+    double theta;
+    theta = abs(scan.angle_increment * (index - scan.ranges.size()/2));
+    ROS_INFO("theta: %f",theta);
+
+    return theta;
+}

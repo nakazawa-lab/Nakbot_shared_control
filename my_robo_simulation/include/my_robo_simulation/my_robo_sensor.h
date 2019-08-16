@@ -44,6 +44,9 @@ public:
 
     ros::Publisher pub_mark_arr;
 
+    // 検出された線についての情報
+    std::vector<line> lines;
+
     // my_roboのコンストラクタでも行っている
     my_robo_sensor()
     {
@@ -63,6 +66,34 @@ public:
     visualization_msgs::MarkerArray make_obs_markers(std::vector<std::vector<double>> obs);
 
     void pub_joy_marker();
+
+    void detect_line(const sensor_msgs::LaserScan &scan);
+    
+    static void next_is_line(int point, double th);
 };
+
+// 検出した線に関する情報を集めたクラス
+class line{
+private:
+    int start_point_index;
+    int last_point_index;
+
+    int num_point;
+
+    double curve;
+
+public:
+    line(int s,int e){
+        start_point_index = s;
+        last_point_index = e;
+        num_point = e - s + 1;
+    };
+
+    static double cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserScan &scan);
+
+    static double cal_ang_fromfront(int index, const sensor_msgs::LaserScan &scan);
+
+
+}
 
 #endif
