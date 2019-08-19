@@ -19,6 +19,36 @@
 // sensor_msgs::LaserScan slatest_scan;
 // sensor_msgs::Joy sjoy;
 
+
+// 検出した線に関する情報を集めたクラス
+class line{
+private:
+    int start_point_index;
+    int last_point_index;
+
+    int num_point;
+
+    double curve;
+
+    // ロボット座標系から見た線のはじめのX座標とY座標
+    double start_X,start_Y,end_X,end_Y;
+
+public:
+    line(int s,int e,const sensor_msgs::LaserScan &scan){
+        start_point_index = s;
+        last_point_index = e;
+        num_point = e - s + 1;
+        cal_curve(start_point_index,last_point_index,scan);
+    };
+
+    // この中でstar_Xなどが決定され代入される
+    double cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserScan &scan);
+
+    double cal_ang_fromfront(int index, const sensor_msgs::LaserScan &scan);
+
+    visualization_msgs::MarkerArray make_edge_marker(int center,const sensor_msgs::LaserScan &scan, geometry_msgs::PoseWithCovariance &pose);
+};
+
 class my_robo_sensor
 {
 public:
@@ -72,28 +102,6 @@ public:
     static void next_is_line(int point, double th);
 };
 
-// 検出した線に関する情報を集めたクラス
-class line{
-private:
-    int start_point_index;
-    int last_point_index;
 
-    int num_point;
-
-    double curve;
-
-public:
-    line(int s,int e){
-        start_point_index = s;
-        last_point_index = e;
-        num_point = e - s + 1;
-    };
-
-    static double cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserScan &scan);
-
-    static double cal_ang_fromfront(int index, const sensor_msgs::LaserScan &scan);
-
-
-}
 
 #endif

@@ -4,6 +4,8 @@
 #include<random>
 
 #include<my_robo_simulation/my_robo_sensor.h>
+#include"my_robo_simulation/my_robo_util.h"
+
 
 void my_robo::clear_vector(){
   // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
@@ -11,6 +13,7 @@ void my_robo::clear_vector(){
   DWA.PredictTraj.clear();
   DWA.isCollision.clear();
   DWA.Joy_PredictTraj.clear();
+  sensor.lines.clear();
   // ROS_INFO("candsize:%d",DWA.CandVel.size());
   // ROS_INFO("predict:%d",DWA.PredictTraj.size());
   // ROS_INFO("isCollisiton:%d",DWA.isCollision.size());
@@ -211,6 +214,63 @@ void my_robo::say_log(){
   //ROS_INFO();
 }
 
-void Detect_Lines(){
-  
+
+
+
+double add_theorem_sin(double sin_a, double sin_b, double cos_a, double cos_b)
+{
+    //ROS_INFO("sin_a:%f,sin_b:%f,cos_a:%f,cos_b%f",sin_a,sin_b,cos_a,cos_b);
+    double a = (sin_a * cos_b + cos_a * sin_b);
+    return a;
+}
+
+double add_theorem_cos(double sin_a, double sin_b, double cos_a, double cos_b)
+{
+    double a = (cos_a * cos_b - sin_a * sin_b);
+    return a;
+}
+
+void geometry_quat_to_rpy(double &roll, double &pitch, double &yaw, geometry_msgs::Quaternion geometry_quat)
+{
+    tf::Quaternion quat;
+    quaternionMsgToTF(geometry_quat, quat);
+    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw); //rpy are Pass by Reference
+}
+
+visualization_msgs::MarkerArray make_markers_2Dvector(std::vector<std::vector<double>> obs)
+{
+    visualization_msgs::MarkerArray marker_array;
+    marker_array.markers.resize(obs.size());
+    ROS_INFO("obs size:%d",obs.size());
+
+    int k = 0;
+    for (int i = 0; i < obs.size(); i++)
+    {
+        marker_array.markers[k].header.frame_id = "/odom";
+        marker_array.markers[k].header.stamp = ros::Time::now();
+        marker_array.markers[k].ns = "cmd_vel_display";
+        marker_array.markers[k].id = k;
+        marker_array.markers[k].lifetime = (ros::Duration)1;
+
+        // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
+        marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
+        marker_array.markers[k].action = visualization_msgs::Marker::ADD;
+        marker_array.markers[k].scale.x = 0.1;
+        marker_array.markers[k].scale.y = 0.1;
+        marker_array.markers[k].scale.z = 0.1;
+        marker_array.markers[k].pose.position.x = obs[i][0];
+        marker_array.markers[k].pose.position.y = obs[i][1];
+        marker_array.markers[k].pose.position.z = 0;
+        marker_array.markers[k].pose.orientation.x = 0;
+        marker_array.markers[k].pose.orientation.y = 0;
+        marker_array.markers[k].pose.orientation.z = 0;
+        marker_array.markers[k].pose.orientation.w = 1;
+
+        marker_array.markers[k].color.r = 0.0f;
+        marker_array.markers[k].color.g = 0.0f;
+        marker_array.markers[k].color.b = 1.0f;
+        marker_array.markers[k].color.a = 1.0f;
+        k++;
+    }
+    return marker_array;
 }

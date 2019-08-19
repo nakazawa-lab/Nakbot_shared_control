@@ -2,14 +2,7 @@
 #include "my_robo_simulation/dwa_normal.h"
 
 #include "my_robo_simulation/my_robo_sensor.h"
-
-/*
-static void calculate_dwa(my_robo_spec spec,float predict_time, float dt, std::vector<pair_vel>& candidate_vel){
-
-}
-*/
-
-
+#include"my_robo_simulation/my_robo_util.h"
 
 
 void my_robo_sensor::cb_odom(const nav_msgs::Odometry::ConstPtr &msg)
@@ -68,19 +61,8 @@ visualization_msgs::MarkerArray my_robo_sensor::make_obs_markers(std::vector<std
     marker_array.markers.resize(obs.size());
 
     int k = 0;
-    // 候補の数/4だけループ
     for (int i = 0; i < obs.size(); i++)
     {
-        //ROS_INFO("start put marker.");
-
-        // float GREEN= (double)rand()/RAND_MAX;
-
-        //予測時刻の数だけループ
-        // for (int j = 0; j < DWA.PredictTraj[i].size(); j++)
-        // {
-
-        //ROS_INFO("start loop.");
-
         marker_array.markers[k].header.frame_id = "/odom";
         marker_array.markers[k].header.stamp = ros::Time::now();
         marker_array.markers[k].ns = "cmd_vel_display";
@@ -124,35 +106,45 @@ void my_robo_sensor::detect_line(const sensor_msgs::LaserScan &scan){
     int i=0;
 
     while(i < scan.ranges.size() - 1){
+        // 直線状に並んでいると思われる2つの点を見つけたら
         if(abs(scan.ranges[i]-scan.ranges[i+1]) < lineTh){
             sameLineflag = true;
             startPoint = i;
-            i++;
 
             // 次の点も直線上にあるか調べる
             while(true){
                 if(abs(scan.ranges[i]-scan.ranges[i+1]) < lineTh){
-                    if(i==scan.ranges.size()) break;
+                    if(i==scan.ranges.size()-2) {
+                        endPoint =i-1;
+                        break;
+                        }
                     else i++;
                 }
-                else break;
+
+                else {
+                    endPoint =i;
+                    break;
+                }
             }
-            endPoint =i;
+            
 
             // starpointとendpointが決まったので、新しいlineオブジェクトを保存
-            line newLine = line(startPoint, endPoint);
+            line newLine = line(startPoint, endPoint, scan);
             lines.push_back(newLine);
-            ROS_INFO("detect new line.");
+            //ROS_INFO("detect new line.");
+            sameLineflag=false;
         }
-
+        i++;
     }
     ROS_INFO("num of line: %d",lines.size());
 
+
 }
+
 
 double line::cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserScan &scan){
     double Dist_startToend;
-    double startX,startY,endX,endY;
+    // double startX,startY,endX,endY;
 
     // メモのルーズリーフ参照.余弦定理
     double alpha, beta,start_theta,end_theta;
@@ -162,13 +154,15 @@ double line::cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserSca
 
     ROS_INFO("start theta: %f, end theta: %f",start_theta, end_theta);
 
-    // 現在の位置から見た店の相対座標
-    startX = scan.ranges[startPoint] * cos(start_theta);
-    startY = scan.ranges[startPoint] * sin(start_theta);
-    endX = scan.ranges[endPoint] * cos(end_theta);
-    endY = scan.ranges[endPoint] * sin(end_theta);
+    ROS_INFO("start point: %d, end point: %d",startPoint, endPoint);
 
-    Dist_startToend = sqrt( (startX - endX) * (startX - endX) + (startY - endY) * (startY - endY) );
+    // 現在の位置から見た点の相対座標 メンバに代入
+    start_X = scan.ranges[startPoint] * cos(start_theta);
+    start_Y = scan.ranges[startPoint] * sin(start_theta);
+    end_X = scan.ranges[endPoint] * cos(end_theta);
+    end_Y = scan.ranges[endPoint] * sin(end_theta);
+
+    Dist_startToend = sqrt( (start_X - end_X) * (start_X - end_X) + (start_Y - end_Y) * (start_Y - end_Y) );
 
     ROS_INFO("dist start to end: %f",Dist_startToend);
 
@@ -188,8 +182,51 @@ double line::cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserSca
 
 double line::cal_ang_fromfront(int index, const sensor_msgs::LaserScan &scan){
     double theta;
-    theta = abs(scan.angle_increment * (index - scan.ranges.size()/2));
-    ROS_INFO("theta: %f",theta);
+    float a=scan.angle_increment;
+    int b=(index - scan.ranges.size()/2);
+
+    // 以下のように書くと変な値が出てくる
+    //theta = abs(scan.angle_increment * (index - scan.ranges.size()/2));
+    //ROS_INFO("scan.angle_increment * (index - scan.ranges.size()/2):%f",theta);
+
+    theta = a*b;
+    //ROS_INFO("scan.angle_increment * (index - scan.ranges.size()/2):%f",a*b);
+    //ROS_INFO("scan.angle_increment * (index - scan.ranges.size()/2):%f",theta);
+
 
     return theta;
+}
+
+// 線のはじめと終わりのロボット座標系での位置を計算し、そのマーカを返す関数
+visualization_msgs::MarkerArray line::make_edge_marker(int center,const sensor_msgs::LaserScan &scan, geometry_msgs::PoseWithCovariance &pose){
+    std::vector<std::vector<double>> lineedge;
+
+    double roll, yaw, pitch;
+    // 今のrpyを求める
+    geometry_quat_to_rpy(roll, pitch, yaw, pose.pose.orientation);
+
+    /// ----------------start point--------------------- ///
+    lineedge.push_back(std::vector<double>());
+    // ロボット座標から見たときの座標xs,ys 絶対座標xo,yo
+    double xs = scan.ranges[start_point_index] * cos((start_point_index-center) * scan.angle_increment);
+    double ys = scan.ranges[start_point_index] * sin((start_point_index-center) * scan.angle_increment);
+    double xo = pose.pose.position.x + cos(yaw) * xs - sin(yaw) * ys;
+    double yo = pose.pose.position.y + sin(yaw) * xs + cos(yaw) * ys;
+    lineedge.back().push_back(xo);
+    lineedge.back().push_back(yo);
+
+    /// ------------------------end point--------------------------- ///
+    lineedge.push_back(std::vector<double>());
+    // ロボット座標から見たときの座標xs,ys 絶対座標xo,yo
+    xs = scan.ranges[start_point_index] * cos((start_point_index-center) * scan.angle_increment);
+    ys = scan.ranges[start_point_index] * sin((start_point_index-center) * scan.angle_increment);
+    xo = pose.pose.position.x + cos(yaw) * xs - sin(yaw) * ys;
+    yo = pose.pose.position.y + sin(yaw) * xs + cos(yaw) * ys;
+
+    lineedge.back().push_back(xo);
+    lineedge.back().push_back(yo);
+
+
+
+    return make_markers_2Dvector(lineedge);
 }

@@ -8,17 +8,7 @@
 #ifndef DWA_NORMAL
 #define DWA_NORMAL
 
-/*
-struct pair_vel{
-    float linear_vel=0.1;
-    float angular_vel=0.05;
-};
-*/
-/*
-struct widnow{
-    float max_vel,max_ang,min_vel,min_ang;
-};
-*/
+
 
 class dwa_normal{
 private:
@@ -52,36 +42,4 @@ private:
 
 
 };
-
-/*
-static void dwa_normal::calculate_dwa(my_robo_spec spec,float predict_time, float dt,std::vector<pair_vel>& cadidate_vel_list, pair_vel velNow){
-    // 車両モデルによるwindow Vs
-    // x_max_vel
-    // x_min_vel
-    // z_max_ang
-    // z_min_ang
-
-    // 運動モデルからなるwindow
-    window Vd{velNow.linear_vel+spec.x_max_acc*dt, velNow.angular_vel+spec.z_max_acc*dt, velNow.linear_vel+spec.x_min_acc*dt, velNow.angular_vel+spec.z_min_acc*dt};
-    
-    // ２つのモデルを足し合わせたwindow
-    window Vtmp{std::max(Vd.max_vel,x_max_vel), std::max(Vd.max_ang,z_max_ang),
-                    std::min(Vd.min_vel,x_min_vel), std::min(Vd.min_ang,z_min_ang)
-                     };
-
-    // 速度解像度から、候補となる速度対を計算
-    pair_vel tmp{linear_vel=Vtmp.min_vel, angular_vel=Vtmp.min_ang};
-
-
-    for(float v = tmp.linear_vel; v < Vtmp.max_vel; v += resolution.linear_vel){
-        tmp.linear_vel=v;
-        for(float w = tmp.angular_vel; w < Vtmp.max_ang; w += resolution.angular_vel){
-             tmp.angular_vel=w;
-             candidate_vel_list.push_back(tmp);
-        }
-    }
-
-}
-*/
-
 #endif
