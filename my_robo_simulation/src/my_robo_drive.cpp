@@ -3,32 +3,14 @@
 #include <algorithm>
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
+#include"my_robo_simulation/my_robo_util.h"
 
 //#define DEG2RAD M_PI / 180
 //#define RAD2DEG 180 / M_PI
 
-#define SHAREDDWA
+//#define SHAREDDWA
 
-double add_theorem_sin(double sin_a, double sin_b, double cos_a, double cos_b)
-{
-    //ROS_INFO("sin_a:%f,sin_b:%f,cos_a:%f,cos_b%f",sin_a,sin_b,cos_a,cos_b);
-    double a = (sin_a * cos_b + cos_a * sin_b);
-    return a;
-}
-
-double add_theorem_cos(double sin_a, double sin_b, double cos_a, double cos_b)
-{
-    double a = (cos_a * cos_b - sin_a * sin_b);
-    return a;
-}
-
-void geometry_quat_to_rpy(double &roll, double &pitch, double &yaw, geometry_msgs::Quaternion geometry_quat)
-{
-    tf::Quaternion quat;
-    quaternionMsgToTF(geometry_quat, quat);
-    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw); //rpy are Pass by Reference
-}
-
+// scanを受け取ってthごと、左右wthまでの点の座標を計算し、そのマーカーの位置を計算する関数を呼び出して返す
 visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose)
 {
     obs.clear();
@@ -48,7 +30,7 @@ visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &
         if (scan.ranges[center + thp * i] < scan.range_max && scan.ranges[center + thp * i] > scan.range_min)
         {
             obs.push_back(std::vector<double>());
-            // ロボット座標から見たときの座標
+            // ロボット座標から見たときの座標xs,ys 絶対座標xo,yo
             double xs = scan.ranges[center + thp * i] * cos(th * DEG2RAD * i);
             double ys = scan.ranges[center + thp * i] * sin(th * DEG2RAD * i);
             double xo = pose.pose.position.x + cos(yaw) * xs - sin(yaw) * ys;
@@ -114,25 +96,6 @@ my_robo::my_robo()
     sensor.joy_cmd_vel[1] = 0;
 
     spec.set_resolution(spec.x_max_acc * DWA.dt / 5, spec.z_max_acc * DWA.dt / 5);
-
-    //sub_lrf=n.subscribe("/laserscan", 10, chatterCallback);
-
-    // //ros::Publisher cmd_pub=n.advertise<geometry_msgs::Twist>();
-    // count=0;
-
-    // cmd_vel.linear.x=0;
-    // cmd_vel.angular.z=0;
-
-    // sub_lrf=n.subscribe("/laserscan", 10, &my_robo::cb_lrf,this);
-    // sub_odom=n.subscribe("/odom",10,&my_robo::cb_odom,this);
-    // sub_joy=n.subscribe("/joy",10,&my_robo::cb_joy,this);
-    // pub_cmd=n.advertise<geometry_msgs::Twist>("/cmd_vel",10);
-
-    // // 速度、加速度に関するパラメータの取得
-    // get_vel_acc_Param();
-
-    // 引用"odomの中で方位を表す、クオータニオンを初期化"
-    //odom.pose.pose.orientation.w = 1.0;
 }
 
 double cal_euclid(double x0, double y0, double x1, double y1)
@@ -140,6 +103,7 @@ double cal_euclid(double x0, double y0, double x1, double y1)
     return sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
 }
 
+// センサが正しく動いているかのテスト用の実行ループ関数 DWAとは関係ない
 void my_robo::controlloop()
 {
     ROS_INFO("control loop start.");
@@ -649,6 +613,7 @@ void my_robo::cal_Dist()
     }
 }
 
+// 予め計算しておいた何度かずつのSCANの位置に従って距離を計算する
 void my_robo::cal_Dist2(){
     double adm;
     double t = 0.05, time;
@@ -816,13 +781,7 @@ void my_robo::DWAloop()
     {
         ros::spinOnce();
         ROS_INFO("get DWA loop.");
-        //ROS_INFO("atan2(0,0):%d",atan2(0,0));
-        //ROS_INFO("countj:%d",sensor.countj);
 
-        // position p;
-        // p.x=1;
-        // p.y=2;
-        // pub_marker(p);
 
         if (sensor.latest_scan.ranges.size() == 0)
         {
@@ -836,6 +795,12 @@ void my_robo::DWAloop()
             check_joy();
             //ROS_INFO("finish check joy\n");
 
+            sensor.detect_line(sensor.latest_scan);
+            for(int i=0; i<sensor.lines.size();i++){
+                visualization_msgs::MarkerArray linemarkers = sensor.lines[i].make_edge_marker(sensor.center,sensor.latest_scan,sensor.odom.pose);
+                pub_marker_array(linemarkers);
+            }
+
 #ifdef SHAREDDWA
         if(sensor.odom.twist.twist.linear.x >=0){
             cal_DWA();
@@ -846,7 +811,7 @@ void my_robo::DWAloop()
 
             // cal_Dist2ではこれを用いてｄ＿Uを計算するのでコメントしてはならない
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
-            // pub_marker_array(obsmarkers);
+            //pub_marker_array(obsmarkers);
             //ROS_INFO("candidate size is %d",DWA.CandVel.size());
             //ROS_INFO("finish cal obs\n");
 
@@ -855,14 +820,15 @@ void my_robo::DWAloop()
             //ROS_INFO("finish cal Dist\n");
 
 
-            //double D = cal_vel_sat();
+            // double D = cal_vel_sat();
             // //ROS_INFO("finish cal val_sat\n");
             double D = 1;
 
             int index = cal_J_sharedDWA(D);
 
-            visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
-            pub_marker_array(markers);
+            // 最終的に選択した軌道のマーカを作成、表示する
+            //visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
+            //pub_marker_array(markers);
 
             if(sensor.joy_cmd_vel[0] >= 0){
             vel.linear.x=DWA.CandVel[index][0];
@@ -876,7 +842,7 @@ void my_robo::DWAloop()
 
         pub_cmd.publish(vel);
 
-        //ROS_INFO("pub vel.\n");
+        ROS_INFO("pub vel.\n");
 
         clear_vector();
         //ROS_INFO("clear vector");
@@ -889,16 +855,10 @@ void my_robo::DWAloop()
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
-
-    // ros::NodeHandle n;
-    // ros::Subscriber sub = n.subscribe("/laserscan", 10, chatterCallback);
-
     my_robo robot;
+
     //robot.controlloop();
     robot.DWAloop();
-
-    //ros::Rate loop_rate(1);
-    //ros::spin();
 
     return 0;
 }

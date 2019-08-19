@@ -13,6 +13,7 @@
 #include"my_robo_simulation/my_robo_sensor.h"
 
 
+
 #ifndef MY_ROBO_DRIVE
 #define MY_ROBO_DRIVE
 
@@ -21,7 +22,7 @@
     // DWAのセッティング
 struct DWA_var{
     // DWA設定の刻み.ループレイトと同じが望ましい
-    double dt =0.25;
+    double dt =1;
     // 軌道計算の刻み
     double dt_traj=0.2;
     // 軌道予測時刻
