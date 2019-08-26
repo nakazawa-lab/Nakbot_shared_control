@@ -4,9 +4,14 @@
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 #include"my_robo_simulation/my_robo_util.h"
+#include"my_robo_simulation/matplotlibcpp.h"
 
-//#define DEG2RAD M_PI / 180
-//#define RAD2DEG 180 / M_PI
+// プロット用変数軍の定義
+namespace plt = matplotlibcpp;
+double timetimetime = 0.0;
+std::vector<double> plot_time;
+std::vector<double> plot_d_u;
+// std::vector<double> 
 
 //#define SHAREDDWA
 
@@ -776,6 +781,7 @@ void my_robo::DWAloop()
     ROS_INFO("control loop start.");
 
     ros::Rate rate(DWA.looprate);
+    int iterator = 0;
 
     while (ros::ok())
     {
@@ -800,8 +806,12 @@ void my_robo::DWAloop()
                 visualization_msgs::MarkerArray linemarkers = sensor.lines[i].make_edge_marker(sensor.center,sensor.latest_scan,sensor.odom.pose);
                 pub_marker_array(linemarkers);
             }
-
+        //float now = (float)ros::Time::now();
+        plot_time.push_back(timetimetime);
+        timetimetime += DWA.dt;
+        ROS_INFO("No:%d", iterator);
 #ifdef SHAREDDWA
+
         if(sensor.odom.twist.twist.linear.x >=0){
             cal_DWA();
             //ROS_INFO("finish cal DWA\n");
@@ -838,6 +848,7 @@ void my_robo::DWAloop()
             ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, DWA.CandVel[index][2]);
         }
 #endif
+        plot_d_u.push_back(1.0);
         }
 
         pub_cmd.publish(vel);
@@ -849,6 +860,9 @@ void my_robo::DWAloop()
 
         rate.sleep();
         //ROS_INFO("check1");
+
+        iterator++;
+        if(iterator > 50)break;
     }
 }
 
@@ -859,6 +873,9 @@ int main(int argc, char **argv)
 
     //robot.controlloop();
     robot.DWAloop();
+
+    plt::plot(plot_time, plot_d_u, "--r");
+    plt::show();
 
     return 0;
 }

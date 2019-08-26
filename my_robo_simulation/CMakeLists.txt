@@ -119,6 +119,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${GAZEBO_INCLUDE_DIRS}
+  ${PYTHON_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -203,7 +204,7 @@ add_executable(my_robo_drive src/drive_util.cpp src/my_robo_drive.cpp src/joy_li
 #add_executable(predictTraj_test src/predictTraj_test.cpp)
 ## add_dependencies(basic_simple_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(my_robo_drive ${catkin_LIBRARIES})
+target_link_libraries(my_robo_drive ${catkin_LIBRARIES} ${PYTHON_LIBRARIES})
 #target_link_libraries(predictTraj_test ${catkin_LIBRARIES})
 
 #install(TARGETS my_robo_lrf_controller
