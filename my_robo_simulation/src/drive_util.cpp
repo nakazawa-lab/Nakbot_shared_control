@@ -7,6 +7,7 @@
 #include"my_robo_simulation/my_robo_util.h"
 
 
+
 void my_robo::clear_vector(){
   // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
   DWA.CandVel.clear();
@@ -17,6 +18,17 @@ void my_robo::clear_vector(){
   // ROS_INFO("candsize:%d",DWA.CandVel.size());
   // ROS_INFO("predict:%d",DWA.PredictTraj.size());
   // ROS_INFO("isCollisiton:%d",DWA.isCollision.size());
+}
+
+double cal_average_d_U(std::vector<std::vector<double>>& CandVel){
+  int size = CandVel.size();
+  double sum=0;
+
+  for(int i= 0; i< size; i++){
+    sum += CandVel[i][2];
+  }
+
+  return sum / size;
 }
 
 void my_robo::check_joy(){
@@ -106,7 +118,7 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
       marker_array.markers[k].header.stamp = ros::Time::now();
       marker_array.markers[k].ns = "cmd_vel_display";
       marker_array.markers[k].id = k;
-      marker_array.markers[k].lifetime = (ros::Duration)(1 /DWA.looprate)*2;   //2ループ存在
+      marker_array.markers[k].lifetime = (ros::Duration)(1 /DWA.looprate);   //1ループ存在
 
       // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
       marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
@@ -214,8 +226,10 @@ void my_robo::say_log(){
   //ROS_INFO();
 }
 
-
-
+double cal_euclid(double x0, double y0, double x1, double y1)
+{
+    return sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
+}
 
 double add_theorem_sin(double sin_a, double sin_b, double cos_a, double cos_b)
 {
@@ -237,6 +251,26 @@ void geometry_quat_to_rpy(double &roll, double &pitch, double &yaw, geometry_msg
     tf::Matrix3x3(quat).getRPY(roll, pitch, yaw); //rpy are Pass by Reference
 }
 
+// 次の時刻のロボットの位置を計算する関数
+position my_robo::robot_model(position p_now, double cand_v, double cand_w, double dt)
+{
+    position p_next;
+
+    double vx = cand_v * p_now.cos_th;
+    double vy = cand_v * p_now.sin_th;
+
+    p_next.x = p_now.x + vx * dt;
+    p_next.y = p_now.y + vy * dt;
+
+    // cos(th+wt),sin(th+wt)を求める
+    p_next.cos_th = add_theorem_cos(p_now.sin_th, sin(cand_w * dt), p_now.cos_th, cos(cand_w * dt));
+    p_next.sin_th = add_theorem_sin(p_now.sin_th, sin(cand_w * dt), p_now.cos_th, cos(cand_w * dt));
+
+    //ROS_INFO("sin:%f,cos:%f",p_next.sin_th,p_next.cos_th);
+    //ROS_INFO("sin:%f,cos:%f,traj: x=%f,y=%f",p_next.sin_th,p_next.cos_th,p_next.x, p_next.y);
+    return p_next;
+}
+
 visualization_msgs::MarkerArray make_markers_2Dvector(std::vector<std::vector<double>> obs)
 {
     visualization_msgs::MarkerArray marker_array;
@@ -250,7 +284,7 @@ visualization_msgs::MarkerArray make_markers_2Dvector(std::vector<std::vector<do
         marker_array.markers[k].header.stamp = ros::Time::now();
         marker_array.markers[k].ns = "cmd_vel_display";
         marker_array.markers[k].id = k;
-        marker_array.markers[k].lifetime = (ros::Duration)1;
+        marker_array.markers[k].lifetime = (ros::Duration)0.25;
 
         // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
         marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
@@ -273,4 +307,101 @@ visualization_msgs::MarkerArray make_markers_2Dvector(std::vector<std::vector<do
         k++;
     }
     return marker_array;
+}
+
+// センサが正しく動いているかのテスト用の実行ループ関数 DWAとは関係ない
+void my_robo::controlloop()
+{
+    ROS_INFO("control loop start.");
+
+    ros::Rate rate(5);
+
+    // // センサデータを処理するための変数群
+    int range_num, center_point, point_70;
+
+    const double DegToPoint = 1024 / 360;
+    int deg10point = 10 * DegToPoint;
+
+    int flag = 0;
+
+    while (ros::ok())
+    {
+        ros::spinOnce();
+        ROS_INFO("get loop.");
+
+        if (sensor.countj != 0)
+        {
+            // joyからの速度司令の計算
+            // sensor.joy_cmd_vel[0] 速度
+            // sensor.joy_cmd_vel[1] 角速度
+
+            // ジョイスティック左側
+            // 上→axes[1]の正方向
+            // 左→axes[0]の正方向
+            sensor.joy_cmd_vel[0] = spec.x_max_vel * sensor.joy.axes[1];
+            //cmd_vel.linear.y =joy_msg.axes[2];
+
+            if (sensor.joy.axes[1] >= 0)
+                sensor.joy_cmd_vel[1] = spec.z_max_ang * sensor.joy.axes[0];
+            else
+                sensor.joy_cmd_vel[1] = -1 * spec.z_max_ang * sensor.joy.axes[0];
+
+            // ROS_INFO("spec.x: %f",spec.x_max_vel);
+            // ROS_INFO("spec.z: %f\n",spec.z_max_ang);
+
+            //ROS_INFO("x_joy: %f", sensor.joy_cmd_vel[0]);
+            //ROS_INFO("z_ang: %f\n", sensor.joy_cmd_vel[1]);
+
+            vel.linear.x = sensor.joy_cmd_vel[0];
+            vel.angular.z = sensor.joy_cmd_vel[1];
+        }
+
+        // LaserScanメッセージをすでに受け取っている場合
+        if (sensor.latest_scan.ranges.size() > 0)
+        {
+
+            // lrfデータに関する初期化
+            if (flag == 0)
+            {
+                range_num = sensor.latest_scan.ranges.size();                           // 取得した点の数
+                center_point = range_num / 2;                                           // 正面のスキャン点番号
+                point_70 = (M_PI / (2 * sensor.latest_scan.angle_increment)) * (7 / 9); //80度となる点の数
+                sensor.count++;
+                ROS_INFO("lrf initialize commplete.");
+                ROS_INFO("center_point:%d", center_point);
+                flag++;
+            }
+
+            ROS_INFO("distance:%f\n", sensor.latest_scan.ranges[center_point]);
+
+            // もし、正面方向に0.8m以下の距離に障害物があり、joyから前に進む司令があったとき、joyの司令を0.6倍する
+            // もし、正面方向に0.4m以下の距離に障害物があり、joyから前に進む司令があったとき、joyの司令を無視して停止する
+
+            for (int i = center_point - deg10point * 6; i <= center_point + deg10point * 6; i += deg10point)
+            {
+                if (sensor.latest_scan.ranges[i] < 0.8 && sensor.latest_scan.ranges[i] > 0.4 && sensor.joy_cmd_vel[0] > 0)
+                {
+                    ROS_INFO("close.");
+                    vel.linear.x *= 0.6;
+                    break;
+                }
+                else if (sensor.latest_scan.ranges[i] <= 0.4 && sensor.joy_cmd_vel[0] > 0)
+                {
+                    ROS_INFO("too close.stopped.");
+                    ROS_INFO("range:%f", sensor.latest_scan.ranges[i]);
+                    // ROS_INFO("angle:%f",);
+                    vel.linear.x = 0.0;
+                    break;
+                }
+            }
+
+            //ROS_INFO("I heard: [%f]", static_cast<float>(latest_scan.ranges[range_num/2]));
+            pub_cmd.publish(vel);
+            ROS_INFO("pub vel.");
+        }
+
+        rate.sleep();
+    }
+
+    // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
 }

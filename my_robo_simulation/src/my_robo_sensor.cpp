@@ -152,9 +152,9 @@ double line::cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserSca
     start_theta = cal_ang_fromfront(startPoint, scan);
     end_theta =  cal_ang_fromfront(endPoint, scan);
 
-    ROS_INFO("start theta: %f, end theta: %f",start_theta, end_theta);
+    //ROS_INFO("start theta: %f, end theta: %f",start_theta, end_theta);
 
-    ROS_INFO("start point: %d, end point: %d",startPoint, endPoint);
+    //ROS_INFO("start point: %d, end point: %d",startPoint, endPoint);
 
     // 現在の位置から見た点の相対座標 メンバに代入
     start_X = scan.ranges[startPoint] * cos(start_theta);
@@ -164,7 +164,7 @@ double line::cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserSca
 
     Dist_startToend = sqrt( (start_X - end_X) * (start_X - end_X) + (start_Y - end_Y) * (start_Y - end_Y) );
 
-    ROS_INFO("dist start to end: %f",Dist_startToend);
+    //ROS_INFO("dist start to end: %f",Dist_startToend);
 
     // 余弦定理
     beta = acos (((Dist_startToend * Dist_startToend) + (scan.ranges[endPoint] * scan.ranges[endPoint]) - (scan.ranges[startPoint] * scan.ranges[startPoint]))
@@ -175,7 +175,7 @@ double line::cal_curve(int startPoint, int endPoint, const sensor_msgs::LaserSca
         alpha = M_PI - alpha;
     }
 
-    ROS_INFO("alpha: %f",alpha);
+    //ROS_INFO("alpha: %f",alpha);
 
     return alpha + start_theta;
 }
@@ -229,4 +229,38 @@ visualization_msgs::MarkerArray line::make_edge_marker(int center,const sensor_m
 
 
     return make_markers_2Dvector(lineedge);
+}
+
+// scanを受け取ってthごと、左右wthまでの点の座標を計算し、そのマーカーの位置を計算する関数を呼び出して返す
+visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose)
+{
+    obs.clear();
+    // th 度相当の点の数degpを求める
+    int thp = (int)((th * DEG2RAD) / latest_scan.angle_increment);
+    //ROS_INFO("degp:%d",thp);
+    // 10度ずつ70度までなら7倍
+    int deg_inc = (int)(wth / th);
+
+    double roll, yaw, pitch;
+    // 今のrpyを求める
+    geometry_quat_to_rpy(roll, pitch, yaw, pose.pose.orientation);
+
+    //ROS_INFO("deg_inc:%d",deg_inc);
+    for (int i = -deg_inc; i < deg_inc; i++)
+    {
+        if (scan.ranges[center + thp * i] < scan.range_max && scan.ranges[center + thp * i] > scan.range_min)
+        {
+            obs.push_back(std::vector<double>());
+            // ロボット座標から見たときの座標xs,ys 絶対座標xo,yo
+            double xs = scan.ranges[center + thp * i] * cos(th * DEG2RAD * i);
+            double ys = scan.ranges[center + thp * i] * sin(th * DEG2RAD * i);
+            double xo = pose.pose.position.x + cos(yaw) * xs - sin(yaw) * ys;
+            double yo = pose.pose.position.y + sin(yaw) * xs + cos(yaw) * ys;
+
+            obs.back().push_back(xo);
+            obs.back().push_back(yo);
+            //ROS_INFO("obs x:%f, y:%f",xo,yo);
+        }
+    }
+    return make_obs_markers(obs);
 }

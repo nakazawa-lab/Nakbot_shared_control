@@ -21,4 +21,8 @@ void geometry_quat_to_rpy(double&,double&,double&,geometry_msgs::Quaternion);
 
 visualization_msgs::MarkerArray make_markers_2Dvector(std::vector<std::vector<double>> obs);
 
+double cal_average_d_U(std::vector<std::vector<double>>& CandVel);
+
+double cal_euclid(double x0, double y0, double x1, double y1);
+
 #endif
