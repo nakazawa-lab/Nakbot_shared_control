@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include<chrono>
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 #include "my_robo_simulation/my_robo_util.h"
@@ -663,12 +664,17 @@ void my_robo::DWAloop()
 
     ros::Rate rate(DWA.looprate);
     int iterator = 0;
+    auto start_time = std::chrono::system_clock::now();
 
     while (ros::ok())
     {
         ros::spinOnce();
         ROS_INFO("get DWA loop.");
-        LOG.push_back(iterator);
+        // LOG.push_back(iterator);
+        auto now = std::chrono::system_clock::now();
+        auto dur = now -start_time;
+        auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+        LOG.push_back((double)msec/1000);
 
         if (sensor.latest_scan.ranges.size() == 0)
         {
@@ -697,7 +703,7 @@ void my_robo::DWAloop()
 
             // cal_Dist2ではこれを用いてｄ＿Uを計算するのでコメントしてはならない
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
-            pub_marker_array(obsmarkers);
+            // pub_marker_array(obsmarkers);
 #ifdef SHAREDDWA
 
             if (sensor.odom.twist.twist.linear.x >= 0)
@@ -736,7 +742,14 @@ void my_robo::DWAloop()
 
                 ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, DWA.CandVel[index][2]);
 
-                LOG.push_back(sensor.latest_scan.ranges[sensor.center]);
+
+                double distance;
+                if (sensor.latest_scan.ranges[sensor.center] == 0)distance=10;
+                else distance = sensor.latest_scan.ranges[sensor.center];
+                LOG.push_back(distance);
+
+                LOG.push_back(vel.linear.x - sensor.joy_cmd_vel[0]);
+                LOG.push_back(vel.angular.z - sensor.joy_cmd_vel[1]);
             }
 #endif
             //plot_d_u.push_back(1.0);
@@ -774,13 +787,13 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
     my_robo robot;
-    char dir[255];
-    getcwd(dir, 255);
+    // char dir[255];
+    // getcwd(dir, 255);
 
     logfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log.csv");
-    std::cout << "current directory:" << dir << std::endl;
+    //std::cout << "current directory:" << dir << std::endl;
 
-    std::string logRowName = "timestep,現在の速度,現在の角速度,d_Uの平均,選択した軌道のd_U,選択した軌道のvelscore,選択した軌道のargcore,正面方向の距離";
+    std::string logRowName = "timestep,現在の速度,現在の角速度,速度候補の数,d_Uの平均,選択した軌道のd_U,選択した軌道のvelscore,選択した軌道のargcore,正面方向の距離,速度誤差、角速度誤差";
     logfile << logRowName << std::endl;
 
     //robot.controlloop();
