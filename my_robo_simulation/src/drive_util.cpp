@@ -101,7 +101,7 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
   float red=0;
   bool flag = false;  // 採用軌道を示すもの  
 // 候補の数ループ
-  for (int i=0; i<DWA.PredictTraj.size();i ++){
+  for (int i=0; i<DWA.PredictTraj.size();i+=3){
     //ROS_INFO("start put marker.");
 
     // float GREEN= (double)rand()/RAND_MAX;
@@ -109,7 +109,7 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
     else flag = false;
 
     //予測時刻の数だけループ
-    for (int j = 0; j < DWA.PredictTraj[i].size(); j +=2)
+    for (int j = 0; j < DWA.PredictTraj[i].size(); j += 2)
     {
  
        //ROS_INFO("start loop.");
@@ -183,7 +183,7 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
     marker_array.markers[k].header.stamp = ros::Time::now();
     marker_array.markers[k].ns = "cmd_vel_display";
     marker_array.markers[k].id = k;
-    marker_array.markers[k].lifetime = (ros::Duration)(1 / DWA.looprate) * 2; //2ループ存在
+    marker_array.markers[k].lifetime = (ros::Duration)(1 / DWA.looprate);
 
     // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
     marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
@@ -404,4 +404,11 @@ void my_robo::controlloop()
     }
 
     // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
+}
+
+void say_time(const char *name, std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds> basetime){
+  auto temp = std::chrono::system_clock::now();
+  auto dur = temp - basetime;
+  auto msec = std::chrono::duration_cast<std::chrono::microseconds>(dur).count();
+  ROS_INFO("after %s : %d microsec", name, msec);
 }

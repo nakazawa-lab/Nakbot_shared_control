@@ -537,7 +537,7 @@ void my_robo::cal_Dist2()
         //　衝突あり 複数ある場合は最大となるときのｄ＿U を求める
         else
         {
-            int maxdistIndex = std::max_element(dist.begin(), dist.end()) - dist.begin();
+            int maxdistIndex = std::min_element(dist.begin(), dist.end()) - dist.begin();
             d_lin = DWA.CandVel[i][0] * coltime[maxdistIndex];
             d_ang = DWA.CandVel[i][1] * coltime[maxdistIndex];
 
@@ -646,14 +646,15 @@ int my_robo::cal_J_sharedDWA(double D)
     //ROS_INFO("index:%d\n",index);
     //ROS_INFO("pubvel:%f,%f",DWA.CandVel[index][0],DWA.CandVel[index][1]);
 
-    ROS_INFO("adm:%lf", a);
-    ROS_INFO("head:%lf", h);
-    ROS_INFO("velocity:%lf", v);
-    ROS_INFO("cost:%f\n", cost);
+    // ROS_INFO("adm:%lf", a);
+    // ROS_INFO("head:%lf", h);
+    // ROS_INFO("velocity:%lf", v);
+    // ROS_INFO("cost:%f\n", cost);
 
     LOG.push_back(DWA.CandVel[index][2]);
     LOG.push_back(v);
     LOG.push_back(h);
+    LOG.push_back(cost);
 
     return index;
 }
@@ -663,14 +664,13 @@ void my_robo::DWAloop()
     ROS_INFO("control loop start.");
 
     ros::Rate rate(DWA.looprate);
-    int iterator = 0;
     auto start_time = std::chrono::system_clock::now();
 
     while (ros::ok())
     {
         ros::spinOnce();
-        ROS_INFO("get DWA loop.");
-        // LOG.push_back(iterator);
+        //ROS_INFO("get DWA loop.");
+
         auto now = std::chrono::system_clock::now();
         auto dur = now -start_time;
         auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
@@ -680,26 +680,21 @@ void my_robo::DWAloop()
         {
             ROS_INFO("no LRF data.waiting...");
             usleep(1000);
-            //ROS_INFO("check2");
         }
         else
         {
-            //ROS_INFO("check3");
+
             check_joy();
 
             LOG.push_back(sensor.odom.twist.twist.linear.x);
             LOG.push_back(sensor.odom.twist.twist.angular.z);
-            //ROS_INFO("finish check joy\n");
 
             // sensor.detect_line(sensor.latest_scan);
             // for(int i=0; i<sensor.lines.size();i++){
             //     visualization_msgs::MarkerArray linemarkers = sensor.lines[i].make_edge_marker(sensor.center,sensor.latest_scan,sensor.odom.pose);
             //     pub_marker_array(linemarkers);
             // }
-            // float now = (float)ros::Time::now();
-            // plot_time.push_back(timetimetime);
-            // timetimetime += DWA.dt;
-            // ROS_INFO("No:%d", iterator);
+
 
             // cal_Dist2ではこれを用いてｄ＿Uを計算するのでコメントしてはならない
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
@@ -709,30 +704,28 @@ void my_robo::DWAloop()
             if (sensor.odom.twist.twist.linear.x >= 0)
             {
                 cal_DWA();
-                //ROS_INFO("finish cal DWA\n");
                 LOG.push_back(DWA.CandVel.size());
+                //say_time("check joy",now);
 
                 cal_predict_position();
-                //ROS_INFO("finish cal predict pos\n");
-
-                //ROS_INFO("candidate size is %d",DWA.CandVel.size());
-                //ROS_INFO("finish cal obs\n");
+                //say_time("predict position",now);
 
                 //cal_Dist();
                 cal_Dist2();
-                //ROS_INFO("finish cal Dist\n");
+                //say_time("cal dist", now);
 
                 LOG.push_back(cal_average_d_U(DWA.CandVel));
 
                 // double D = cal_vel_sat();
-                // //ROS_INFO("finish cal val_sat\n");
+
                 double D = 1;
 
                 int index = cal_J_sharedDWA(D);
+                //say_time("cal J", now);
 
                 // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
-                // visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
-                // pub_marker_array(markers);
+                visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
+                pub_marker_array(markers);
 
                 if (sensor.joy_cmd_vel[0] >= 0)
                 {
@@ -752,21 +745,18 @@ void my_robo::DWAloop()
                 LOG.push_back(vel.angular.z - sensor.joy_cmd_vel[1]);
             }
 #endif
-            //plot_d_u.push_back(1.0);
         }
 
         pub_cmd.publish(vel);
 
-        ROS_INFO("pub vel.\n");
+        // ROS_INFO("pub vel.\n");
 
         clear_vector();
-        //ROS_INFO("clear vector");
+        //say_time("clear vector", now);
 
         rate.sleep();
-        //ROS_INFO("check1");
+        //say_time("after waiting",now);
 
-        iterator++;
-        // if(iterator > 50)break;
         for (int i = 0; i < LOG.size(); i++)
         {
             logfile << LOG[i] << ',';
@@ -774,12 +764,13 @@ void my_robo::DWAloop()
         logfile << std::endl;
         LOG.clear();
 
-        // eキーが押されていることの判定
+        // なにかのキーが押されていることの判定
         if (kbhit())
         {
             printf("'%c'を押しました。\n", getchar());
             break;
         }
+        ROS_INFO("\n");
     }
 }
 
@@ -791,16 +782,12 @@ int main(int argc, char **argv)
     // getcwd(dir, 255);
 
     logfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log.csv");
-    //std::cout << "current directory:" << dir << std::endl;
 
-    std::string logRowName = "timestep,現在の速度,現在の角速度,速度候補の数,d_Uの平均,選択した軌道のd_U,選択した軌道のvelscore,選択した軌道のargcore,正面方向の距離,速度誤差、角速度誤差";
+    std::string logRowName = "timestep,現在の速度,現在の角速度,速度候補の数,d_Uの平均,選択した軌道のd_U,選択した軌道のvelscore,選択した軌道のargcore,選択軌道のコスト,正面方向の距離,速度誤差、角速度誤差";
     logfile << logRowName << std::endl;
 
     //robot.controlloop();
     robot.DWAloop();
-
-    // plt::plot(plot_time, plot_d_u, "--r");
-    // plt::show();
 
     logfile.close();
 

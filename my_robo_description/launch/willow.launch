@@ -4,7 +4,7 @@
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <!-- <arg name="world_name" value="$(find my_robo_description)/worlds/my_willow_garage.world"/>  -->
   <!--  <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/empty.world"/> -->
-    <arg name="world_name" value="$(find my_robo_description)/worlds/Sample_house.world"/>  
+    <arg name="world_name" value="$(find my_robo_description)/worlds/sample_house_v2.world"/>  
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>

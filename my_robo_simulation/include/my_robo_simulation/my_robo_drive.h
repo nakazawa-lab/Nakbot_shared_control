@@ -22,11 +22,11 @@
     // DWAのセッティング
 struct DWA_var{
     // DWA設定の刻み.ループレイトと同じが望ましい
-    double dt =0.25;
+    double dt =0.2;
     // 軌道計算の刻み
-    double dt_traj=0.2;
+    double dt_traj = 0.2;
     // 軌道予測時刻
-    double PredictTime = 3 ;
+    double PredictTime = 5;
     //double looprate = 2;          // Hz
     double looprate = 1 / dt;
 
