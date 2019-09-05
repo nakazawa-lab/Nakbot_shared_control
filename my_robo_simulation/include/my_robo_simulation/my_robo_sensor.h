@@ -15,10 +15,6 @@
 #define DEG2RAD M_PI / 180
 #define RAD2DEG 180 / M_PI
 
-// nav_msgs::Odometry sodom;
-// sensor_msgs::LaserScan slatest_scan;
-// sensor_msgs::Joy sjoy;
-
 
 // 検出した線に関する情報を集めたクラス
 class line{
@@ -70,7 +66,9 @@ public:
     std::vector<std::vector<double>> obs;
 
     // LRFのインデックス計算のための定数
-    int center, degpoint, range_point;
+    // center: 真正面方向の点のインデックス
+    // range_point: 総スキャン点数
+    int center, range_point;
 
     ros::Publisher pub_mark_arr;
 
@@ -100,6 +98,9 @@ public:
     void detect_line(const sensor_msgs::LaserScan &scan);
     
     static void next_is_line(int point, double th);
+
+    // インデックスを与えると、真正面から見た角度を返す(符号あり)
+    double index_to_rad(int index);
 };
 
 
