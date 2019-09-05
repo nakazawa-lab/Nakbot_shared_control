@@ -12,6 +12,8 @@
 #include"my_robo_simulation/my_robo_spec.h"
 #include"my_robo_simulation/my_robo_sensor.h"
 
+#include"matplotlibcpp.h"
+
 
 
 #ifndef MY_ROBO_DRIVE
@@ -22,7 +24,7 @@
     // DWAのセッティング
 struct DWA_var{
     // DWA設定の刻み.ループレイトと同じが望ましい
-    double dt =0.2;
+    double dt =0.5;
     // 軌道計算の刻み
     double dt_traj = 0.2;
     // 軌道予測時刻
@@ -37,6 +39,9 @@ struct DWA_var{
     // 予測軌道 [index][時刻index][time,x,y,sin cos]
     std::vector<std::vector<std::vector<double>>>  PredictTraj;
 
+    // 予測軌道の相対位置 [index][time index][d,theta]
+    std::vector<std::vector<std::vector<double>>>  PredictTraj_r;
+
     std::vector<std::vector<double>> Joy_PredictTraj;
 
     // 候補となる(v,w)の対
@@ -49,10 +54,10 @@ struct DWA_var{
 
 // 次の位置を格納する箱
 struct position{
-    double x;
-    double y;
-    double sin_th;
-    double cos_th;
+    double x=0;
+    double y=0;
+    double sin_th=0;
+    double cos_th=1;
 };
 
 class my_robo{
@@ -91,10 +96,10 @@ private:
     ros::Publisher pub_mark;
     ros::Publisher pub_mark_arr;
 
-    // 次の位置を格納する箱
-
 
 public:
+    matplotlib g;
+
     my_robo();
     //~my_robo();
 
@@ -147,6 +152,10 @@ public:
     position cal_nowp(nav_msgs::Odometry& odom);
 
     void say_log();
+
+    void plot_d_deg();
+
+    void plot_predict_traj();
 };
 
 #endif

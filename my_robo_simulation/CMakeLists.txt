@@ -200,7 +200,13 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(my_robo_drive src/drive_util.cpp src/my_robo_drive.cpp src/joy_listener.cpp src/my_robo_sensor.cpp)
+add_executable(my_robo_drive 
+    src/drive_util.cpp 
+    src/my_robo_drive.cpp 
+    src/joy_listener.cpp 
+    src/my_robo_sensor.cpp 
+    src/shared_DWA.cpp
+    )
 #add_executable(predictTraj_test src/predictTraj_test.cpp)
 ## add_dependencies(basic_simple_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 

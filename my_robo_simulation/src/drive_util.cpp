@@ -15,6 +15,7 @@ void my_robo::clear_vector(){
   DWA.isCollision.clear();
   DWA.Joy_PredictTraj.clear();
   sensor.lines.clear();
+  DWA.PredictTraj_r.clear();
   // ROS_INFO("candsize:%d",DWA.CandVel.size());
   // ROS_INFO("predict:%d",DWA.PredictTraj.size());
   // ROS_INFO("isCollisiton:%d",DWA.isCollision.size());
@@ -216,6 +217,12 @@ position my_robo::cal_nowp(nav_msgs::Odometry& odom){
   now_p.x = odom.pose.pose.position.x;
   now_p.y = odom.pose.pose.position.y;
 
+  // quaternion(x,y,z,w)に対して,方向ベクトル(lambda_x,lambda_y,lambda_z)に角度theta だけ回転するとき
+  // x = lambda_x * sin(theta/2)
+  // y = lambda_y * sin(theta/2)
+  // z = lambda_z * sin(theta/2)
+  // w = cos(theta/2)
+  // sin,cosの加法定理で求まる
   now_p.sin_th = 2 * odom.pose.pose.orientation.z * odom.pose.pose.orientation.w;
   now_p.cos_th = odom.pose.pose.orientation.w * odom.pose.pose.orientation.w - odom.pose.pose.orientation.z * odom.pose.pose.orientation.z;
 
@@ -251,7 +258,8 @@ void geometry_quat_to_rpy(double &roll, double &pitch, double &yaw, geometry_msg
     tf::Matrix3x3(quat).getRPY(roll, pitch, yaw); //rpy are Pass by Reference
 }
 
-// 次の時刻のロボットの位置を計算する関数
+// 次の時刻のロボットの絶対位置を計算する関数
+// p_nowが絶対位置
 position my_robo::robot_model(position p_now, double cand_v, double cand_w, double dt)
 {
     position p_next;
@@ -411,4 +419,29 @@ void say_time(const char *name, std::chrono::time_point<std::chrono::_V2::system
   auto dur = temp - basetime;
   auto msec = std::chrono::duration_cast<std::chrono::microseconds>(dur).count();
   ROS_INFO("after %s : %d microsec", name, msec);
+}
+
+void my_robo::plot_d_deg(){
+  double distance;
+  double deg;
+
+  for(int i= 0; i < sensor.latest_scan.ranges.size();i+=6){
+    distance = sensor.latest_scan.ranges[i];
+    deg = sensor.index_to_rad(i) *  RAD2DEG;
+    g.point(deg,distance,"blue","s=5");
+    // ROS_INFO("distance: %f, deg: %f",distance,deg);
+  }
+}
+
+void my_robo::plot_predict_traj(){
+  // 候補軌道に対する繰り返し
+  for(int i= 0; i < DWA.PredictTraj_r.size();i+=1){
+    //ROS_INFO("get i loop");
+    //ROS_INFO("cand (v,w): (%f, %f)",DWA.CandVel[i][0],DWA.CandVel[i][1]) ;
+    // 時刻に対する繰り返し
+    for(int j = 0; j < DWA.PredictTraj_r[0].size();j += 3){
+      g.point(DWA.PredictTraj_r[i][j][1]*RAD2DEG, DWA.PredictTraj_r[i][j][0],"red", "s=5");
+      //ROS_INFO("d: %f, deg: %f",DWA.PredictTraj_r[i][j][0],DWA.PredictTraj_r[i][j][1] *RAD2DEG);
+    }
+  }
 }

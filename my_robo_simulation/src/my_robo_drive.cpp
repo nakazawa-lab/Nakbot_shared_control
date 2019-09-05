@@ -7,22 +7,19 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include<chrono>
+#include <chrono>
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 #include "my_robo_simulation/my_robo_util.h"
 #include "my_robo_simulation/matplotlibcpp.h"
 
-// プロット用変数軍の定義
-// namespace plt = matplotlibcpp;
-// double timetimetime = 0.0;
-// std::vector<double> plot_time;
-// std::vector<double> plot_d_u;
 std::ofstream logfile;
+std::ofstream log_traj_file;
 std::vector<double> LOG;
+std::vector<double> LOG_Traj;
 // LOGの中身
 
-#define SHAREDDWA
+// #define SHAREDDWA
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -83,7 +80,6 @@ my_robo::my_robo()
 // CandVel[i][0] = v [i][1]=w
 void my_robo::cal_DWA()
 {
-    //ROS_INFO("Calculate DWA start.");
     // 現在の速度(odonm)から刻み時間後に到達可能な最大、最小速度を求める。それを一時保存しておく
     double max_dwa_vel = sensor.odom.twist.twist.linear.x + spec.x_max_acc * DWA.dt;
     double min_dwa_vel = sensor.odom.twist.twist.linear.x + spec.x_min_acc * DWA.dt;
@@ -99,7 +95,7 @@ void my_robo::cal_DWA()
         max_dwa_ang = spec.z_max_ang;
     if (min_dwa_ang < spec.z_min_ang)
         min_dwa_ang = spec.z_min_ang;
-    //ROS_INFO("DWA:%f,%f,%f,%f.",max_dwa_vel,max_dwa_ang,min_dwa_vel,min_dwa_ang);
+    // ROS_INFO("DWA:%f,%f,%f,%f.",max_dwa_vel,max_dwa_ang,min_dwa_vel,min_dwa_ang);
 
     // 幅に関して、解像度だけ繰り返して組み合わせを作る
     double f = min_dwa_vel;
@@ -132,7 +128,6 @@ void my_robo::cal_DWA()
         // ウインドウを角速度方向に捜査
         while (true)
         {
-
             // 後ろ方向に進む候補に対しては考えない
             if (f >= 0)
             {
@@ -159,7 +154,6 @@ void my_robo::cal_DWA()
 void my_robo::cal_predict_position()
 {
     //ROS_INFO("candidate size is %d", DWA.CandVel.size());
-
     // すべての候補に対して
     for (int i = 0; i < DWA.CandVel.size(); i++)
     {
@@ -167,21 +161,24 @@ void my_robo::cal_predict_position()
         //初期化
         double time = DWA.dt_traj;
 
-        // 今の位置にもどす
-        //position p{sensor.odom.pose.pose.position.x, sensor.odom.pose.pose.position.y, sensor.odom.pose.pose.orientation.w};
+        double d,theta;
+        double radius = abs(DWA.CandVel[i][0] / DWA.CandVel[i][1]);
+
         position p = cal_nowp(sensor.odom);
         //ROS_INFO("x=%f,y=%f,cos_h=%f,sin_th=%f",p.x,p.y,p.cos_th,p.sin_th);
 
         // indexの挿入
         DWA.PredictTraj.push_back(std::vector<std::vector<double>>());
-        //ROS_INFO("push empty vector");
+        DWA.PredictTraj_r.push_back(std::vector<std::vector<double>>());
+
 
         while (time <= DWA.PredictTime)
         {
-            // 位置の更新
+            // 位置の更新 npは絶対座標系を示す。
+            // no_rは相対座標
             position np;
             np = robot_model(p, DWA.CandVel[i][0], DWA.CandVel[i][1], DWA.dt_traj);
-            //ROS_INFO("push1");
+
             // timeとpをPredictTrajに格納する処理
             DWA.PredictTraj.back().push_back(std::vector<double>());
             DWA.PredictTraj.back().back().push_back(time);
@@ -190,19 +187,35 @@ void my_robo::cal_predict_position()
             DWA.PredictTraj.back().back().push_back(np.sin_th);
             DWA.PredictTraj.back().back().push_back(np.cos_th);
 
-            p = np;
+            DWA.PredictTraj_r.back().push_back(std::vector<double>());
 
-            if (i == 4)
+            d = sqrt(2 *(1 - cos(DWA.CandVel[i][1] * time))) * radius;
+           
+            double temp = radius * sin(DWA.CandVel[i][1] * time) / d;
+            theta = acos(temp);     // acosは-1から1までの値を受け取り0からpiまでの値を返す
+
+            if(DWA.CandVel[i][1] < 0) theta -=M_PI; 
+            
+            DWA.PredictTraj_r.back().back().push_back(d);
+            DWA.PredictTraj_r.back().back().push_back(theta);
+            
+            LOG_Traj.push_back(time);
+            LOG_Traj.push_back(d);
+            LOG_Traj.push_back(theta);
+
+            for (int i = 0; i < LOG_Traj.size(); i++)
             {
-                //ROS_INFO("i=4,traj: x=%f,y=%f", np.x, np.y);
+                log_traj_file << LOG_Traj[i] << ',';
             }
+            log_traj_file << std::endl;
 
+            p = np;
             time += DWA.dt_traj;
         }
-        // position pp;
-        // pp.x = DWA.PredictTraj[i][8][0];
-        // pp.y = DWA.PredictTraj[i][8][1];
-        //pub_marker(pp);
+
+
+        log_traj_file << std::endl;
+        LOG_Traj.clear();
 
         //ROS_INFO("TrajSize%d", DWA.PredictTraj.back().size());
     }
@@ -665,14 +678,19 @@ void my_robo::DWAloop()
 
     ros::Rate rate(DWA.looprate);
     auto start_time = std::chrono::system_clock::now();
+    bool plot_flag = false;
+
+    g.open();
 
     while (ros::ok())
     {
         ros::spinOnce();
+        g.screen(-120.,-1.,120.,10.);
+        
         //ROS_INFO("get DWA loop.");
 
         auto now = std::chrono::system_clock::now();
-        auto dur = now -start_time;
+        auto dur = now - start_time;
         auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
         LOG.push_back((double)msec/1000);
 
@@ -690,6 +708,9 @@ void my_robo::DWAloop()
             LOG.push_back(sensor.odom.twist.twist.angular.z);
             LOG.push_back(sensor.joy_cmd_vel[0]);
             LOG.push_back(sensor.joy_cmd_vel[1]);
+
+            say_time("check joy",now);
+
             // sensor.detect_line(sensor.latest_scan);
             // for(int i=0; i<sensor.lines.size();i++){
             //     visualization_msgs::MarkerArray linemarkers = sensor.lines[i].make_edge_marker(sensor.center,sensor.latest_scan,sensor.odom.pose);
@@ -700,13 +721,12 @@ void my_robo::DWAloop()
             // cal_Dist2ではこれを用いてｄ＿Uを計算するのでコメントしてはならない
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
             // pub_marker_array(obsmarkers);
-
-
+            
             if (sensor.odom.twist.twist.linear.x >= 0)
             {
                 cal_DWA();
                 LOG.push_back(DWA.CandVel.size());
-                //say_time("check joy",now);
+                // say_time("cal DWA",now);
 
                 cal_predict_position();
                 //say_time("predict position",now);
@@ -736,13 +756,22 @@ void my_robo::DWAloop()
                 }
                 #endif
 
-                ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, DWA.CandVel[index][2]);
+                //ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, DWA.CandVel[index][2]);
 
 
                 double distance;
                 if (sensor.latest_scan.ranges[sensor.center] == 0)distance=10;
                 else distance = sensor.latest_scan.ranges[sensor.center];
                 LOG.push_back(distance);
+
+                if (plot_flag)
+                {
+                    plot_d_deg();
+                    plot_predict_traj();
+                    //g.line(1,1,10,10,"red");
+                    //g.line(1,10,20,1,"Yellow");
+                    //g.line(100,100,10,10);
+                }
             }
 
         }
@@ -763,33 +792,44 @@ void my_robo::DWAloop()
         }
         logfile << std::endl;
         LOG.clear();
+        g.clear();
 
         // なにかのキーが押されていることの判定
         if (kbhit())
         {
-            printf("'%c'を押しました。\n", getchar());
-            break;
+            int c;
+            c = getchar();
+            printf("'%c'を押しました。\n ループを抜けるには「e」、プロットを開始するなら「p」、プロットを終えるなら「q」\n", c);
+            putchar(c);
+            if(c == 'e') break;
+            else if(c == 'p') plot_flag = true;
+            else if(c == 'q') plot_flag = false;
         }
         ROS_INFO("\n");
     }
 }
 
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
     my_robo robot;
-    // char dir[255];
-    // getcwd(dir, 255);
 
     logfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log.csv");
+    log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");
 
     std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
     logfile << logRowName << std::endl;
 
-    //robot.controlloop();
+    logRowName = "time,d,theta";
+    log_traj_file << logRowName;
+
+    // robot.controlloop();
     robot.DWAloop();
 
     logfile.close();
+    log_traj_file.close();
+    robot.g.close();
 
     return 0;
 }

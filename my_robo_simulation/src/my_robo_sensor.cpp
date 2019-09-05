@@ -232,12 +232,13 @@ visualization_msgs::MarkerArray line::make_edge_marker(int center,const sensor_m
 }
 
 // scanを受け取ってthごと、左右wthまでの点の座標を計算し、そのマーカーの位置を計算する関数を呼び出して返す
+// 計算される障害物の座標は絶対座標
 visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose)
 {
     obs.clear();
     // th 度相当の点の数degpを求める
     int thp = (int)((th * DEG2RAD) / latest_scan.angle_increment);
-    //ROS_INFO("degp:%d",thp);
+    // ROS_INFO("degp:%d",thp);
     // 10度ずつ70度までなら7倍
     int deg_inc = (int)(wth / th);
 
@@ -259,8 +260,12 @@ visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &
 
             obs.back().push_back(xo);
             obs.back().push_back(yo);
-            //ROS_INFO("obs x:%f, y:%f",xo,yo);
+            // ROS_INFO("obs x:%f, y:%f",xo,yo);
         }
     }
     return make_obs_markers(obs);
+}
+
+double my_robo_sensor::index_to_rad(int index){
+    return latest_scan.angle_increment * (index - center);
 }
