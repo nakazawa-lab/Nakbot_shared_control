@@ -688,7 +688,8 @@ void my_robo::DWAloop()
 
             LOG.push_back(sensor.odom.twist.twist.linear.x);
             LOG.push_back(sensor.odom.twist.twist.angular.z);
-
+            LOG.push_back(sensor.joy_cmd_vel[0]);
+            LOG.push_back(sensor.joy_cmd_vel[1]);
             // sensor.detect_line(sensor.latest_scan);
             // for(int i=0; i<sensor.lines.size();i++){
             //     visualization_msgs::MarkerArray linemarkers = sensor.lines[i].make_edge_marker(sensor.center,sensor.latest_scan,sensor.odom.pose);
@@ -699,7 +700,7 @@ void my_robo::DWAloop()
             // cal_Dist2ではこれを用いてｄ＿Uを計算するのでコメントしてはならない
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
             // pub_marker_array(obsmarkers);
-#ifdef SHAREDDWA
+
 
             if (sensor.odom.twist.twist.linear.x >= 0)
             {
@@ -727,11 +728,13 @@ void my_robo::DWAloop()
                 visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
                 pub_marker_array(markers);
 
+                #ifdef SHAREDDWA
                 if (sensor.joy_cmd_vel[0] >= 0)
                 {
                     vel.linear.x = DWA.CandVel[index][0];
                     vel.angular.z = DWA.CandVel[index][1];
                 }
+                #endif
 
                 ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, DWA.CandVel[index][2]);
 
@@ -740,11 +743,8 @@ void my_robo::DWAloop()
                 if (sensor.latest_scan.ranges[sensor.center] == 0)distance=10;
                 else distance = sensor.latest_scan.ranges[sensor.center];
                 LOG.push_back(distance);
-
-                LOG.push_back(vel.linear.x - sensor.joy_cmd_vel[0]);
-                LOG.push_back(vel.angular.z - sensor.joy_cmd_vel[1]);
             }
-#endif
+
         }
 
         pub_cmd.publish(vel);
@@ -783,7 +783,7 @@ int main(int argc, char **argv)
 
     logfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log.csv");
 
-    std::string logRowName = "timestep,現在の速度,現在の角速度,速度候補の数,d_Uの平均,選択した軌道のd_U,選択した軌道のvelscore,選択した軌道のargcore,選択軌道のコスト,正面方向の距離,速度誤差、角速度誤差";
+    std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
     logfile << logRowName << std::endl;
 
     //robot.controlloop();
