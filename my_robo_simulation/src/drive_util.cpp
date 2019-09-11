@@ -417,8 +417,8 @@ void my_robo::controlloop()
 void say_time(const char *name, std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds> basetime){
   auto temp = std::chrono::system_clock::now();
   auto dur = temp - basetime;
-  auto msec = std::chrono::duration_cast<std::chrono::microseconds>(dur).count();
-  ROS_INFO("after %s : %d microsec", name, msec);
+  auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+  ROS_INFO("after %s : %d millisec", name, msec);
 }
 
 void my_robo::plot_d_deg(){
@@ -444,4 +444,64 @@ void my_robo::plot_predict_traj(){
       //ROS_INFO("d: %f, deg: %f",DWA.PredictTraj_r[i][j][0],DWA.PredictTraj_r[i][j][1] *RAD2DEG);
     }
   }
+}
+
+void my_robo::plot_d_deg_gnuplot(FILE *gp){
+  // ファイルを書き出したいとき
+  // fprintf(gp,"plot \"d_theta_file.dat\" with points pointsize 10\n");
+
+  fprintf(gp,"clear\n");
+
+  // そのまま書き出したいとき
+  //fprintf(gp,"set key title \"-\"");
+  // fprintf(gp,"set key at 170,7");
+  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\"\n");
+  // 候補軌道の数に対する繰り返し
+  for (int i = 0; i < DWA.PredictTraj_r.size(); i++)
+  {
+    // 軌道内の各時刻に対する繰り返し
+    for (int j = 0; j < DWA.PredictTraj_r[i].size(); j++)
+    {
+      fprintf(gp, "%f\t%f\n", DWA.PredictTraj_r[i][j][2] * RAD2DEG, DWA.PredictTraj_r[i][j][1]);
+    }
+  }
+  fprintf(gp, "e\n");
+  fflush(gp);
+}
+
+void my_robo::plot_d_deg_scan_gnuplot(FILE *gp){
+  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
+
+
+  for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
+  {
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]);
+  }
+  fprintf(gp, "e\n");
+  fflush(gp);
+}
+
+void my_robo::plot_gnuplot(FILE *gp){
+  fprintf(gp,"clear\n");
+    fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
+  // 候補軌道の数に対する繰り返し
+  for (int i = 0; i < DWA.PredictTraj_r.size(); i++)
+  {
+    // 軌道内の各時刻に対する繰り返し
+    for (int j = 0; j < DWA.PredictTraj_r[i].size(); j++)
+    {
+      fprintf(gp, "%f\t%f\n", DWA.PredictTraj_r[i][j][2] * RAD2DEG, DWA.PredictTraj_r[i][j][1]);
+    }
+  }
+  fprintf(gp, "e\n");
+
+
+  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
+  for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
+  {
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]);
+  }
+  fprintf(gp, "e\n");
+  fflush(gp);
+
 }

@@ -21,7 +21,7 @@
 
 
 
-    // DWAのセッティング
+// DWAのセッティング
 struct DWA_var{
     // DWA設定の刻み.ループレイトと同じが望ましい
     double dt =0.5;
@@ -35,11 +35,15 @@ struct DWA_var{
     double k_heading = 1;
     double k_velocity = 1;
 
+    // この秒数後の衝突に対して衝突危険正規化距離を１未満にする。これ以上の場合は1で安全
+    float thes_vel = 2;
+    float thes_ang = 2;
+
 
     // 予測軌道 [index][時刻index][time,x,y,sin cos]
     std::vector<std::vector<std::vector<double>>>  PredictTraj;
 
-    // 予測軌道の相対位置 [index][time index][d,theta]
+    // 予測軌道の相対位置 [index][time index][time,d,theta]
     std::vector<std::vector<std::vector<double>>>  PredictTraj_r;
 
     std::vector<std::vector<double>> Joy_PredictTraj;
@@ -153,9 +157,18 @@ public:
 
     void say_log();
 
+    // matplotlibに表示する
     void plot_d_deg();
 
+    // matplotlibで表示
     void plot_predict_traj();
+
+    // gnuplotで表示
+    void plot_d_deg_gnuplot(FILE *gp);
+
+    void plot_d_deg_scan_gnuplot(FILE *gp);
+
+    void plot_gnuplot(FILE *gp);
 };
 
 #endif

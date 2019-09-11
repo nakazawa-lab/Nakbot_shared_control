@@ -14,10 +14,12 @@
 #include "my_robo_simulation/matplotlibcpp.h"
 
 std::ofstream logfile;
-std::ofstream log_traj_file;
+//std::ofstream log_traj_file;
 std::vector<double> LOG;
-std::vector<double> LOG_Traj;
+//std::vector<double> LOG_Traj;
 // LOGの中身
+
+FILE *gp;       // gnuplotに指令を与えるためのテキストファイル
 
 // #define SHAREDDWA
 
@@ -194,28 +196,48 @@ void my_robo::cal_predict_position()
             double temp = radius * sin(DWA.CandVel[i][1] * time) / d;
             theta = acos(temp);     // acosは-1から1までの値を受け取り0からpiまでの値を返す
 
-            if(DWA.CandVel[i][1] < 0) theta -=M_PI; 
+            if(DWA.CandVel[i][1] < 0) theta -= M_PI; 
             
+            DWA.PredictTraj_r.back().back().push_back(time);
             DWA.PredictTraj_r.back().back().push_back(d);
             DWA.PredictTraj_r.back().back().push_back(theta);
-            
-            LOG_Traj.push_back(time);
-            LOG_Traj.push_back(d);
-            LOG_Traj.push_back(theta);
+    
+            // LOG_Traj.push_back(time);
+            // LOG_Traj.push_back(d);
+            // LOG_Traj.push_back(theta);
 
-            for (int i = 0; i < LOG_Traj.size(); i++)
-            {
-                log_traj_file << LOG_Traj[i] << ',';
-            }
-            log_traj_file << std::endl;
+            // for (int i = 0; i < LOG_Traj.size(); i++)
+            // {
+            //     log_traj_file << LOG_Traj[i] << ',';
+            // }
+            // log_traj_file << std::endl;
 
             p = np;
             time += DWA.dt_traj;
         }
 
+        // #pragma region 
+        // std::ofstream d_theta_file("d_theta_file.dat");
 
-        log_traj_file << std::endl;
-        LOG_Traj.clear();
+        // // 候補軌道の数に対する繰り返し
+        // for(int i=0; i<DWA.PredictTraj_r.size();i++){
+        //     // 軌道内の各時刻に対する繰り返し
+        //     for(int j=0;j<DWA.PredictTraj_r[i].size();j++)
+        //     {
+        //         for (int k = 0; k < 3; k++)
+        //         {
+        //             d_theta_file << DWA.PredictTraj_r[i][j][k]<<" ";
+        //         }
+        //         d_theta_file << std::endl;
+        //     }
+
+        //     d_theta_file << std::endl << std::endl;
+        // }
+        // d_theta_file.close();
+        // #pragma endregion
+
+        // log_traj_file << std::endl;
+        // LOG_Traj.clear();
 
         //ROS_INFO("TrajSize%d", DWA.PredictTraj.back().size());
     }
@@ -272,7 +294,7 @@ double my_robo::cal_vel_sat()
 
                 // Dの計算
                 // predictTreajの一番最後と、obsの距離を比べる
-                // DWA.predictTraj[j-1]とセンサ障害物の最大の距離を求める
+                // DWA.predictTraj[j-1]とセンサ障  FILE *gp;害物の最大の距離を求める
                 //ROS_INFO("sensor_size:%d",sensor.obs.size());
                 if (sensor.obs.size() == 0)
                 {
@@ -680,14 +702,14 @@ void my_robo::DWAloop()
     auto start_time = std::chrono::system_clock::now();
     bool plot_flag = false;
 
-    g.open();
+    //g.open();
 
     while (ros::ok())
     {
         ros::spinOnce();
-        g.screen(-120.,-1.,120.,10.);
+        //g.screen(-120.,-1.,120.,10.);
         
-        //ROS_INFO("get DWA loop.");
+        ROS_INFO("get DWA loop.");
 
         auto now = std::chrono::system_clock::now();
         auto dur = now - start_time;
@@ -709,7 +731,7 @@ void my_robo::DWAloop()
             LOG.push_back(sensor.joy_cmd_vel[0]);
             LOG.push_back(sensor.joy_cmd_vel[1]);
 
-            say_time("check joy",now);
+            //say_time("check joy",now);
 
             // sensor.detect_line(sensor.latest_scan);
             // for(int i=0; i<sensor.lines.size();i++){
@@ -722,7 +744,7 @@ void my_robo::DWAloop()
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
             // pub_marker_array(obsmarkers);
             
-            if (sensor.odom.twist.twist.linear.x >= 0)
+            if (sensor.odom.twist.twist.linear.x >= -0.5)
             {
                 cal_DWA();
                 LOG.push_back(DWA.CandVel.size());
@@ -766,12 +788,19 @@ void my_robo::DWAloop()
 
                 if (plot_flag)
                 {
-                    plot_d_deg();
-                    plot_predict_traj();
+                    // <matplotlib> //
+                    //plot_d_deg();
+                    //plot_predict_traj();
                     //g.line(1,1,10,10,"red");
                     //g.line(1,10,20,1,"Yellow");
                     //g.line(100,100,10,10);
+
+                    // <gnuplot> //
+                    //plot_gnuplot(gp);
+                    plot_d_deg_gnuplot(gp);
+                    plot_d_deg_scan_gnuplot(gp);
                 }
+                say_time("plot",now);
             }
 
         }
@@ -792,7 +821,7 @@ void my_robo::DWAloop()
         }
         logfile << std::endl;
         LOG.clear();
-        g.clear();
+        //g.clear();
 
         // なにかのキーが押されていることの判定
         if (kbhit())
@@ -816,20 +845,31 @@ int main(int argc, char **argv)
     my_robo robot;
 
     logfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log.csv");
-    log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");
+    //log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");
+
+    /// gnuplot　///
+    gp = popen("gnuplot -persist", "w");
+    fprintf(gp, "set multiplot\n");
+    fprintf(gp, "set xrange [-180:180]\n");
+    fprintf(gp, "set yrange [-1:8]\n");
+    fprintf(gp, "set xlabel \"theta\"\n");
+    fprintf(gp, "set ylabel \"distance\"\n");
+
+    /// end gnuplot ///
 
     std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
     logfile << logRowName << std::endl;
 
-    logRowName = "time,d,theta";
-    log_traj_file << logRowName;
+    //logRowName = "time,d,theta";
+    //log_traj_file << logRowName;
 
     // robot.controlloop();
     robot.DWAloop();
 
     logfile.close();
-    log_traj_file.close();
-    robot.g.close();
+    //log_traj_file.close();
+    //robot.g.close();
+    pclose(gp);
 
     return 0;
 }
