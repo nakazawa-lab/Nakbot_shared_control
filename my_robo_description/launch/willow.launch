@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <!-- <arg name="world_name" value="$(find my_robo_description)/worlds/my_willow_garage.world"/>  -->
   <!--  <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/empty.world"/> -->
