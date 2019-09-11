@@ -3,6 +3,8 @@
 #include "geometry_msgs/Twist.h"    
 #include "nav_msgs/Odometry.h"
 
+#include "my_robo_simulation/my_robo_util.h"
+
 #ifndef MY_ROBO_SPEC
 #define MY_ROBO_SPEC
 
@@ -22,6 +24,11 @@ public:
 
     double z_max_acc;
     double z_min_acc;
+
+    // ロボットの縦と横の長さ これにより衝突半径を計算する
+    float robot_width = 0.25;
+    float robot_length = 0.3;
+    float robot_rad;        // ロボットの衝突判定となる円.コンストラクタに記述
 
     // ロボットの速度、加速度の分解能
     double vel_res;
@@ -61,6 +68,7 @@ public:
 
 public:
     my_robo_spec(){
+        robot_rad = sqrt((robot_width * robot_width)/4 + (robot_length * robot_length)/4);
     }
 };
 

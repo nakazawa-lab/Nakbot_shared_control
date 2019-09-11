@@ -9,6 +9,8 @@
 |計算周期               |looprate       |4      |
 |                       |k_head         |1      |
 |                       |k_vel          |1      |
+|                       |thres_vel      |2      |
+|                       |thres_ang      |2      |
 
 
 ## my_robo_drive.cpp
@@ -72,4 +74,8 @@ my_robo:
 |                       |               |       |
 |                       |               |       |
 
-## 
+## my_robo_spec.h
+|項目                   |変数名         |値     |
+|---                    |---            |---    |
+|ロボットの横幅         |robot_width    |0.25   |
+|縦幅                   |robot_length   |0.3    |
