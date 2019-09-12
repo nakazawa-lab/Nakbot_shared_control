@@ -137,8 +137,6 @@ void my_robo_sensor::detect_line(const sensor_msgs::LaserScan &scan){
         i++;
     }
     ROS_INFO("num of line: %d",lines.size());
-
-
 }
 
 

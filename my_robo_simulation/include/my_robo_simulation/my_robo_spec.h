@@ -30,6 +30,9 @@ public:
     float robot_length = 0.3;
     float robot_rad;        // ロボットの衝突判定となる円.コンストラクタに記述
 
+    // ロボット自身の大きさを保持するもの
+    std::vector<std::vector<float>> RobotSize;
+
     // ロボットの速度、加速度の分解能
     double vel_res;
     double ang_res;    // 10degくらい
@@ -69,6 +72,13 @@ public:
 public:
     my_robo_spec(){
         robot_rad = sqrt((robot_width * robot_width)/4 + (robot_length * robot_length)/4);
+
+        // RobotSize[index][d,theta] thetaは1度ずつ、dはロボットの半径。1度ずつ全周にわたる点群を作成する
+        for(int i=0;i<360;i++){
+            RobotSize.push_back(std::vector<float>());
+            RobotSize[i].push_back(robot_rad);
+            RobotSize[i].push_back((i-180)*DEG2RAD);
+        }
     }
 };
 

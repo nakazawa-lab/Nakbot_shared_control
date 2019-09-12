@@ -206,6 +206,7 @@ add_executable(my_robo_drive
     src/joy_listener.cpp 
     src/my_robo_sensor.cpp 
     src/shared_DWA.cpp
+    src/MyDWA.cpp
     )
 #add_executable(predictTraj_test src/predictTraj_test.cpp)
 ## add_dependencies(basic_simple_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

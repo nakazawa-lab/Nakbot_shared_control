@@ -421,39 +421,40 @@ void say_time(const char *name, std::chrono::time_point<std::chrono::_V2::system
   ROS_INFO("after %s : %d millisec", name, msec);
 }
 
-void my_robo::plot_d_deg(){
-  double distance;
-  double deg;
+// void my_robo::plot_d_deg(){
+//   double distance;
+//   double deg;
 
-  for(int i= 0; i < sensor.latest_scan.ranges.size();i+=6){
-    distance = sensor.latest_scan.ranges[i];
-    deg = sensor.index_to_rad(i) *  RAD2DEG;
-    g.point(deg,distance,"blue","s=5");
-    // ROS_INFO("distance: %f, deg: %f",distance,deg);
-  }
-}
+//   for(int i= 0; i < sensor.latest_scan.ranges.size();i+=6){
+//     distance = sensor.latest_scan.ranges[i];
+//     deg = sensor.index_to_rad(i) *  RAD2DEG;
+//     g.point(deg,distance,"blue","s=5");
+//     // ROS_INFO("distance: %f, deg: %f",distance,deg);
+//   }
+// }
 
-void my_robo::plot_predict_traj(){
-  // 候補軌道に対する繰り返し
-  for(int i= 0; i < DWA.PredictTraj_r.size();i+=1){
-    //ROS_INFO("get i loop");
-    //ROS_INFO("cand (v,w): (%f, %f)",DWA.CandVel[i][0],DWA.CandVel[i][1]) ;
-    // 時刻に対する繰り返し
-    for(int j = 0; j < DWA.PredictTraj_r[0].size();j += 3){
-      g.point(DWA.PredictTraj_r[i][j][1]*RAD2DEG, DWA.PredictTraj_r[i][j][0],"red", "s=5");
-      //ROS_INFO("d: %f, deg: %f",DWA.PredictTraj_r[i][j][0],DWA.PredictTraj_r[i][j][1] *RAD2DEG);
-    }
-  }
-}
+// void my_robo::plot_predict_traj(){
+//   // 候補軌道に対する繰り返し
+//   for(int i= 0; i < DWA.PredictTraj_r.size();i+=1){
+//     //ROS_INFO("get i loop");
+//     //ROS_INFO("cand (v,w): (%f, %f)",DWA.CandVel[i][0],DWA.CandVel[i][1]) ;
+//     // 時刻に対する繰り返し
+//     for(int j = 0; j < DWA.PredictTraj_r[0].size();j += 3){
+//       g.point(DWA.PredictTraj_r[i][j][1]*RAD2DEG, DWA.PredictTraj_r[i][j][0],"red", "s=5");
+//       //ROS_INFO("d: %f, deg: %f",DWA.PredictTraj_r[i][j][0],DWA.PredictTraj_r[i][j][1] *RAD2DEG);
+//     }
+//   }
+// }
 
-void my_robo::plot_d_deg_gnuplot(FILE *gp){
+void my_robo::plot_d_deg_gnuplot(FILE *gp)
+{
   // ファイルを書き出したいとき
   // fprintf(gp,"plot \"d_theta_file.dat\" with points pointsize 10\n");
 
-  fprintf(gp,"clear\n");
+  fprintf(gp, "clear\n");
 
   // そのまま書き出したいとき
-  //fprintf(gp,"set key title \"-\"");
+  // fprintf(gp,"set key title \"-\"");
   // fprintf(gp,"set key at 170,7");
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\"\n");
   // 候補軌道の数に対する繰り返し
@@ -469,21 +470,24 @@ void my_robo::plot_d_deg_gnuplot(FILE *gp){
   fflush(gp);
 }
 
-void my_robo::plot_d_deg_scan_gnuplot(FILE *gp){
+void my_robo::plot_d_deg_scan_gnuplot(FILE *gp)
+{
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
-
 
   for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) * RAD2DEG, sensor.latest_scan.ranges[i]);
   }
   fprintf(gp, "e\n");
   fflush(gp);
 }
 
-void my_robo::plot_gnuplot(FILE *gp){
-  fprintf(gp,"clear\n");
-    fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
+void my_robo::plot_gnuplot(FILE *gp)
+{
+  fprintf(gp, "clear\n");
+
+#pragma region 予測起動の描画
+  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
   // 候補軌道の数に対する繰り返し
   for (int i = 0; i < DWA.PredictTraj_r.size(); i++)
   {
@@ -494,14 +498,26 @@ void my_robo::plot_gnuplot(FILE *gp){
     }
   }
   fprintf(gp, "e\n");
+  fflush(gp);
+#pragma endregion
 
-
+#pragma region スキャン点の描画
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
   for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) * RAD2DEG, sensor.latest_scan.ranges[i]);
   }
   fprintf(gp, "e\n");
   fflush(gp);
+#pragma endregion
 
+#pragma region ロボットの大きさの描画
+  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"green\" title \"robot\"\n");
+  for (int i = 0; i < spec.RobotSize.size(); i++)
+  {
+    fprintf(gp, "%f\t%f\n", spec.RobotSize[i][1] * RAD2DEG, spec.RobotSize[i][0]);
+  }
+  fprintf(gp, "e\n");
+  fflush(gp);
+#pragma endregion
 }

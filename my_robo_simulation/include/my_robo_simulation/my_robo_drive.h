@@ -1,30 +1,27 @@
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "std_msgs/String.h"
-#include "geometry_msgs/Twist.h"    //odometry
+#include "geometry_msgs/Twist.h" //odometry
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/Joy.h"
 
-#include<vector>
-#include<cmath>
+#include <vector>
+#include <cmath>
+#include <fstream>
 
 // 自作クラス
-#include"my_robo_simulation/my_robo_spec.h"
-#include"my_robo_simulation/my_robo_sensor.h"
-
-#include"matplotlibcpp.h"
-
+#include "my_robo_simulation/my_robo_spec.h"
+#include "my_robo_simulation/my_robo_sensor.h"
 
 
 #ifndef MY_ROBO_DRIVE
 #define MY_ROBO_DRIVE
 
-
-
 // DWAのセッティング
-struct DWA_var{
+struct DWA_var
+{
     // DWA設定の刻み.ループレイトと同じが望ましい
-    double dt =0.5;
+    double dt = 0.5;
     // 軌道計算の刻み
     double dt_traj = 0.2;
     // 軌道予測時刻
@@ -39,12 +36,11 @@ struct DWA_var{
     float thes_vel = 2;
     float thes_ang = 2;
 
-
     // 予測軌道 [index][時刻index][time,x,y,sin cos]
-    std::vector<std::vector<std::vector<double>>>  PredictTraj;
+    std::vector<std::vector<std::vector<double>>> PredictTraj;
 
     // 予測軌道の相対位置 [index][time index][time,d,theta]
-    std::vector<std::vector<std::vector<double>>>  PredictTraj_r;
+    std::vector<std::vector<std::vector<double>>> PredictTraj_r;
 
     std::vector<std::vector<double>> Joy_PredictTraj;
 
@@ -57,14 +53,43 @@ struct DWA_var{
 };
 
 // 次の位置を格納する箱
-struct position{
-    double x=0;
-    double y=0;
-    double sin_th=0;
-    double cos_th=1;
+struct position
+{
+    double x = 0;
+    double y = 0;
+    double sin_th = 0;
+    double cos_th = 1;
 };
 
-class my_robo{
+class MyDWA
+{
+private:
+public:
+    MyDWA(){
+
+    };
+
+    int scan_index, traj_index;
+
+    double lin_dist, ang_dist;
+
+    double d_thres, th_thres;
+
+    double lin_normDist, ang_normDist;
+
+    // 最短距離となる2つの点がわかっている状態で、lin_normDistとang_normDistを求める
+    void cal_Dist();
+
+    // kd木によって、障害物を示す点群の中から、任意の点(d,theta)に対して最短距離となる点のインデックスを求める
+    // scan_index, traj_indexを求める
+    void kd_tree();
+
+    // LRFのスキャン点から、kdtreeを構築する
+    void make_kd_tree();
+};
+
+class my_robo
+{
 private:
     ros::Subscriber sub_odom;
     ros::Subscriber sub_lrf;
@@ -73,16 +98,8 @@ private:
 
     ros::NodeHandle n;
 
-
-
     //　最終的にパブリッシュする速度司令
-    geometry_msgs::Twist vel;              
-
-    // ロボットの最大速度,加速度 コンストラクタでパラメータから読み込む
-    // [i][0]速度 [i][1]角速度
-    // i=0 max vel  1 min vel   2 max acc     3 min acc
-    //std::vector<std::vector<double>> spec;
-    // →specに統合
+    geometry_msgs::Twist vel;
 
     // joyからの速度指令を保存する
     double x_vel_joy;
@@ -90,7 +107,6 @@ private:
 
     //　最終的にパブリッシュする速度司令
     geometry_msgs::Twist pub_vel;
-
 
     my_robo_spec spec;
     my_robo_sensor sensor;
@@ -100,10 +116,7 @@ private:
     ros::Publisher pub_mark;
     ros::Publisher pub_mark_arr;
 
-
 public:
-    matplotlib g;
-
     my_robo();
     //~my_robo();
 
@@ -111,16 +124,11 @@ public:
 
     void cal_DWA();
 
-    void cal_J_DWA(){
-
-    }
-
     // 予測軌道を計算する関数
     void cal_predict_position();
 
-
     // 次の時刻のロボットの位置を計算する関数
-    position robot_model( position p_now, double cand_v , double cand_w , double dt);
+    position robot_model(position p_now, double cand_v, double cand_w, double dt);
 
     // 障害物との入力相当距離(SharedDWAのd_Uにあたる)を求め,Admを返す
     // すべてのLRFの点を用いたバージョン
@@ -145,23 +153,19 @@ public:
 
     visualization_msgs::MarkerArray make_traj_marker_array(int index);
 
-    void pub_marker_array(visualization_msgs::MarkerArray markers){
+    void pub_marker_array(visualization_msgs::MarkerArray markers)
+    {
         pub_mark_arr.publish(markers);
     };
 
-    void pub_marker(visualization_msgs::Marker marker){
+    void pub_marker(visualization_msgs::Marker marker)
+    {
         pub_mark.publish(marker);
     };
-    
-    position cal_nowp(nav_msgs::Odometry& odom);
+
+    position cal_nowp(nav_msgs::Odometry &odom);
 
     void say_log();
-
-    // matplotlibに表示する
-    void plot_d_deg();
-
-    // matplotlibで表示
-    void plot_predict_traj();
 
     // gnuplotで表示
     void plot_d_deg_gnuplot(FILE *gp);
@@ -169,8 +173,13 @@ public:
     void plot_d_deg_scan_gnuplot(FILE *gp);
 
     void plot_gnuplot(FILE *gp);
+
+    void proposed_dist();
+
+    std::vector<double> LOG;
+    std::ofstream logfile;
+
+    MyDWA myDWA;
 };
 
 #endif
-
-
