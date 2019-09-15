@@ -5,6 +5,8 @@
 
 #include<my_robo_simulation/my_robo_sensor.h>
 #include"my_robo_simulation/my_robo_util.h"
+#include "my_robo_simulation/DWA_var.h"
+#include "my_robo_simulation/my_robo_drive.h"
 
 
 
@@ -16,6 +18,7 @@ void my_robo::clear_vector(){
   DWA.Joy_PredictTraj.clear();
   sensor.lines.clear();
   DWA.PredictTraj_r.clear();
+  myDWA.clear();
   // ROS_INFO("candsize:%d",DWA.CandVel.size());
   // ROS_INFO("predict:%d",DWA.PredictTraj.size());
   // ROS_INFO("isCollisiton:%d",DWA.isCollision.size());

@@ -340,6 +340,9 @@ void my_robo::DWAloop()
                 visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
                 pub_marker_array(markers);
 
+                
+                myDWA.search_LRF_Traj(sensor.latest_scan,DWA.PredictTraj_r);
+
                 #ifdef SHAREDDWA
                 if (sensor.joy_cmd_vel[0] >= 0)
                 {

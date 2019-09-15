@@ -134,7 +134,7 @@
  <link name="left_wheel_link">
     <visual>
       <geometry>
-        <cylinder radius="0.075" length="0.035"/>
+        <cylinder radius="0.075" length="0.03"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="black"/>
@@ -376,8 +376,8 @@
       <leftJoint>left_wheel_joint</leftJoint>
       <rightJoint>right_wheel_joint</rightJoint>
      <!-- <robotBaseFrame>base_link</robotBaseFrame> -->
-      <wheelSeparation>0.25</wheelSeparation>
-      <wheelDiameter>0.15</wheelDiameter>
+      <wheelSeparation>0.25</wheelSeparation> 
+      <wheelDiameter>0.15</wheelDiameter> 
       <publishWheelJointState>true</publishWheelJointState>
       <legacyMode>false</legacyMode>
 
