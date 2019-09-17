@@ -41,7 +41,7 @@ private:
         // treeidxのツリーのidx番目の点と、queryの点の距離(を求める。
     double cal_Dist(MyPoint query, int idx);
 
-    void cal_lin_ang_Dist(int, int,std::vector<std::vector<double>>&);
+    void cal_lin_ang_Dist(int, int,std::vector<std::vector<double>>&, double&);
 
         // 同名の関数内で呼び出す、単一の軌道に対してLRFとの再接近点を求める
     void search_LRF_Traj(sensor_msgs::LaserScan& latest_scan, std::vector<std::vector<double>>& PredictTraj);
@@ -52,7 +52,7 @@ private:
     int kd_tree_nnSearch(const MyPoint query);
 
         // LRFのスキャン点から、kdtreeを構築する
-    void kd_tree(sensor_msgs::LaserScan& scan,std::vector<std::vector<std::vector<double>>>& PredictTrajs);
+    void kd_tree(sensor_msgs::LaserScan& scan,std::vector<std::vector<std::vector<double>>>& PredictTrajs,double& robot_rad);
 
 public:
     MyDWA(){
@@ -67,7 +67,7 @@ public:
 
 
     // 現在わかっているLRFの情報と、軌道の情報から、2つの点群が最も近いときの距離をまとめて返す関数
-    void search_LRF_Traj(sensor_msgs::LaserScan& latest_scan, std::vector<std::vector<std::vector<double>>>& PredictTrajs);
+    void search_LRF_Traj(sensor_msgs::LaserScan& latest_scan, std::vector<std::vector<std::vector<double>>>& PredictTrajs,double robot_rad);
 
     void clear(){
         LRFpoints.clear();
