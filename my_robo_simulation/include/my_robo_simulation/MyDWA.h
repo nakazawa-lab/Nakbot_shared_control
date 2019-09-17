@@ -52,7 +52,7 @@ private:
     int kd_tree_nnSearch(const MyPoint query);
 
         // LRFのスキャン点から、kdtreeを構築する
-    void make_kd_tree(sensor_msgs::LaserScan& scan);
+    void kd_tree(sensor_msgs::LaserScan& scan,std::vector<std::vector<std::vector<double>>>& PredictTrajs);
 
 public:
     MyDWA(){

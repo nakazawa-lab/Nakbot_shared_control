@@ -95,7 +95,6 @@ namespace kdt
 		{
 			int guess;
 			double _minDist = std::numeric_limits<double>::max();
-
 			nnSearchRecursive(query, root_, &guess, &_minDist);
 
 			if (minDist)
@@ -248,8 +247,9 @@ namespace kdt
 		static double distance(const PointT& p, const PointT& q)
 		{
 			double dist = 0;
-			for (size_t i = 0; i < PointT::DIM; i++)
+			for (size_t i = 0; i < PointT::DIM; i++){
 				dist += (p[i] - q[i]) * (p[i] - q[i]);
+			}
 			return sqrt(dist);
 		}
 
@@ -268,7 +268,6 @@ namespace kdt
 				*minDist = dist;
 				*guess = node->idx;
 			}
-
 			const int axis = node->axis;
 			const int dir = query[axis] < train[axis] ? 0 : 1;
 			nnSearchRecursive(query, node->next[dir], guess, minDist);
