@@ -18,7 +18,7 @@ int MyDWA::kd_tree_nnSearch(const MyPoint query)
 }
 
 // kdtreeを作り、探索も同時に行う
-void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::vector<double>>> &PredictTrajs)
+void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::vector<double>>> &PredictTrajs,double &robot_rad)
 {
     ROS_INFO("make kd tree");
     int traj_num = PredictTrajs.size();
@@ -91,17 +91,17 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
 
         scan_indices.push_back(scan_idx);
         traj_indices.push_back(traj_idx);
-        cal_lin_ang_Dist(scan_idx, traj_idx, PredictTrajs[i]);
+        cal_lin_ang_Dist(scan_idx, traj_idx, PredictTrajs[i],robot_rad);
     }
 }
 
 // これだけ外から呼び出せば中の関数を使ってkd木の探索ができる
-void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std::vector<std::vector<double>>> &PredictTrajs)
+void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std::vector<std::vector<double>>> &PredictTrajs,double robot_rad)
 {
     ROS_INFO("serch_LRF_trajs");
 
     // LRFについてのkd木を作り、探索を1つずつ行う
-    kd_tree(latest_scan, PredictTrajs);
+    kd_tree(latest_scan, PredictTrajs,robot_rad);
 }
 
 // ここでいうpredictTrajはベクトルの次元が１つ小さくなっており単一軌道を表すことに注意する
@@ -109,13 +109,17 @@ void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std
 {
 }
 
-void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector<double>> &PredictTraj)
+void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector<double>> &PredictTraj,double &robot_rad)
 {
     // ROS_INFO("cal_lin_ang_dist");
     // ROS_INFO("scan_idx:%d", scan_idx);
     // ROS_INFO("traj_idx:%d", traj_idx);
     // ROS_INFO("LRFpoints[scan_idx][0]:%f", LRFpoints[scan_idx][0]);
     // ROS_INFO("LRFpoints[traj_idx][0]:%f", PredictTraj[traj_idx][0]);
+    double lin_dist = abs(LRFpoints[scan_idx][0] - PredictTraj[traj_idx][2]);
+    if(lin_dist < robot_rad){
+        
+    }
     lin_dists.push_back(abs(LRFpoints[scan_idx][0] - PredictTraj[traj_idx][2]));
     ang_dists.push_back(abs(LRFpoints[scan_idx][1] - PredictTraj[traj_idx][1]));
 }
