@@ -12,16 +12,15 @@
 // 自作クラス
 #include "my_robo_simulation/my_robo_spec.h"
 #include "my_robo_simulation/my_robo_sensor.h"
-#include "my_robo_simulation/MyDWA.h"
 #include "my_robo_simulation/DWA_var.h"
 
 
 #ifndef MY_ROBO_DRIVE
 #define MY_ROBO_DRIVE
 
-class my_robo
+class my_robo: public DWA_var
 {
-private:
+public:
     ros::Subscriber sub_odom;
     ros::Subscriber sub_lrf;
     ros::Subscriber sub_joy;
@@ -42,12 +41,11 @@ private:
     my_robo_spec spec;
     my_robo_sensor sensor;
 
-    DWA_var DWA;
+    // DWA_var DWA;
 
     ros::Publisher pub_mark;
     ros::Publisher pub_mark_arr;
 
-public:
     my_robo();
     //~my_robo();
 
@@ -107,10 +105,11 @@ public:
 
     void proposed_dist();
 
+    std::vector<double> test;
+
     std::vector<double> LOG;
     std::ofstream logfile;
-
-    MyDWA myDWA;
+    //MyDWA myDWA;
 };
 
 #endif

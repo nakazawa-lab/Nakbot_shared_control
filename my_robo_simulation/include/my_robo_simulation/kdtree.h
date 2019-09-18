@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <exception>
 #include <functional>
+#include <cmath>
 
 namespace kdt
 {

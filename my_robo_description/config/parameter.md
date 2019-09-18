@@ -1,6 +1,6 @@
 # parameter
 
-## my_robo_drive,h
+## DWA_var.h
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
 |DWA計算のステップ時刻  |DWA.dt         |0.25   |

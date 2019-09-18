@@ -10,6 +10,7 @@
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 #include "my_robo_simulation/my_robo_util.h"
+#include "my_robo_simulation/MyDWA.h"
 
 
 //std::ofstream log_traj_file;
@@ -73,18 +74,18 @@ my_robo::my_robo()
     sensor.joy_cmd_vel[0] = 0;
     sensor.joy_cmd_vel[1] = 0;
 
-    spec.set_resolution(spec.x_max_acc * DWA.dt / 5, spec.z_max_acc * DWA.dt / 5);
+    spec.set_resolution(spec.x_max_acc * dt / 5, spec.z_max_acc * dt / 5);
 }
 
-// スペック上の最大加速度と今の速度からDynamicWindowを求める vector<vector<float>>型のDWA.CanVelに格納される
+// スペック上の最大加速度と今の速度からDynamicWindowを求める vector<vector<float>>型のCanVelに格納される
 // CandVel[i][0] = v [i][1]=w
 void my_robo::cal_DWA()
 {
     // 現在の速度(odonm)から刻み時間後に到達可能な最大、最小速度を求める。それを一時保存しておく
-    double max_dwa_vel = sensor.odom.twist.twist.linear.x + spec.x_max_acc * DWA.dt;
-    double min_dwa_vel = sensor.odom.twist.twist.linear.x + spec.x_min_acc * DWA.dt;
-    double max_dwa_ang = sensor.odom.twist.twist.angular.z + spec.z_max_acc * DWA.dt;
-    double min_dwa_ang = sensor.odom.twist.twist.angular.z + spec.z_min_acc * DWA.dt;
+    double max_dwa_vel = sensor.odom.twist.twist.linear.x + spec.x_max_acc * dt;
+    double min_dwa_vel = sensor.odom.twist.twist.linear.x + spec.x_min_acc * dt;
+    double max_dwa_ang = sensor.odom.twist.twist.angular.z + spec.z_max_acc * dt;
+    double min_dwa_ang = sensor.odom.twist.twist.angular.z + spec.z_min_acc * dt;
 
     // それらがスペックを超えていたら、スペックの限度の値に保税する
     if (max_dwa_vel > spec.x_max_vel)
@@ -105,19 +106,19 @@ void my_robo::cal_DWA()
     //ROS_INFO("puch back candidates.");
 
     // はじめに、現在の速度を入れる
-    DWA.CandVel.push_back(std::vector<double>());
-    DWA.CandVel[i].push_back(sensor.odom.twist.twist.linear.x);  //[i][0]に速度要素
-    DWA.CandVel[i].push_back(sensor.odom.twist.twist.angular.z); //[i][1]に角速度要素
-    //ROS_INFO("CandVel:%f,%f",DWA.CandVel[i][0],DWA.CandVel[i][1]);
+    CandVel.push_back(std::vector<double>());
+    CandVel[i].push_back(sensor.odom.twist.twist.linear.x);  //[i][0]に速度要素
+    CandVel[i].push_back(sensor.odom.twist.twist.angular.z); //[i][1]に角速度要素
+    //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
     i++;
 
     //もし速度0がDWAに含まれていれば、それも候補に加える
     if (0 >= min_dwa_vel && 0 <= max_dwa_ang && 0 >= min_dwa_ang && 0 <= max_dwa_ang)
     {
-        DWA.CandVel.push_back(std::vector<double>());
-        DWA.CandVel[i].push_back(0); //[i][0]に速度要素
-        DWA.CandVel[i].push_back(0); //[i][1]に角速度要素
-        //ROS_INFO("CandVel:%f,%f",DWA.CandVel[i][0],DWA.CandVel[i][1]);
+        CandVel.push_back(std::vector<double>());
+        CandVel[i].push_back(0); //[i][0]に速度要素
+        CandVel[i].push_back(0); //[i][1]に角速度要素
+        //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
         i++;
     }
 
@@ -131,12 +132,12 @@ void my_robo::cal_DWA()
             // 後ろ方向に進む候補に対しては考えない
             if (f >= 0)
             {
-                DWA.CandVel.push_back(std::vector<double>());
-                DWA.CandVel[i].push_back(f); //[i][0]に速度要素
-                DWA.CandVel[i].push_back(g); //[i][1]に角速度要素
+                CandVel.push_back(std::vector<double>());
+                CandVel[i].push_back(f); //[i][0]に速度要素
+                CandVel[i].push_back(g); //[i][1]に角速度要素
                 i++;
             }
-            //ROS_INFO("CandVel:%f,%f",DWA.CandVel[i][0],DWA.CandVel[i][1]);
+            //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
 
             g += spec.ang_res;
             if (g > max_dwa_ang)
@@ -147,58 +148,58 @@ void my_robo::cal_DWA()
         if (f > max_dwa_vel)
             break;
     }
-    //ROS_INFO("candSize:%d.",DWA.CandVel.size());
+    //ROS_INFO("candSize:%d.",CandVel.size());
 }
 
 // 予測軌道を計算する関数 内部でmy_robo.robot_modelを呼びだす
 void my_robo::cal_predict_position()
 {
-    //ROS_INFO("candidate size is %d", DWA.CandVel.size());
+    //ROS_INFO("candidate size is %d", CandVel.size());
     // すべての候補に対して
-    for (int i = 0; i < DWA.CandVel.size(); i++)
+    for (int i = 0; i < CandVel.size(); i++)
     {
-        //ROS_INFO("loop %d / %d", i, DWA.CandVel.size());
+        //ROS_INFO("loop %d / %d", i, CandVel.size());
         //初期化
-        double time = DWA.dt_traj;
+        double time = dt_traj;
 
         double d,theta;
-        double radius = abs(DWA.CandVel[i][0] / DWA.CandVel[i][1]);
+        double radius = abs(CandVel[i][0] / CandVel[i][1]);
 
         position p = cal_nowp(sensor.odom);
         //ROS_INFO("x=%f,y=%f,cos_h=%f,sin_th=%f",p.x,p.y,p.cos_th,p.sin_th);
 
         // indexの挿入
-        DWA.PredictTraj.push_back(std::vector<std::vector<double>>());
-        DWA.PredictTraj_r.push_back(std::vector<std::vector<double>>());
+        PredictTraj.push_back(std::vector<std::vector<double>>());
+        PredictTraj_r.push_back(std::vector<std::vector<double>>());
 
 
-        while (time <= DWA.PredictTime)
+        while (time <= PredictTime)
         {
             // 位置の更新 npは絶対座標系を示す。
             // no_rは相対座標
             position np;
-            np = robot_model(p, DWA.CandVel[i][0], DWA.CandVel[i][1], DWA.dt_traj);
+            np = robot_model(p, CandVel[i][0], CandVel[i][1], dt_traj);
 
             // timeとpをPredictTrajに格納する処理
-            DWA.PredictTraj.back().push_back(std::vector<double>());
-            DWA.PredictTraj.back().back().push_back(time);
-            DWA.PredictTraj.back().back().push_back(np.x);
-            DWA.PredictTraj.back().back().push_back(np.y);
-            DWA.PredictTraj.back().back().push_back(np.sin_th);
-            DWA.PredictTraj.back().back().push_back(np.cos_th);
+            PredictTraj.back().push_back(std::vector<double>());
+            PredictTraj.back().back().push_back(time);
+            PredictTraj.back().back().push_back(np.x);
+            PredictTraj.back().back().push_back(np.y);
+            PredictTraj.back().back().push_back(np.sin_th);
+            PredictTraj.back().back().push_back(np.cos_th);
 
-            DWA.PredictTraj_r.back().push_back(std::vector<double>());
+            PredictTraj_r.back().push_back(std::vector<double>());
 
-            d = sqrt(2 *(1 - cos(DWA.CandVel[i][1] * time))) * radius;
+            d = sqrt(2 *(1 - cos(CandVel[i][1] * time))) * radius;
            
-            double temp = radius * sin(DWA.CandVel[i][1] * time) / d;
+            double temp = radius * sin(CandVel[i][1] * time) / d;
             theta = acos(temp);     // acosは-1から1までの値を受け取り0からpiまでの値を返す
 
-            if(DWA.CandVel[i][1] < 0) theta -= M_PI; 
+            if(CandVel[i][1] < 0) theta -= M_PI; 
             
-            DWA.PredictTraj_r.back().back().push_back(time);
-            DWA.PredictTraj_r.back().back().push_back(d);
-            DWA.PredictTraj_r.back().back().push_back(theta);
+            PredictTraj_r.back().back().push_back(time);
+            PredictTraj_r.back().back().push_back(d);
+            PredictTraj_r.back().back().push_back(theta);
     
             // LOG_Traj.push_back(time);
             // LOG_Traj.push_back(d);
@@ -211,20 +212,20 @@ void my_robo::cal_predict_position()
             // log_traj_file << std::endl;
 
             p = np;
-            time += DWA.dt_traj;
+            time += dt_traj;
         }
 
         // #pragma region 
         // std::ofstream d_theta_file("d_theta_file.dat");
 
         // // 候補軌道の数に対する繰り返し
-        // for(int i=0; i<DWA.PredictTraj_r.size();i++){
+        // for(int i=0; i<PredictTraj_r.size();i++){
         //     // 軌道内の各時刻に対する繰り返し
-        //     for(int j=0;j<DWA.PredictTraj_r[i].size();j++)
+        //     for(int j=0;j<PredictTraj_r[i].size();j++)
         //     {
         //         for (int k = 0; k < 3; k++)
         //         {
-        //             d_theta_file << DWA.PredictTraj_r[i][j][k]<<" ";
+        //             d_theta_file << PredictTraj_r[i][j][k]<<" ";
         //         }
         //         d_theta_file << std::endl;
         //     }
@@ -237,38 +238,38 @@ void my_robo::cal_predict_position()
         // log_traj_file << std::endl;
         // LOG_Traj.clear();
 
-        //ROS_INFO("TrajSize%d", DWA.PredictTraj.back().size());
+        //ROS_INFO("TrajSize%d", PredictTraj.back().size());
     }
 
-    //ROS_INFO("candidate size is %d",DWA.CandVel.size());
+    //ROS_INFO("candidate size is %d",CandVel.size());
     //ROS_INFO("finish cal traj\n");
 
     // joyの軌道の予測
-    double time = DWA.dt_traj;
+    double time = dt_traj;
     position p = cal_nowp(sensor.odom);
-    while (time <= DWA.PredictTime)
+    while (time <= PredictTime)
     {
         // 位置の更新
         position np;
-        np = robot_model(p, sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1], DWA.dt_traj);
+        np = robot_model(p, sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1], dt_traj);
         //ROS_INFO("push1");
         // timeとpをJoy_PredictTrajに格納する処理
-        DWA.Joy_PredictTraj.push_back(std::vector<double>());
-        DWA.Joy_PredictTraj.back().push_back(time);
-        DWA.Joy_PredictTraj.back().push_back(np.x);
-        DWA.Joy_PredictTraj.back().push_back(np.y);
-        DWA.Joy_PredictTraj.back().push_back(np.sin_th);
-        DWA.Joy_PredictTraj.back().push_back(np.cos_th);
+        Joy_PredictTraj.push_back(std::vector<double>());
+        Joy_PredictTraj.back().push_back(time);
+        Joy_PredictTraj.back().push_back(np.x);
+        Joy_PredictTraj.back().push_back(np.y);
+        Joy_PredictTraj.back().push_back(np.sin_th);
+        Joy_PredictTraj.back().push_back(np.cos_th);
         p = np;
-        time += DWA.dt_traj;
+        time += dt_traj;
     }
 }
 
-void my_robo::DWAloop()
+void MyDWA::DWAloop()
 {
     ROS_INFO("control loop start.");
 
-    ros::Rate rate(DWA.looprate);
+    ros::Rate rate(looprate);
     auto start_time = std::chrono::system_clock::now();
     bool plot_flag = false;
 
@@ -301,7 +302,7 @@ void my_robo::DWAloop()
             LOG.push_back(sensor.joy_cmd_vel[0]);
             LOG.push_back(sensor.joy_cmd_vel[1]);
 
-            //say_time("check joy",now);
+            //　say_time("check joy",now);
 
             // sensor.detect_line(sensor.latest_scan);
             // for(int i=0; i<sensor.lines.size();i++){
@@ -317,7 +318,7 @@ void my_robo::DWAloop()
             if (sensor.odom.twist.twist.linear.x >= -0.5)
             {
                 cal_DWA();
-                LOG.push_back(DWA.CandVel.size());
+                LOG.push_back(CandVel.size());
                 // say_time("cal DWA",now);
 
                 cal_predict_position();
@@ -327,7 +328,7 @@ void my_robo::DWAloop()
                 cal_Dist2();
                 //say_time("cal dist", now);
 
-                LOG.push_back(cal_average_d_U(DWA.CandVel));
+                LOG.push_back(cal_average_d_U(CandVel));
 
                 // double D = cal_vel_sat();
 
@@ -340,18 +341,18 @@ void my_robo::DWAloop()
                 visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
                 pub_marker_array(markers);
 
-                
-                myDWA.search_LRF_Traj(sensor.latest_scan,DWA.PredictTraj_r,spec.robot_rad);
+                //myDWA.search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
+                search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
 
                 #ifdef SHAREDDWA
                 if (sensor.joy_cmd_vel[0] >= 0)
                 {
-                    vel.linear.x = DWA.CandVel[index][0];
-                    vel.angular.z = DWA.CandVel[index][1];
+                    vel.linear.x = CandVel[index][0];
+                    vel.angular.z = CandVel[index][1];
                 }
                 #endif
 
-                //ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, DWA.CandVel[index][2]);
+                //ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, CandVel[index][2]);
 
 
                 double distance;
@@ -413,7 +414,8 @@ void my_robo::DWAloop()
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
-    my_robo robot;
+    //my_robo robot;
+    MyDWA robot;
 
     robot.logfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log.csv");
     //log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");

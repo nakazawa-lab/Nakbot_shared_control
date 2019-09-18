@@ -52,10 +52,6 @@ public:
         n.getParam("/my_robo/diff_drive_controller/angular/z/max_acceleration",spec.z_max_acc);
         n.getParam("/my_robo/diff_drive_controller/linear/x/min_acceleration",spec.x_min_acc);
         n.getParam("/my_robo/diff_drive_controller/angular/z/min_acceleration",spec.z_min_acc);
-
-        //ROS_INFO("finish getparam:max_x %f",spec.x_max_vel);
-
-        //return spec;
     }
 
     void set_resolution(double Vres,double Wres){
@@ -74,6 +70,7 @@ public:
         robot_rad = sqrt((robot_width * robot_width)/4 + (robot_length * robot_length)/4);
 
         // RobotSize[index][d,theta] thetaは1度ずつ、dはロボットの半径。1度ずつ全周にわたる点群を作成する
+        // d-thetaでのロボットサイズの描画に用いている
         for(int i=0;i<360;i++){
             RobotSize.push_back(std::vector<float>());
             RobotSize[i].push_back(robot_rad);
