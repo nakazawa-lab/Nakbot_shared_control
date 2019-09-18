@@ -341,8 +341,8 @@ void MyDWA::DWAloop()
                 visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
                 pub_marker_array(markers);
 
-                //myDWA.search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
                 search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
+
 
                 #ifdef SHAREDDWA
                 if (sensor.joy_cmd_vel[0] >= 0)
@@ -350,9 +350,18 @@ void MyDWA::DWAloop()
                     vel.linear.x = CandVel[index][0];
                     vel.angular.z = CandVel[index][1];
                 }
+
+                // MyDWA
+                if (sensor.joy_cmd_vel[0] >= 0)
+                {
+                    vel.linear.x = CandVel[opt_index][0];
+                    vel.angular.z = CandVel[opt_index][1];
+                }
+
+                // MyDWA
                 #endif
 
-                //ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, CandVel[index][2]);
+                // ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, CandVel[index][2]);
 
 
                 double distance;
