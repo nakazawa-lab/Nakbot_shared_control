@@ -9,22 +9,6 @@
 #include "my_robo_simulation/my_robo_drive.h"
 #include"my_robo_simulation/MyDWA.h"
 
-
-
-void MyDWA::clear_vector(){
-  // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
-  CandVel.clear();
-  PredictTraj.clear();
-  isCollision.clear();
-  Joy_PredictTraj.clear();
-  sensor.lines.clear();
-  PredictTraj_r.clear();
-  //myDWA.clear();
-  // ROS_INFO("candsize:%d",CandVel.size());
-  // ROS_INFO("predict:%d",PredictTraj.size());
-  // ROS_INFO("isCollisiton:%d",isCollision.size());
-}
-
 double cal_average_d_U(std::vector<std::vector<double>>& CandVel){
   int size = CandVel.size();
   double sum=0;

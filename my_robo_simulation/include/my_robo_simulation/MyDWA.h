@@ -33,6 +33,12 @@ private:
     const double point_scale_d = 1;
     const double point_scale_th = 0.5;
 
+    // 最終的に採用する軌道のインデックス
+    int opt_index;
+    
+    // 軌道ごとのコストを保存
+    std::vector<std::array<double,2>> costs;
+ 
     // LRFのkd木
     kdt::KDTree<MyPoint> LRFkdtree;
 
@@ -56,6 +62,8 @@ private:
         // LRFのスキャン点から、kdtreeを構築する
     void kd_tree(sensor_msgs::LaserScan& scan,std::vector<std::vector<std::vector<double>>>& PredictTrajs,double& robot_rad);
 
+    void cal_costs();
+
 public:
     MyDWA(){
     };
@@ -71,7 +79,7 @@ public:
 
     };
 
-    // 現在わかっているLRFの情報と、軌道の情報から、2つの点群が最も近いときの距離をまとめて返す関数
+    // 現在わかっているLRFの情報と、軌道の情報から、2つの点群が最も近いときの距離を計算、最適な候補軌道のインデックスを計算して保持しておく関数
     void search_LRF_Traj(sensor_msgs::LaserScan& latest_scan, std::vector<std::vector<std::vector<double>>>& PredictTrajs,double robot_rad);
 
     void clear(){

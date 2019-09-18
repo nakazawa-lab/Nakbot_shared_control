@@ -5,22 +5,18 @@
 
 using namespace std;
 
-void MyDWA::cal_Dist()
+// これだけ外から呼び出せば中の関数を使ってkd木の探索ができる
+void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std::vector<std::vector<double>>> &PredictTrajs, double robot_rad)
 {
-}
+    // LRFについてのkd木を作り、探索を行う
+    kd_tree(latest_scan, PredictTrajs, robot_rad);
 
-double MyDWA::cal_Dist(MyPoint query, int idx)
-{
-    return sqrt((LRFpoints[idx][0] - query[0]) * (LRFpoints[idx][0] - query[0]) + (LRFpoints[idx][1] - query[1]) * (LRFpoints[idx][1] - query[1]));
-}
-
-// kd木によって、障害物を示す点群の中から、任意の点(d,theta)に対して最短距離となる点のインデックスを求める
-int MyDWA::kd_tree_nnSearch(const MyPoint query)
-{
+    // コストの計算を行い、候補軌道の中から最適なもののインデックスを計算する
+    cal_costs();
 }
 
 // kdtreeを作り、探索も同時に行う
-void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::vector<double>>> &PredictTrajs,double &robot_rad)
+void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::vector<double>>> &PredictTrajs, double &robot_rad)
 {
     ROS_INFO("make kd tree");
     int traj_num = PredictTrajs.size();
@@ -92,23 +88,11 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
         }
         scan_indices.push_back(scan_idx);
         traj_indices.push_back(traj_idx);
-        cal_lin_ang_Dist(scan_idx, traj_idx, PredictTrajs[i],robot_rad,i);
+        cal_lin_ang_Dist(scan_idx, traj_idx, PredictTrajs[i], robot_rad, i);
     }
 }
 
-// これだけ外から呼び出せば中の関数を使ってkd木の探索ができる
-void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std::vector<std::vector<double>>> &PredictTrajs,double robot_rad)
-{
-    // LRFについてのkd木を作り、探索を行う
-    kd_tree(latest_scan, PredictTrajs,robot_rad);
-}
-
-// ここでいうpredictTrajはベクトルの次元が１つ小さくなっており単一軌道を表すことに注意する
-void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std::vector<double>> &PredictTraj)
-{
-}
-
-void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector<double>> &PredictTraj,double &robot_rad, int i)
+void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector<double>> &PredictTraj, double &robot_rad, int i)
 {
     // ROS_INFO("cal_lin_ang_dist");
     // ROS_INFO("scan_idx:%d", scan_idx);
@@ -116,14 +100,77 @@ void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector
     // ROS_INFO("LRFpoints[scan_idx][0]:%f", LRFpoints[scan_idx][0]);
     // ROS_INFO("LRFpoints[traj_idx][0]:%f", PredictTraj[traj_idx][0]);
     double lin_dist = abs(LRFpoints[scan_idx][1] - PredictTraj[traj_idx][1]);
-    if(lin_dist < robot_rad){
+    if (lin_dist < robot_rad)
+    {
         cout << endl;
-        cout << "collision for CandVel "<< i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" <<  " traj_idx:" << traj_idx << endl;
+        cout << "collision for CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")"
+             << " traj_idx:" << traj_idx << endl;
         cout << "lin dist" << lin_dist << endl;
         cout << "robot_rad" << robot_rad << endl;
-        cout<< "LRFpoints[scan_idx][0] trans_rad: "<< LRFpoints[scan_idx][0] << " PredictTraj[traj_idx][2]: relative rad" << PredictTraj[traj_idx][2]<< endl;
-        cout<< "LRFpoints[scan_idx][1] trand_dist: "<< LRFpoints[scan_idx][1] << " PredictTraj[traj_idx][1]: relative dist" << PredictTraj[traj_idx][1]<< endl;
+        cout << "LRFpoints[scan_idx][0] trans_rad: " << LRFpoints[scan_idx][0] << " PredictTraj[traj_idx][2]: relative rad" << PredictTraj[traj_idx][2] << endl;
+        cout << "LRFpoints[scan_idx][1] trand_dist: " << LRFpoints[scan_idx][1] << " PredictTraj[traj_idx][1]: relative dist" << PredictTraj[traj_idx][1] << endl;
+        isCollision.push_back(true);
+    }
+    else
+    {
+        isCollision.push_back(false);
     }
     lin_dists.push_back(abs(LRFpoints[scan_idx][0] - PredictTraj[traj_idx][2]));
     ang_dists.push_back(abs(LRFpoints[scan_idx][1] - PredictTraj[traj_idx][1]));
+}
+
+void MyDWA::cal_costs()
+{
+    double temp_cost, cost = 10000;
+    int temp_idx;
+    for(int i=0; i < PredictTraj_r.size();i++){
+        if(!isCollision[i]){
+            // コストの計算
+            // temp_cost = 
+
+            // 最小コストの判定、保持
+            if(temp_cost < cost){
+                cout << "update cost : temp=" << temp_cost << "cost=" << cost << endl;
+                cost = temp_cost;
+                temp_idx = i;
+            }
+
+        }
+    }
+    // 最小コストを満たすインデックスの保持 opt_indexに保持する
+    opt_index = temp_idx;
+}
+
+void MyDWA::cal_Dist()
+{
+}
+
+double MyDWA::cal_Dist(MyPoint query, int idx)
+{
+    return sqrt((LRFpoints[idx][0] - query[0]) * (LRFpoints[idx][0] - query[0]) + (LRFpoints[idx][1] - query[1]) * (LRFpoints[idx][1] - query[1]));
+}
+
+// kd木によって、障害物を示す点群の中から、任意の点(d,theta)に対して最短距離となる点のインデックスを求める
+int MyDWA::kd_tree_nnSearch(const MyPoint query)
+{
+}
+
+// ここでいうpredictTrajはベクトルの次元が１つ小さくなっており単一軌道を表すことに注意する
+void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std::vector<double>> &PredictTraj)
+{
+}
+
+void MyDWA::clear_vector()
+{
+    // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
+    CandVel.clear();
+    PredictTraj.clear();
+    isCollision.clear();
+    Joy_PredictTraj.clear();
+    sensor.lines.clear();
+    PredictTraj_r.clear();
+    // myDWA.clear();
+    // ROS_INFO("candsize:%d",CandVel.size());
+    // ROS_INFO("predict:%d",PredictTraj.size());
+    // ROS_INFO("isCollisiton:%d",isCollision.size());
 }
