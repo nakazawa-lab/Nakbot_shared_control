@@ -7,21 +7,22 @@
 #include"my_robo_simulation/my_robo_util.h"
 #include "my_robo_simulation/DWA_var.h"
 #include "my_robo_simulation/my_robo_drive.h"
+#include"my_robo_simulation/MyDWA.h"
 
 
 
-void my_robo::clear_vector(){
+void MyDWA::clear_vector(){
   // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
-  DWA.CandVel.clear();
-  DWA.PredictTraj.clear();
-  DWA.isCollision.clear();
-  DWA.Joy_PredictTraj.clear();
+  CandVel.clear();
+  PredictTraj.clear();
+  isCollision.clear();
+  Joy_PredictTraj.clear();
   sensor.lines.clear();
-  DWA.PredictTraj_r.clear();
-  myDWA.clear();
-  // ROS_INFO("candsize:%d",DWA.CandVel.size());
-  // ROS_INFO("predict:%d",DWA.PredictTraj.size());
-  // ROS_INFO("isCollisiton:%d",DWA.isCollision.size());
+  PredictTraj_r.clear();
+  //myDWA.clear();
+  // ROS_INFO("candsize:%d",CandVel.size());
+  // ROS_INFO("predict:%d",PredictTraj.size());
+  // ROS_INFO("isCollisiton:%d",isCollision.size());
 }
 
 double cal_average_d_U(std::vector<std::vector<double>>& CandVel){
@@ -98,14 +99,14 @@ visualization_msgs::Marker my_robo::make_pos_marker(position p){
 visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
 {
   visualization_msgs::MarkerArray marker_array;
-  marker_array.markers.resize((DWA.PredictTraj[0].size()+1) * DWA.PredictTraj.size());
+  marker_array.markers.resize((PredictTraj[0].size()+1) * PredictTraj.size());
 
   int k=0;
   float green=0;
   float red=0;
   bool flag = false;  // 採用軌道を示すもの  
 // 候補の数ループ
-  for (int i=0; i<DWA.PredictTraj.size();i+=3){
+  for (int i=0; i<PredictTraj.size();i+=3){
     //ROS_INFO("start put marker.");
 
     // float GREEN= (double)rand()/RAND_MAX;
@@ -113,7 +114,7 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
     else flag = false;
 
     //予測時刻の数だけループ
-    for (int j = 0; j < DWA.PredictTraj[i].size(); j += 2)
+    for (int j = 0; j < PredictTraj[i].size(); j += 2)
     {
  
        //ROS_INFO("start loop.");
@@ -122,7 +123,7 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
       marker_array.markers[k].header.stamp = ros::Time::now();
       marker_array.markers[k].ns = "cmd_vel_display";
       marker_array.markers[k].id = k;
-      marker_array.markers[k].lifetime = (ros::Duration)(1 /DWA.looprate);   //1ループ存在
+      marker_array.markers[k].lifetime = (ros::Duration)(1 /looprate);   //1ループ存在
 
       // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
       marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
@@ -141,8 +142,8 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
       marker_array.markers[k].scale.z = 0.05;
       }
 
-      marker_array.markers[k].pose.position.x = DWA.PredictTraj[i][j][1];
-      marker_array.markers[k].pose.position.y = DWA.PredictTraj[i][j][2];
+      marker_array.markers[k].pose.position.x = PredictTraj[i][j][1];
+      marker_array.markers[k].pose.position.y = PredictTraj[i][j][2];
       marker_array.markers[k].pose.position.z =  0;
       marker_array.markers[k].pose.orientation.x = 0;
       marker_array.markers[k].pose.orientation.y = 0;
@@ -159,8 +160,8 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
       else
       {
         marker_array.markers[k].color.r = 1.0f;
-        marker_array.markers[k].color.g = DWA.CandVel[i][2];
-        marker_array.markers[k].color.b = DWA.CandVel[i][2];
+        marker_array.markers[k].color.g = CandVel[i][2];
+        marker_array.markers[k].color.b = CandVel[i][2];
         marker_array.markers[k].color.a = 1.0f;
       }
 
@@ -179,7 +180,7 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
 // joyの予測軌道を緑色で入れる
    //予測時刻の数だけループ
 
-    for (int j = 0; j < DWA.Joy_PredictTraj.size(); j ++)
+    for (int j = 0; j < Joy_PredictTraj.size(); j ++)
     {
     //ROS_INFO("start loop.");
 
@@ -187,7 +188,7 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
     marker_array.markers[k].header.stamp = ros::Time::now();
     marker_array.markers[k].ns = "cmd_vel_display";
     marker_array.markers[k].id = k;
-    marker_array.markers[k].lifetime = (ros::Duration)(1 / DWA.looprate);
+    marker_array.markers[k].lifetime = (ros::Duration)(1 / looprate);
 
     // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
     marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
@@ -195,8 +196,8 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
     marker_array.markers[k].scale.x = 0.1;
     marker_array.markers[k].scale.y = 0.1;
     marker_array.markers[k].scale.z = 0.1;
-    marker_array.markers[k].pose.position.x = DWA.Joy_PredictTraj[j][1];
-    marker_array.markers[k].pose.position.y = DWA.Joy_PredictTraj[j][2];
+    marker_array.markers[k].pose.position.x = Joy_PredictTraj[j][1];
+    marker_array.markers[k].pose.position.y = Joy_PredictTraj[j][2];
     marker_array.markers[k].pose.position.z = 0;
     marker_array.markers[k].pose.orientation.x = 0;
     marker_array.markers[k].pose.orientation.y = 0;
@@ -438,13 +439,13 @@ void say_time(const char *name, std::chrono::time_point<std::chrono::_V2::system
 
 // void my_robo::plot_predict_traj(){
 //   // 候補軌道に対する繰り返し
-//   for(int i= 0; i < DWA.PredictTraj_r.size();i+=1){
+//   for(int i= 0; i < PredictTraj_r.size();i+=1){
 //     //ROS_INFO("get i loop");
-//     //ROS_INFO("cand (v,w): (%f, %f)",DWA.CandVel[i][0],DWA.CandVel[i][1]) ;
+//     //ROS_INFO("cand (v,w): (%f, %f)",CandVel[i][0],CandVel[i][1]) ;
 //     // 時刻に対する繰り返し
-//     for(int j = 0; j < DWA.PredictTraj_r[0].size();j += 3){
-//       g.point(DWA.PredictTraj_r[i][j][1]*RAD2DEG, DWA.PredictTraj_r[i][j][0],"red", "s=5");
-//       //ROS_INFO("d: %f, deg: %f",DWA.PredictTraj_r[i][j][0],DWA.PredictTraj_r[i][j][1] *RAD2DEG);
+//     for(int j = 0; j < PredictTraj_r[0].size();j += 3){
+//       g.point(PredictTraj_r[i][j][1]*RAD2DEG, PredictTraj_r[i][j][0],"red", "s=5");
+//       //ROS_INFO("d: %f, deg: %f",PredictTraj_r[i][j][0],PredictTraj_r[i][j][1] *RAD2DEG);
 //     }
 //   }
 // }
@@ -461,12 +462,12 @@ void my_robo::plot_d_deg_gnuplot(FILE *gp)
   // fprintf(gp,"set key at 170,7");
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\"\n");
   // 候補軌道の数に対する繰り返し
-  for (int i = 0; i < DWA.PredictTraj_r.size(); i++)
+  for (int i = 0; i < PredictTraj_r.size(); i++)
   {
     // 軌道内の各時刻に対する繰り返し
-    for (int j = 0; j < DWA.PredictTraj_r[i].size(); j++)
+    for (int j = 0; j < PredictTraj_r[i].size(); j++)
     {
-      fprintf(gp, "%f\t%f\n", DWA.PredictTraj_r[i][j][2] * RAD2DEG, DWA.PredictTraj_r[i][j][1]);
+      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * RAD2DEG, PredictTraj_r[i][j][1]);
     }
   }
   fprintf(gp, "e\n");
@@ -492,12 +493,12 @@ void my_robo::plot_gnuplot(FILE *gp)
 #pragma region 予測起動の描画
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
   // 候補軌道の数に対する繰り返し
-  for (int i = 0; i < DWA.PredictTraj_r.size(); i++)
+  for (int i = 0; i < PredictTraj_r.size(); i++)
   {
     // 軌道内の各時刻に対する繰り返し
-    for (int j = 0; j < DWA.PredictTraj_r[i].size(); j++)
+    for (int j = 0; j < PredictTraj_r[i].size(); j++)
     {
-      fprintf(gp, "%f\t%f\n", DWA.PredictTraj_r[i][j][2] * RAD2DEG, DWA.PredictTraj_r[i][j][1]);
+      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * RAD2DEG, PredictTraj_r[i][j][1]);
     }
   }
   fprintf(gp, "e\n");
