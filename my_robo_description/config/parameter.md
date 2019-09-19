@@ -17,7 +17,7 @@
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
 |衝突判定の角度         |sensor_cal_obs |4度ずつ80度|
-|DWAの候補速度の刻み    |set_resolutionの引数|acc/5|
+|DWAの候補速度の刻み    |set_resolutionの引数|acc/4|
 
 ## controller.yaml
 ```

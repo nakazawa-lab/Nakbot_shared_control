@@ -94,29 +94,52 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
 
 void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector<double>> &PredictTraj, double &robot_rad, int i)
 {
+    double lin_normDist, ang_normDist;
     // ROS_INFO("cal_lin_ang_dist");
     // ROS_INFO("scan_idx:%d", scan_idx);
     // ROS_INFO("traj_idx:%d", traj_idx);
     // ROS_INFO("LRFpoints[scan_idx][0]:%f", LRFpoints[scan_idx][0]);
     // ROS_INFO("LRFpoints[traj_idx][0]:%f", PredictTraj[traj_idx][0]);
-    double lin_dist = abs(LRFpoints[scan_idx][1] - PredictTraj[traj_idx][1]);
+    double lin_dist = abs(LRFpoints[scan_idx][1] - PredictTraj[traj_idx][1]) * point_scale_d;
+    double ang_dist = abs(LRFpoints[scan_idx][0] - PredictTraj[traj_idx][2]) * point_scale_th;
     if (lin_dist < robot_rad)
     {
-        cout << endl;
-        cout << "collision for CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")"
-             << " traj_idx:" << traj_idx << endl;
-        cout << "lin dist" << lin_dist << endl;
-        cout << "robot_rad" << robot_rad << endl;
-        cout << "LRFpoints[scan_idx][0] trans_rad: " << LRFpoints[scan_idx][0] << " PredictTraj[traj_idx][2]: relative rad" << PredictTraj[traj_idx][2] << endl;
-        cout << "LRFpoints[scan_idx][1] trand_dist: " << LRFpoints[scan_idx][1] << " PredictTraj[traj_idx][1]: relative dist" << PredictTraj[traj_idx][1] << endl;
+        // cout << endl;
+        // cout << "collision for CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")"
+        //      << " traj_idx:" << traj_idx << endl;
+        // cout << "lin dist" << lin_dist << endl;
+        // cout << "robot_rad" << robot_rad << endl;
+        // cout << "LRFpoints[scan_idx][0] trans_rad: " << LRFpoints[scan_idx][0] << " PredictTraj[traj_idx][2]: relative rad:" << PredictTraj[traj_idx][2] << endl;
+        // cout << "LRFpoints[scan_idx][1] trand_dist: " << LRFpoints[scan_idx][1] << " PredictTraj[traj_idx][1]: relative dist:" << PredictTraj[traj_idx][1] << endl;
         isCollision.push_back(true);
+        
+        lin_normDist = lin_dist / (CandVel[i][0] * thres_vel_time);
+        ang_normDist = ang_dist / (abs(CandVel[i][1]) * thres_ang_time);
+        if(lin_normDist > 1) lin_normDist =1;
+        if(ang_normDist >1) ang_normDist =1;
     }
     else
     {
         isCollision.push_back(false);
+        if(CandVel[i][0] == 0) lin_normDist = 1;
+        if (CandVel[i][1] == 0) ang_normDist =1;
+        lin_normDist = lin_dist / (CandVel[i][0] * thres_vel_time);
+        ang_normDist = ang_dist / (abs(CandVel[i][1])* thres_ang_time);
+
+        if (isnan(lin_normDist) || CandVel[i][0] < 0)
+            lin_normDist = 1;
+        if (isnan(ang_normDist))
+            ang_normDist = 1;
+
+        if(lin_normDist > 1) lin_normDist =1;
+        if(ang_normDist >1) ang_normDist =1;
     }
-    lin_dists.push_back(abs(LRFpoints[scan_idx][0] - PredictTraj[traj_idx][2]));
-    ang_dists.push_back(abs(LRFpoints[scan_idx][1] - PredictTraj[traj_idx][1]));
+    cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
+    cout << "lin_dist : " << lin_dist << " ang_dist: " << ang_dist << endl;
+    cout << "lin_normDist : " << lin_normDist << " ang_normDist: " << ang_normDist << endl;
+    cout <<endl;
+    lin_normdists.push_back(lin_normDist);
+    ang_normdists.push_back(ang_normDist);
 }
 
 void MyDWA::cal_costs()
@@ -124,18 +147,26 @@ void MyDWA::cal_costs()
     double temp_cost, cost = 10000;
     int temp_idx;
     for(int i=0; i < PredictTraj_r.size();i++){
-        if(!isCollision[i]){
+        //if(!isCollision[i]){
+            double head_h_cost = cal_head_cost(i); 
+            double vel_h_cost = cal_vel_cost(i);
             // コストの計算
-            // temp_cost = 
+            temp_cost = 0.5 * ((1-lin_normdists[i])  + (1 - ang_normdists[i])) + 0.5 * ( k_velocity * lin_normdists[i] * vel_h_cost + k_heading * ang_normdists[i] * head_h_cost);
 
             // 最小コストの判定、保持
             if(temp_cost < cost){
-                cout << "update cost : temp=" << temp_cost << "cost=" << cost << endl;
+                cout << "update cost traj " << i << ": temp cost=" << temp_cost << " cost=" << cost << endl;
+                cout << "Candvel: " << CandVel[i][0] << " CandAng:" << CandVel[i][1] << endl; 
+                cout << "vel_h_cost:" << vel_h_cost << endl;
+                cout << "head_h_cost:" << head_h_cost << endl;
+                cout << "lin_normdist:" << lin_normdists[i] << endl;
+                cout << "ang_normdist:" << ang_normdists[i] << endl;
+                cout <<endl;
                 cost = temp_cost;
                 temp_idx = i;
             }
 
-        }
+        //}
     }
     // 最小コストを満たすインデックスの保持 opt_indexに保持する
     opt_index = temp_idx;
@@ -169,6 +200,8 @@ void MyDWA::clear_vector()
     Joy_PredictTraj.clear();
     sensor.lines.clear();
     PredictTraj_r.clear();
+    lin_normdists.clear();
+    ang_normdists.clear();
     // myDWA.clear();
     // ROS_INFO("candsize:%d",CandVel.size());
     // ROS_INFO("predict:%d",PredictTraj.size());
