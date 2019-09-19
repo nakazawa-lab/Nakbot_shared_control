@@ -464,7 +464,7 @@ void my_robo::plot_d_deg_scan_gnuplot(FILE *gp)
 
   for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) * RAD2DEG, sensor.latest_scan.ranges[i]);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) * 0.53, sensor.latest_scan.ranges[i]);
   }
   fprintf(gp, "e\n");
   fflush(gp);
@@ -482,7 +482,7 @@ void my_robo::plot_gnuplot(FILE *gp)
     // 軌道内の各時刻に対する繰り返し
     for (int j = 0; j < PredictTraj_r[i].size(); j++)
     {
-      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * RAD2DEG, PredictTraj_r[i][j][1]);
+      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * 0.53, PredictTraj_r[i][j][1]);
     }
   }
   fprintf(gp, "e\n");
@@ -493,7 +493,7 @@ void my_robo::plot_gnuplot(FILE *gp)
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
   for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) * RAD2DEG, sensor.latest_scan.ranges[i]);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) *0.53 , sensor.latest_scan.ranges[i]);
   }
   fprintf(gp, "e\n");
   fflush(gp);

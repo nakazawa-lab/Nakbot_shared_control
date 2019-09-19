@@ -110,6 +110,10 @@ public:
     std::vector<double> LOG;
     std::ofstream logfile;
     //MyDWA myDWA;
+
+    double cal_head_cost(int);
+
+    double cal_vel_cost(int);
 };
 
 #endif

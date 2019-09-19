@@ -22,22 +22,18 @@ class MyDWA: public my_robo
 private:
     std::vector<int> scan_indices, traj_indices;
 
-    std::vector<double> lin_dists, ang_dists;
-
-    double d_thres, th_thres;
-
-    double lin_normDist, ang_normDist;
+    std::vector<double> lin_normdists, ang_normdists;
 
     // d-theta平面上での距離を図る際に、スケールを合わせるために掛ける数字。
     // 例えば、thをdegで表してスケールを整えないと角度のズレに対して非常に敏感になってしまい、少しでも角度がずれていると危険と判断されてしまう。
     const double point_scale_d = 1;
-    const double point_scale_th = 0.5;
+    const double point_scale_th = 0.5333333;        // max_vel/max_angvel
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
     
     // 軌道ごとのコストを保存
-    std::vector<std::array<double,2>> costs;
+    //std::vector<std::array<double,2>> costs;
  
     // LRFのkd木
     kdt::KDTree<MyPoint> LRFkdtree;
@@ -87,8 +83,8 @@ public:
         LRFkdtree.clear();
         scan_indices.clear();
         traj_indices.clear();
-        lin_dists.clear();
-        ang_dists.clear();
+        lin_normdists.clear();
+        ang_normdists.clear();
     };
 
     void DWAloop();

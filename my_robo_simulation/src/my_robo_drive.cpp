@@ -20,7 +20,9 @@
 
 FILE *gp;       // gnuplotに指令を与えるためのテキストファイル
 
-// #define SHAREDDWA
+//define PABLODWA
+#define MYDWA
+#define ISSHARED
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -74,7 +76,7 @@ my_robo::my_robo()
     sensor.joy_cmd_vel[0] = 0;
     sensor.joy_cmd_vel[1] = 0;
 
-    spec.set_resolution(spec.x_max_acc * dt / 5, spec.z_max_acc * dt / 5);
+    spec.set_resolution(spec.x_max_acc * dt / 4, spec.z_max_acc * dt / 4);
 }
 
 // スペック上の最大加速度と今の速度からDynamicWindowを求める vector<vector<float>>型のCanVelに格納される
@@ -324,9 +326,11 @@ void MyDWA::DWAloop()
                 cal_predict_position();
                 //say_time("predict position",now);
 
+                #ifdef PABLODWA
                 //cal_Dist();
                 cal_Dist2();
                 //say_time("cal dist", now);
+                
 
                 LOG.push_back(cal_average_d_U(CandVel));
 
@@ -336,28 +340,35 @@ void MyDWA::DWAloop()
 
                 int index = cal_J_sharedDWA(D);
                 //say_time("cal J", now);
-
+                
                 // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
                 visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
                 pub_marker_array(markers);
+                #endif
 
+                #ifdef MYDWA
                 search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
+                #endif
 
+                #ifdef ISSHARED
 
-                #ifdef SHAREDDWA
+                #ifdef PABLODWA
                 if (sensor.joy_cmd_vel[0] >= 0)
                 {
                     vel.linear.x = CandVel[index][0];
                     vel.angular.z = CandVel[index][1];
                 }
+                #endif
 
+                #ifdef MYDWA
                 // MyDWA
                 if (sensor.joy_cmd_vel[0] >= 0)
                 {
+                    std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" <<std::endl;
                     vel.linear.x = CandVel[opt_index][0];
                     vel.angular.z = CandVel[opt_index][1];
                 }
-
+                #endif
                 // MyDWA
                 #endif
 
@@ -431,8 +442,8 @@ int main(int argc, char **argv)
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
-    fprintf(gp, "set xrange [-180:180]\n");
-    fprintf(gp, "set yrange [-1:8]\n");
+    fprintf(gp, "set xrange [-2:2]\n");
+    fprintf(gp, "set yrange [-0.2:2]\n");
     fprintf(gp, "set xlabel \"theta\"\n");
     fprintf(gp, "set ylabel \"distance\"\n");
 

@@ -345,44 +345,45 @@ int my_robo::cal_J_sharedDWA(double D)
         double adm = 1 - CandVel[i][2];
         double head, velocity;
 
-        // 角度コストの計算
-        double arctan2;
-        if (CandVel[i][0] == 0 && CandVel[i][1] == 0)
-        {
-            arctan2 = 0;
-        }
-        else
-        {
-            arctan2 = atan2(CandVel[i][0], CandVel[i][1]);
-        }
+        // // 角度コストの計算
+        // double arctan2;
+        // if (CandVel[i][0] == 0 && CandVel[i][1] == 0)
+        // {
+        //     arctan2 = 0;
+        // }
+        // else
+        // {
+        //     arctan2 = atan2(CandVel[i][0], CandVel[i][1]);
+        // }
 
-        // 2 速度指令が共に０のとき
-        if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
-        {
-            //ROS_INFO("both 0");
-            head = abs(CandVel[i][1]);
-        }
-        // 1 角速度指令が0、速度指令値が0ではないとき
-        else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
-        {
-            //          ROS_INFO("only w 0");
-            head = abs(M_PI / 2 - arctan2) / M_PI;
-        }
-        // 3 角速度指令が0ではなく、速度指令が0のとき
-        else if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0)
-        {
-            //                    ROS_INFO("only v 0");
-            //head = abs(atan2(CandVel[i][0], CandVel[i][1]));
-            head = abs((CandVel[i][1] - sensor.joy_cmd_vel[1])) / M_PI;
-        }
-        else
-        {
-            head = abs(arctan2 - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
-        }
+        // // 2 速度指令が共に０のとき
+        // if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
+        // {
+        //     //ROS_INFO("both 0");
+        //     head = abs(CandVel[i][1]);
+        // }
+        // // 1 角速度指令が0、速度指令値が0ではないとき
+        // else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
+        // {
+        //     //          ROS_INFO("only w 0");
+        //     head = abs(M_PI / 2 - arctan2) / M_PI;
+        // }
+        // // 3 角速度指令が0ではなく、速度指令が0のとき
+        // else if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0)
+        // {
+        //     //                    ROS_INFO("only v 0");
+        //     //head = abs(atan2(CandVel[i][0], CandVel[i][1]));
+        //     head = abs((CandVel[i][1] - sensor.joy_cmd_vel[1])) / M_PI;
+        // }
+        // else
+        // {
+        //     head = abs(arctan2 - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
+        // }
+        head = cal_head_cost(i);
 
         // 速度コストの計算
         // double velocity = (1 - D) * (abs(CandVel[i][0]-sensor.joy_cmd_vel[0])) / spec.x_max_vel + D * abs(CandVel[i][0]) / spec.x_max_vel;
-        velocity = (abs(CandVel[i][0] - sensor.joy_cmd_vel[0])) / spec.x_max_vel;
+        velocity = cal_vel_cost(i);
 
         // 最終的なコストの計算
         double temp = adm + (1 - adm) * (k_heading * head + k_velocity * velocity);
@@ -428,4 +429,45 @@ int my_robo::cal_J_sharedDWA(double D)
     LOG.push_back(cost);
 
     return index;
+}
+
+double my_robo::cal_head_cost(int trajidx){
+    // 角度コストの計算
+    double arctan2,head;
+    if (CandVel[trajidx][0] == 0 && CandVel[trajidx][1] == 0)
+    {
+        arctan2 = 0;
+    }
+    else
+    {
+        arctan2 = atan2(CandVel[trajidx][0], CandVel[trajidx][1]);
+    }
+
+    // 2 速度指令が共に０のとき
+    if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
+    {
+        //ROS_INFO("both 0");
+        head = abs(CandVel[trajidx][1]);
+    }
+    // 1 角速度指令が0、速度指令値が0ではないとき
+    else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
+    {
+        //          ROS_INFO("only w 0");
+        head = abs(M_PI / 2 - arctan2) / M_PI;
+    }
+    // 3 角速度指令が0ではなく、速度指令が0のとき
+    else if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0)
+    {
+        head = abs((CandVel[trajidx][1] - sensor.joy_cmd_vel[1])) / M_PI;
+    }
+    else
+    {
+        head = abs(arctan2 - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
+    }
+
+    return head;
+}
+
+double my_robo::cal_vel_cost(int trajidx){
+    return (abs(CandVel[trajidx][0] - sensor.joy_cmd_vel[0])) / spec.x_max_vel;
 }
