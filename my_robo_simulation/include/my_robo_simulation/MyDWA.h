@@ -41,6 +41,8 @@ private:
     // LRFについてのPoints
     std::vector<MyPoint> LRFpoints;
 
+    std::vector<double> costs;
+
     // DWA_var DWA;
 
         // treeidxのツリーのidx番目の点と、queryの点の距離(を求める。
@@ -58,7 +60,7 @@ private:
         // LRFのスキャン点から、kdtreeを構築する
     void kd_tree(sensor_msgs::LaserScan& scan,std::vector<std::vector<std::vector<double>>>& PredictTrajs,double& robot_rad);
 
-    void cal_costs();
+    void cal_costs(int);
 
 public:
     MyDWA(){
