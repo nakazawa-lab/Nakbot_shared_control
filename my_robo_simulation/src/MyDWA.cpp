@@ -10,6 +10,16 @@ void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std
 {
     // LRFについてのkd木を作り、探索を行う
     kd_tree(latest_scan, PredictTrajs, robot_rad);
+
+    // 保存していたcostベクトルの中から、最小値とそのインデックスを取得
+    // 参考コード
+    //std::vector<int>::iterator iter = std::max_element(x.begin(), x.end());
+    //size_t index = std::distance(x.begin(), iter);
+
+    // 最小コストを満たすインデックスの保持 opt_indexに保持する
+    vector<double>::iterator iter = min_element(costs.begin(),costs.end());
+    size_t index = distance(costs.begin(),iter);
+    opt_index = index;
 }
 
 // kdtreeを作り、探索も同時に行う
@@ -95,7 +105,7 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
         cal_lin_ang_Dist(scan_idx, traj_idx, PredictTrajs[i], robot_rad, i);
 
         // コストの計算を行い、候補軌道の中から最適なもののインデックスを計算する
-        cal_costs();
+        cal_costs(i);
 
         for (int i = 0; i < LOG_MYDWA.size(); i++)
         {
@@ -106,7 +116,7 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
     }
 }
 
-void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector<double>> &PredictTraj, double &robot_rad, int i)
+void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector<double>> &PredictTraj, double &robot_rad, int candIdx)
 {
     double lin_normDist, ang_normDist;
     // ROS_INFO("cal_lin_ang_dist");
@@ -127,31 +137,45 @@ void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector
         // cout << "LRFpoints[scan_idx][1] trand_dist: " << LRFpoints[scan_idx][1] << " PredictTraj[traj_idx][1]: relative dist:" << PredictTraj[traj_idx][1] << endl;
         isCollision.push_back(true);
         
-        lin_normDist = lin_dist / (CandVel[i][0] * thres_vel_time);
-        ang_normDist = ang_dist / (abs(CandVel[i][1]) * thres_ang_time);
-        if(lin_normDist > 1) lin_normDist =1;
-        if(ang_normDist >1) ang_normDist =1;
+        lin_normDist = lin_dist / (CandVel[candIdx][0] * thres_vel_time);
+        ang_normDist = ang_dist / (abs(CandVel[candIdx][1]) * thres_ang_time);
+        if (lin_normDist > 1)
+            lin_normDist = 1;
+        if (ang_normDist > 1)
+            ang_normDist = 1;
+        if (lin_normDist < 0)
+            lin_normDist = 0;
+        if (ang_normDist < 0)
+            ang_normDist = 0;
     }
     else
     {
         isCollision.push_back(false);
-        if(CandVel[i][0] <= 0) lin_normDist = 1;
-        if (CandVel[i][1] == 0) ang_normDist =1;
-        lin_normDist = lin_dist / (CandVel[i][0] * thres_vel_time);
-        ang_normDist = ang_dist / (abs(CandVel[i][1])* thres_ang_time);
+        if (CandVel[candIdx][0] <= 0)
+            lin_normDist = 1;
+        if (CandVel[candIdx][1] == 0)
+            ang_normDist = 1;
+        lin_normDist = lin_dist / (CandVel[candIdx][0] * thres_vel_time);
+        ang_normDist = ang_dist / (abs(CandVel[candIdx][1]) * thres_ang_time);
 
-        if (isnan(lin_normDist) || CandVel[i][0] < 0)
+        if (isnan(lin_normDist) || CandVel[candIdx][0] < 0)
             lin_normDist = 1;
         if (isnan(ang_normDist))
             ang_normDist = 1;
 
-        if(lin_normDist > 1) lin_normDist =1;
-        if(ang_normDist >1) ang_normDist =1;
+        if (lin_normDist > 1)
+            lin_normDist = 1;
+        if (ang_normDist > 1)
+            ang_normDist = 1;
+        if (lin_normDist < 0)
+            lin_normDist = 0;
+        if (ang_normDist < 0)
+            ang_normDist = 0;
     }
-    cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
+    cout << "CandVel " << candIdx << ":(" << CandVel[candIdx][0] << ", " << CandVel[candIdx][1] << ")" << endl;
     cout << "lin_dist : " << lin_dist << " ang_dist: " << ang_dist << endl;
     cout << "lin_normDist : " << lin_normDist << " ang_normDist: " << ang_normDist << endl;
-    cout <<endl;
+    cout << endl;
     lin_normdists.push_back(lin_normDist);
     ang_normdists.push_back(ang_normDist);
 
@@ -159,41 +183,43 @@ void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector
     LOG_MYDWA.push_back(ang_normDist);
 }
 
-void MyDWA::cal_costs()
+// 各軌道に対して呼び出される 0920夜 trajIdxによってコストを決めなくてはならない！繰り返し不要
+void MyDWA::cal_costs(int candIdx)
 {
     double temp_cost, cost = 10000;
     double head_h_cost,vel_h_cost;
     double head_h_cost_tmp,vel_h_cost_tmp;
     int temp_idx;
-    for(int i=0; i < PredictTraj_r.size();i++){
+    //for(int i=0; i < PredictTraj_r.size();i++){    
         //if(!isCollision[i]){
-            head_h_cost_tmp = cal_head_cost(i); 
-            vel_h_cost_tmp = cal_vel_cost(i);
+            head_h_cost_tmp = cal_head_cost(candIdx); 
+            vel_h_cost_tmp = cal_vel_cost(candIdx);
             // コストの計算
-            temp_cost = 0.5 * ((1-lin_normdists[i])  + (1 - ang_normdists[i])) + 0.5 * ( k_velocity * lin_normdists[i] * vel_h_cost + k_heading * ang_normdists[i] * head_h_cost);
-
-            // 最小コストの判定、保持
-            if(temp_cost < cost){
-                vel_h_cost = vel_h_cost_tmp;
-                head_h_cost = head_h_cost_tmp;
-                cout << "update cost traj " << i << ": temp cost=" << temp_cost << " cost=" << cost << endl;
-                cout << "Candvel: " << CandVel[i][0] << " CandAng:" << CandVel[i][1] << endl; 
-                cout << "vel_h_cost:" << vel_h_cost << endl;
-                cout << "head_h_cost:" << head_h_cost << endl;
-                cout << "lin_normdist:" << lin_normdists[i] << endl;
-                cout << "ang_normdist:" << ang_normdists[i] << endl;
-                cout <<endl;
-                cost = temp_cost;
-                temp_idx = i;
-            }
+            temp_cost = 0.5 * ((1-lin_normdists[candIdx])  + (1 - ang_normdists[candIdx])) + 0.5 * ( k_velocity * lin_normdists[candIdx] * vel_h_cost + k_heading * ang_normdists[candIdx] * head_h_cost);
+            
+            // // 最小コストの判定、保持
+            // if(temp_cost < cost){
+            //     vel_h_cost = vel_h_cost_tmp;
+            //     head_h_cost = head_h_cost_tmp;
+            //     cout << "update cost traj " << i << ": temp cost=" << temp_cost << " cost=" << cost << endl;
+            //     cout << "Candvel: " << CandVel[i][0] << " CandAng:" << CandVel[i][1] << endl; 
+            //     cout << "vel_h_cost:" << vel_h_cost << endl;
+            //     cout << "head_h_cost:" << head_h_cost << endl;
+            //     cout << "lin_normdist:" << lin_normdists[i] << endl;
+            //     cout << "ang_normdist:" << ang_normdists[i] << endl;
+            //     cout <<endl;
+            //     cost = temp_cost;
+            //     temp_idx = i;
+            // }
 
         //}
-    }
-    // 最小コストを満たすインデックスの保持 opt_indexに保持する
-    opt_index = temp_idx;
-    LOG_MYDWA.push_back(vel_h_cost);
-    LOG_MYDWA.push_back(head_h_cost);
-    LOG_MYDWA.push_back(cost);
+    //}       
+
+    LOG_MYDWA.push_back(vel_h_cost_tmp);
+    LOG_MYDWA.push_back(head_h_cost_tmp);
+    LOG_MYDWA.push_back(temp_cost);
+
+    costs.push_back(temp_cost);
 }
 
 void MyDWA::cal_Dist()

@@ -1,5 +1,10 @@
 {
     "files.associations": {
         "fstream": "cpp"
-    }
+    },
+    "python.autoComplete.extraPaths": [
+        "/home/kitajima/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages",
+        "/home/kitajima/workspace/program/bullet3/build_cmake/examples/pybullet"
+    ]
 }
