@@ -439,6 +439,7 @@ int main(int argc, char **argv)
 
     robot.logfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log.csv");
     //log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");
+    robot.mylogfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog.csv");
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
@@ -451,6 +452,11 @@ int main(int argc, char **argv)
     std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
     robot.logfile << logRowName << std::endl;
 
+    std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,dist,velnormdist,angnormdist,vel_h_cost,ang_h_cost,cost";
+    robot.mylogfile << mylogRowName << std::endl;
+
+    
+
     //logRowName = "time,d,theta";
     //log_traj_file << logRowName;
 
@@ -458,6 +464,7 @@ int main(int argc, char **argv)
     robot.DWAloop();
 
     robot.logfile.close();
+    robot.mylogfile.close();
     //log_traj_file.close();
     //robot.g.close();
     pclose(gp);

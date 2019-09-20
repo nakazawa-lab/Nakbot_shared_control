@@ -90,6 +90,10 @@ public:
     void DWAloop();
 
     void clear_vector();
+
+    std::vector<double> LOG_MYDWA;
+
+    std::ofstream mylogfile;
 };
 
 #endif
