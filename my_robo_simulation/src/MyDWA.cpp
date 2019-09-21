@@ -19,7 +19,12 @@ void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std
     // 最小コストを満たすインデックスの保持 opt_indexに保持する
     vector<double>::iterator iter = min_element(costs.begin(),costs.end());
     size_t index = distance(costs.begin(),iter);
-    opt_index = index;
+    opt_index = (int)index;
+
+    cout << "finish search " << endl;
+    // cout << "costs size: " << costs.size() << endl;
+    // cout << "cand size: " << CandVel.size() <<endl;
+    cout << "opt idx: " << opt_index <<endl;
 }
 
 // kdtreeを作り、探索も同時に行う
@@ -104,7 +109,6 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
 
         cal_lin_ang_Dist(scan_idx, traj_idx, PredictTrajs[i], robot_rad, i);
 
-        // コストの計算を行い、候補軌道の中から最適なもののインデックスを計算する
         cal_costs(i);
 
         for (int i = 0; i < LOG_MYDWA.size(); i++)
@@ -175,7 +179,7 @@ void MyDWA::cal_lin_ang_Dist(int scan_idx, int traj_idx, std::vector<std::vector
     cout << "CandVel " << candIdx << ":(" << CandVel[candIdx][0] << ", " << CandVel[candIdx][1] << ")" << endl;
     cout << "lin_dist : " << lin_dist << " ang_dist: " << ang_dist << endl;
     cout << "lin_normDist : " << lin_normDist << " ang_normDist: " << ang_normDist << endl;
-    cout << endl;
+    //cout << endl;
     lin_normdists.push_back(lin_normDist);
     ang_normdists.push_back(ang_normDist);
 
@@ -192,11 +196,23 @@ void MyDWA::cal_costs(int candIdx)
     int temp_idx;
     //for(int i=0; i < PredictTraj_r.size();i++){    
         //if(!isCollision[i]){
-            head_h_cost_tmp = cal_head_cost(candIdx); 
+            //head_h_cost_tmp = cal_head_cost(candIdx); 
+            head_h_cost_tmp = cal_head_cost_pro(candIdx);
             vel_h_cost_tmp = cal_vel_cost(candIdx);
             // コストの計算
-            temp_cost = 0.5 * ((1-lin_normdists[candIdx])  + (1 - ang_normdists[candIdx])) + 0.5 * ( k_velocity * lin_normdists[candIdx] * vel_h_cost + k_heading * ang_normdists[candIdx] * head_h_cost);
+            temp_cost =  ((1-lin_normdists[candIdx])  + (1 - ang_normdists[candIdx])) + ( k_velocity * lin_normdists[candIdx] * vel_h_cost_tmp + k_heading * ang_normdists[candIdx] * head_h_cost_tmp);
             
+            cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
+            cout << "1 - linnormdist: " << 1-lin_normdists[candIdx] <<endl;
+            cout << "1 - angnormdist: " << 1 - ang_normdists[candIdx] <<endl;
+            // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
+            // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
+            cout << "k_head: " << k_heading << " angnormDist: " <<ang_normdists[candIdx] << " head_h_cost: " << head_h_cost_tmp <<endl;
+            cout << "k_vel: " << k_velocity << " linnormDist: " <<lin_normdists[candIdx] << " vel_h_cost: " << vel_h_cost_tmp <<endl;
+            cout << "cost: " <<temp_cost <<endl;
+            cout << endl;
+
+
             // // 最小コストの判定、保持
             // if(temp_cost < cost){
             //     vel_h_cost = vel_h_cost_tmp;
@@ -241,6 +257,16 @@ void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std
 {
 }
 
+double MyDWA::cal_head_cost_pro(int candIdx){
+    double cost = abs(CandVel[candIdx][1] - sensor.joy_cmd_vel[1]) / spec.z_max_ang;
+    if(isnan(cost)){
+        std::cout << "isnan ang h cost" << std::endl;
+        cost = 0;
+    }
+    cout << "head_cost: " << cost <<endl; 
+    return cost;
+}
+
 void MyDWA::clear_vector()
 {
     // ループの最後にはpredicttrajectoryやcmdcandidateなどを消去する
@@ -252,6 +278,7 @@ void MyDWA::clear_vector()
     PredictTraj_r.clear();
     lin_normdists.clear();
     ang_normdists.clear();
+    costs.clear();
     // myDWA.clear();
     // ROS_INFO("candsize:%d",CandVel.size());
     // ROS_INFO("predict:%d",PredictTraj.size());

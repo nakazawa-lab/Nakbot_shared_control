@@ -27,7 +27,7 @@ private:
     // d-theta平面上での距離を図る際に、スケールを合わせるために掛ける数字。
     // 例えば、thをdegで表してスケールを整えないと角度のズレに対して非常に敏感になってしまい、少しでも角度がずれていると危険と判断されてしまう。
     const double point_scale_d = 1;
-    const double point_scale_th = 0.5333333;        // max_vel/max_angvel
+    const double point_scale_th = 1;        // max_vel/max_angvel
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
@@ -62,6 +62,8 @@ private:
 
     void cal_costs(int);
 
+    double cal_head_cost_pro(int);
+
 public:
     MyDWA(){
     };
@@ -87,6 +89,7 @@ public:
         traj_indices.clear();
         lin_normdists.clear();
         ang_normdists.clear();
+        costs.clear();
     };
 
     void DWAloop();

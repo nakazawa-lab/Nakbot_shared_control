@@ -1,6 +1,7 @@
 #include "my_robo_simulation/my_robo_drive.h"
 #include "my_robo_simulation/my_robo_util.h"
 
+using namespace std;
 
 // 速度コストのsaturation係数を求める
 double my_robo::cal_vel_sat()
@@ -447,7 +448,7 @@ double my_robo::cal_head_cost(int trajidx){
     if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
     {
         //ROS_INFO("both 0");
-        head = abs(CandVel[trajidx][1]);
+        head = abs(CandVel[trajidx][1]) / M_PI;
     }
     // 1 角速度指令が0、速度指令値が0ではないとき
     else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
@@ -469,5 +470,11 @@ double my_robo::cal_head_cost(int trajidx){
 }
 
 double my_robo::cal_vel_cost(int trajidx){
-    return (abs(CandVel[trajidx][0] - sensor.joy_cmd_vel[0])) / spec.x_max_vel;
+    double cost = abs(CandVel[trajidx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel; 
+    if(isnan(cost)) {
+        std::cout << "isnan vel h cost" << std::endl;
+        cost =0;
+    }
+    cout << "vel_cost: " << cost <<endl;
+    return cost;
 }

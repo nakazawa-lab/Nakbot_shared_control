@@ -20,7 +20,7 @@
 
 FILE *gp;       // gnuplotに指令を与えるためのテキストファイル
 
-//define PABLODWA
+//#define PABLODWA
 #define MYDWA
 #define ISSHARED
 
@@ -362,7 +362,7 @@ void MyDWA::DWAloop()
 
                 #ifdef MYDWA
                 // MyDWA
-                if (sensor.joy_cmd_vel[0] >= 0)
+                if (sensor.joy_cmd_vel[0] >= -0)
                 {
                     std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" <<std::endl;
                     vel.linear.x = CandVel[opt_index][0];
@@ -371,8 +371,8 @@ void MyDWA::DWAloop()
                 #endif
                 // MyDWA
                 #endif
-
-                // ROS_INFO("pubvel:%f,%f,d_U=%f.", vel.linear.x, vel.angular.z, CandVel[index][2]);
+                
+                ROS_INFO("pubvel:%f,%f", vel.linear.x, vel.angular.z);
 
 
                 double distance;
@@ -399,13 +399,13 @@ void MyDWA::DWAloop()
 
         pub_cmd.publish(vel);
 
-        // ROS_INFO("pub vel.\n");
+        ROS_INFO("pub vel.\n");
 
         clear_vector();
-        //say_time("clear vector", now);
+        say_time("clear vector", now);
 
         rate.sleep();
-        //say_time("after waiting",now);
+        say_time("after waiting",now);
 
         for (int i = 0; i < LOG.size(); i++)
         {
