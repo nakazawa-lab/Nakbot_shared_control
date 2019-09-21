@@ -52,6 +52,16 @@ int kbhit(void)
     return 0;
 }
 
+void trans_inf(sensor_msgs::LaserScan& scan){
+    for(int i=0; i <scan.ranges.size(); i++){
+        if(isinf(scan.ranges[i])){
+            // std::cout << "inf: " << ((scan.angle_increment * i) - (scan.angle_increment * scan.ranges.size() / 2))  * RAD2DEG << std::endl;
+            scan.ranges[i] = 6;
+        }
+    }
+};
+
+
 my_robo::my_robo()
 {
     spec.get_spec_param(n, spec);
@@ -299,6 +309,8 @@ void MyDWA::DWAloop()
 
             check_joy();
 
+            trans_inf(sensor.latest_scan);
+
             LOG.push_back(sensor.odom.twist.twist.linear.x);
             LOG.push_back(sensor.odom.twist.twist.angular.z);
             LOG.push_back(sensor.joy_cmd_vel[0]);
@@ -392,7 +404,7 @@ void MyDWA::DWAloop()
                     // <gnuplot> //
                     plot_gnuplot(gp);
                 }
-                say_time("plot",now);
+                //say_time("plot",now);
             }
 
         }
@@ -430,7 +442,6 @@ void MyDWA::DWAloop()
     }
 }
 
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
@@ -444,7 +455,7 @@ int main(int argc, char **argv)
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
     fprintf(gp, "set xrange [-2:2]\n");
-    fprintf(gp, "set yrange [-0.2:2]\n");
+    fprintf(gp, "set yrange [-0.2:7]\n");
     fprintf(gp, "set xlabel \"theta\"\n");
     fprintf(gp, "set ylabel \"distance\"\n");
 
