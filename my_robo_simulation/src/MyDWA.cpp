@@ -196,8 +196,8 @@ void MyDWA::cal_costs(int candIdx)
     int temp_idx;
     //for(int i=0; i < PredictTraj_r.size();i++){    
         //if(!isCollision[i]){
-            //head_h_cost_tmp = cal_head_cost(candIdx); 
-            head_h_cost_tmp = cal_head_cost_pro(candIdx);
+            head_h_cost_tmp = cal_head_cost(candIdx); 
+            //head_h_cost_tmp = cal_head_cost_pro(candIdx);
             vel_h_cost_tmp = cal_vel_cost(candIdx);
             // コストの計算
             temp_cost =  ((1-lin_normdists[candIdx])  + (1 - ang_normdists[candIdx])) + ( k_velocity * lin_normdists[candIdx] * vel_h_cost_tmp + k_heading * ang_normdists[candIdx] * head_h_cost_tmp);
