@@ -409,31 +409,6 @@ void say_time(const char *name, std::chrono::time_point<std::chrono::_V2::system
   ROS_INFO("after %s : %d millisec", name, msec);
 }
 
-// void my_robo::plot_d_deg(){
-//   double distance;
-//   double deg;
-
-//   for(int i= 0; i < sensor.latest_scan.ranges.size();i+=6){
-//     distance = sensor.latest_scan.ranges[i];
-//     deg = sensor.index_to_rad(i) *  RAD2DEG;
-//     g.point(deg,distance,"blue","s=5");
-//     // ROS_INFO("distance: %f, deg: %f",distance,deg);
-//   }
-// }
-
-// void my_robo::plot_predict_traj(){
-//   // 候補軌道に対する繰り返し
-//   for(int i= 0; i < PredictTraj_r.size();i+=1){
-//     //ROS_INFO("get i loop");
-//     //ROS_INFO("cand (v,w): (%f, %f)",CandVel[i][0],CandVel[i][1]) ;
-//     // 時刻に対する繰り返し
-//     for(int j = 0; j < PredictTraj_r[0].size();j += 3){
-//       g.point(PredictTraj_r[i][j][1]*RAD2DEG, PredictTraj_r[i][j][0],"red", "s=5");
-//       //ROS_INFO("d: %f, deg: %f",PredictTraj_r[i][j][0],PredictTraj_r[i][j][1] *RAD2DEG);
-//     }
-//   }
-// }
-
 void my_robo::plot_d_deg_gnuplot(FILE *gp)
 {
   // ファイルを書き出したいとき
@@ -493,7 +468,7 @@ void my_robo::plot_gnuplot(FILE *gp)
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
   for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) *0.53 , sensor.latest_scan.ranges[i]);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) * 3.75 , sensor.latest_scan.ranges[i]);
   }
   fprintf(gp, "e\n");
   fflush(gp);
