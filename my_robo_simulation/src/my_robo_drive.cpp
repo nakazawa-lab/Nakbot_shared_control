@@ -56,7 +56,7 @@ void trans_inf(sensor_msgs::LaserScan& scan){
     for(int i=0; i <scan.ranges.size(); i++){
         if(isinf(scan.ranges[i])){
             // std::cout << "inf: " << ((scan.angle_increment * i) - (scan.angle_increment * scan.ranges.size() / 2))  * RAD2DEG << std::endl;
-            scan.ranges[i] = 6;
+            scan.ranges[i] = 100;
         }
     }
 };
@@ -86,7 +86,7 @@ my_robo::my_robo()
     sensor.joy_cmd_vel[0] = 0;
     sensor.joy_cmd_vel[1] = 0;
 
-    spec.set_resolution(spec.x_max_acc * dt / 4, spec.z_max_acc * dt / 4);
+    spec.set_resolution(spec.x_max_acc * dt / 5, spec.z_max_acc * dt / 5);
 }
 
 // スペック上の最大加速度と今の速度からDynamicWindowを求める vector<vector<float>>型のCanVelに格納される
@@ -329,8 +329,8 @@ void MyDWA::DWAloop()
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
             // pub_marker_array(obsmarkers);
             
-            if (sensor.odom.twist.twist.linear.x >= -0.5)
-            {
+            //if (sensor.odom.twist.twist.linear.x >= -0.5)
+            //{
                 cal_DWA();
                 LOG.push_back(CandVel.size());
                 // say_time("cal DWA",now);
@@ -359,7 +359,8 @@ void MyDWA::DWAloop()
                 #endif
 
                 #ifdef MYDWA
-                search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
+                //search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
+                Proposed_0923();
                 #endif
 
                 #ifdef ISSHARED
@@ -373,8 +374,7 @@ void MyDWA::DWAloop()
                 #endif
 
                 #ifdef MYDWA
-                // MyDWA
-                if (sensor.joy_cmd_vel[0] >= -0)
+                if (sensor.odom.twist.twist.linear.x > -0)
                 {
                     std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" <<std::endl;
                     vel.linear.x = CandVel[opt_index][0];
@@ -405,7 +405,7 @@ void MyDWA::DWAloop()
                     plot_gnuplot(gp);
                 }
                 //say_time("plot",now);
-            }
+            //}
 
         }
 
@@ -454,7 +454,7 @@ int main(int argc, char **argv)
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
-    fprintf(gp, "set xrange [-2:2]\n");
+    fprintf(gp, "set xrange [-8:8]\n");
     fprintf(gp, "set yrange [-0.2:7]\n");
     fprintf(gp, "set xlabel \"theta\"\n");
     fprintf(gp, "set ylabel \"distance\"\n");

@@ -9,15 +9,15 @@
 |計算周期               |looprate       |4      |
 |                       |k_head         |1      |
 |                       |k_vel          |1      |
-|                       |thres_vel      |2      |
-|                       |thres_ang      |2      |
+|                       |thres_vel_time      |2      |
+|                       |thres_ang_time      |2      |
 
 
 ## my_robo_drive.cpp
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
 |衝突判定の角度         |sensor_cal_obs |4度ずつ80度|
-|DWAの候補速度の刻み    |set_resolutionの引数|acc/4|
+|DWAの候補速度の刻み    |set_resolutionの引数|acc*dt/4|
 
 ## controller.yaml
 ```
@@ -79,3 +79,10 @@ my_robo:
 |---                    |---            |---    |
 |ロボットの横幅         |robot_width    |0.25   |
 |縦幅                   |robot_length   |0.3    |
+
+## MyDWA.h
+|項目                   |変数名         |値     |
+|---                    |---            |---    |
+|d_scaling         |robot_width    |0.25   |
+|th_scaling                   |robot_length   |0.3    |
+|

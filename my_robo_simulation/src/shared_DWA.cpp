@@ -454,7 +454,8 @@ double my_robo::cal_head_cost(int trajidx){
     else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
     {
         //          ROS_INFO("only w 0");
-        head = abs(M_PI / 2 - arctan2) / M_PI;
+        if(CandVel[trajidx][0]==0 && CandVel[trajidx][1]==0) head = M_PI;
+        else head = abs(M_PI/2 - arctan2) / M_PI;
     }
     // 3 角速度指令が0ではなく、速度指令が0のとき
     else if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0)
@@ -475,6 +476,6 @@ double my_robo::cal_vel_cost(int trajidx){
         std::cout << "isnan vel h cost" << std::endl;
         cost =0;
     }
-    cout << "vel_cost: " << cost <<endl;
+    //cout << "vel_h_cost: " << cost <<endl;
     return cost;
 }

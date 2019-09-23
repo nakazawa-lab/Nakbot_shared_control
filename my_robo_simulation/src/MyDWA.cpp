@@ -22,8 +22,6 @@ void MyDWA::search_LRF_Traj(sensor_msgs::LaserScan &latest_scan, std::vector<std
     opt_index = (int)index;
 
     cout << "finish search " << endl;
-    // cout << "costs size: " << costs.size() << endl;
-    // cout << "cand size: " << CandVel.size() <<endl;
     cout << "opt idx: " << opt_index <<endl;
 }
 
@@ -200,10 +198,10 @@ void MyDWA::cal_costs(int candIdx)
             //head_h_cost_tmp = cal_head_cost_pro(candIdx);
             vel_h_cost_tmp = cal_vel_cost(candIdx);
             // コストの計算
-            temp_cost =  ((1-lin_normdists[candIdx])  + (1 - ang_normdists[candIdx])) + ( k_velocity * lin_normdists[candIdx] * vel_h_cost_tmp + k_heading * ang_normdists[candIdx] * head_h_cost_tmp);
+            temp_cost =  ((1-lin_normdists[candIdx])  + (1 - ang_normdists[candIdx])) + ( k_velocity * lin_normdists[candIdx] * vel_h_cost_tmp + k_heading * ang_normdists[candIdx] * head_h_cost_tmp) ;
             
             cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
-            cout << "1 - linnormdist: " << 1-lin_normdists[candIdx] <<endl;
+            cout << "1 - linnormdist: " << 1 - lin_normdists[candIdx] <<endl;
             cout << "1 - angnormdist: " << 1 - ang_normdists[candIdx] <<endl;
             // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
             // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
@@ -263,8 +261,129 @@ double MyDWA::cal_head_cost_pro(int candIdx){
         std::cout << "isnan ang h cost" << std::endl;
         cost = 0;
     }
-    cout << "head_cost: " << cost <<endl; 
+    //cout << "head_cost: " << cost <<endl; 
     return cost;
+}
+
+void MyDWA::cal_dist_sep(){
+    double tmp_dist,tmp_ang;
+    double dist=10000,ang=10000;
+    bool flag=false;
+
+    // 衝突検知のためのループ
+    for (int i = 0; i < CandVel.size(); i++)
+    {
+        flag=false;
+        dist_lin_ang.push_back(vector<double>());
+
+        for (int j = 0; j < PredictTraj_r[i].size(); j++)
+        {
+            tmp_dist = cal_lincost_sep_(i, j);
+
+            if (tmp_dist < dist)
+            {
+                dist = tmp_dist;
+            }
+            if (tmp_dist < spec.robot_rad)
+            {
+                isCollision.push_back(true);
+                collisionTime.push_back(j * dt_traj);
+                dist = 0.1;
+                //ang = cal_angcost_sep_(i, PredictTraj_r[i].size() - 1); // これも0にするべきなのか？
+                ang = 0;
+                flag=true;
+                break;
+        }
+            }
+        if(!flag)
+        {
+            isCollision.push_back(false);
+            collisionTime.push_back(numeric_limits<double>::max());
+            ang = cal_angcost_sep_(i, PredictTraj_r[i].size() - 1);
+            dist = cal_lincost_sep_(i, PredictTraj_r[i].size() - 1);
+        }
+        dist_lin_ang[i].push_back(dist / (abs(CandVel[i][0] * thres_vel_time)));
+        dist_lin_ang[i].push_back(abs(ang * point_scale_th / (CandVel[i][1] * thres_ang_time)));
+    }
+}
+
+double MyDWA::cal_lincost_sep_(int i,int j){
+    double tmp_dist,dist = 10000;
+    for (int k = 0; k < sensor.latest_scan.ranges.size(); k++)
+    {
+        // dist についての最近傍点を求め、コストに変換する
+        tmp_dist = abs(PredictTraj_r[i][j][1] - sensor.latest_scan.ranges[k]);
+
+        if(tmp_dist < dist){
+            dist = tmp_dist;
+        }
+    }
+
+    return dist;
+}
+
+double MyDWA::cal_angcost_sep_(int i, int j){
+    double tmp_ang,ang = 10000;
+    for (int k = 0; k < sensor.latest_scan.ranges.size(); k++)
+    {
+        // ang についての最近傍点を求め、コストに変換する
+        tmp_ang = abs(PredictTraj_r[i][j][2] - sensor.index_to_rad(k));
+
+        if(tmp_ang < ang){
+            ang = tmp_ang;
+            //cout << "update ang. ang=" << ang <<endl;
+        }
+    }
+
+    return ang;
+}
+
+void MyDWA::cal_cost_sep(){
+    double temp_cost,cost=100000;
+    double head_h_cost_tmp,vel_h_cost_tmp;
+    double idx_temp;
+
+    for(int i=0;i<CandVel.size();i++){
+
+        // distを0から1までの間にクリッピングする処理
+        if(dist_lin_ang[i][0] > 1){
+            dist_lin_ang[i][0] = 1;
+        }
+        if(dist_lin_ang[i][1] > 1){
+            cout << "dist_lin_ang[i][1]: " << dist_lin_ang[i][1] <<endl;
+            dist_lin_ang[i][1] = 1;
+        }
+
+        //head_h_cost_tmp = cal_head_cost(i);
+        head_h_cost_tmp = cal_head_cost_pro(i);
+        vel_h_cost_tmp = cal_vel_cost(i);
+
+        // temp_cost = (1 - dist_lin_ang[i][0]) + (1 - dist_lin_ang[i][1]) + (k_velocity * dist_lin_ang[i][0]* vel_h_cost_tmp + k_heading * dist_lin_ang[i][1] * head_h_cost_tmp);
+            temp_cost = (1 - dist_lin_ang[i][0]) +  (1 - dist_lin_ang[i][1]) + (dist_lin_ang[i][0] +  dist_lin_ang[i][1]) * (k_velocity * vel_h_cost_tmp + k_heading * head_h_cost_tmp);
+
+        if(temp_cost < cost){
+            cost = temp_cost;
+            idx_temp = i;
+
+            cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
+            cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
+            // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
+            // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
+            cout << "angnormDist: " << dist_lin_ang[i][1] << " head_h_cost: " << head_h_cost_tmp << endl;
+            cout << "linnormDist: " << dist_lin_ang[i][0] << " vel_h_cost: " << vel_h_cost_tmp << endl;
+            cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
+            cout << "exp(- collisionTime^2: " << exp(-1 * collisionTime[i] * collisionTime[i]) << endl;
+            cout << "cost: " << temp_cost << endl;
+            cout << endl;
+        }
+    }
+    opt_index = idx_temp;
+    cout << "opt idx is" << opt_index << endl << "vel:"  << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] <<endl;
+}
+
+void MyDWA::Proposed_0923(){
+    cal_dist_sep();
+    cal_cost_sep();
 }
 
 void MyDWA::clear_vector()
@@ -279,6 +398,8 @@ void MyDWA::clear_vector()
     lin_normdists.clear();
     ang_normdists.clear();
     costs.clear();
+    dist_lin_ang.clear();
+    collisionTime.clear();
     // myDWA.clear();
     // ROS_INFO("candsize:%d",CandVel.size());
     // ROS_INFO("predict:%d",PredictTraj.size());

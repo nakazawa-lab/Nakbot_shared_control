@@ -27,7 +27,7 @@ private:
     // d-theta平面上での距離を図る際に、スケールを合わせるために掛ける数字。
     // 例えば、thをdegで表してスケールを整えないと角度のズレに対して非常に敏感になってしまい、少しでも角度がずれていると危険と判断されてしまう。
     const double point_scale_d = 1;
-    const double point_scale_th = 0.533333333;        // max_vel/max_angvel
+    const double point_scale_th = 3.75;        // max_vel/max_angvel
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
@@ -42,6 +42,11 @@ private:
     std::vector<MyPoint> LRFpoints;
 
     std::vector<double> costs;
+
+    // distを計算せず、直接d thのcostを計算していくときに保持するコスト
+    std::vector<std::vector<double>> dist_lin_ang;
+
+    std::vector<double> collisionTime;
 
     // DWA_var DWA;
 
@@ -64,6 +69,15 @@ private:
 
     double cal_head_cost_pro(int);
 
+    // costをdistを介さずけいさんするための関数。kdツリーは使わない
+    void cal_dist_sep();
+
+    void cal_cost_sep();
+
+    double cal_lincost_sep_(int,int);
+
+    double cal_angcost_sep_(int,int);
+
 public:
     MyDWA(){
     };
@@ -82,16 +96,6 @@ public:
     // 現在わかっているLRFの情報と、軌道の情報から、2つの点群が最も近いときの距離を計算、最適な候補軌道のインデックスを計算して保持しておく関数
     void search_LRF_Traj(sensor_msgs::LaserScan& latest_scan, std::vector<std::vector<std::vector<double>>>& PredictTrajs,double robot_rad);
 
-    void clear(){
-        LRFpoints.clear();
-        LRFkdtree.clear();
-        scan_indices.clear();
-        traj_indices.clear();
-        lin_normdists.clear();
-        ang_normdists.clear();
-        costs.clear();
-    };
-
     void DWAloop();
 
     void clear_vector();
@@ -99,6 +103,8 @@ public:
     std::vector<double> LOG_MYDWA;
 
     std::ofstream mylogfile;
+
+    void Proposed_0923();
 };
 
 #endif
