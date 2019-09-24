@@ -34,7 +34,7 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
 
     for (int i = 0; i < point_num; i++)
     {
-        LRFpoints.push_back(MyPoint(scan.angle_increment * (i - scan.ranges.size() / 2) * point_scale_th, scan.ranges[i] * point_scale_d));
+        LRFpoints.push_back(MyPoint(scan.angle_increment * (i - scan.ranges.size() / 2) * point_scale_th, scan.ranges[i] * point_scale_d * point_scale_d));
     }
 
     kdt::KDTree<MyPoint> LRFkdtree(LRFpoints);
@@ -85,9 +85,9 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
 
             if (temp_dist < dist)
             {
-                // ROS_INFO("update dist! j = %d", j);
-                // ROS_INFO("temp dist:%f", temp_dist);
-                // ROS_INFO("dist:%f", dist);
+            //     ROS_INFO("update dist! j = %d", j);
+            //     ROS_INFO("temp dist:%f", temp_dist);
+            //     ROS_INFO("dist:%f", dist);
                 dist = temp_dist;
 
                 // ROS_INFO("scan_idx:%d", scan_idx);
@@ -105,16 +105,17 @@ void MyDWA::kd_tree(sensor_msgs::LaserScan &scan, std::vector<std::vector<std::v
         LOG_MYDWA.push_back(CandVel[i][1]);
         LOG_MYDWA.push_back(dist);
 
-        cal_lin_ang_Dist(scan_idx, traj_idx, PredictTrajs[i], robot_rad, i);
+        //cal_lin_ang_Dist(scan_idx, traj_idx, PredictTrajs[i], robot_rad, i);
 
-        cal_costs(i);
+        //cal_costs(i);
+        cal_costs_0924(i,dist);
 
-        for (int i = 0; i < LOG_MYDWA.size(); i++)
-        {
-            mylogfile << LOG_MYDWA[i] << ',';
-        }
-        mylogfile << std::endl;
-        LOG_MYDWA.clear();
+        // for (int i = 0; i < LOG_MYDWA.size(); i++)
+        // {
+        //     mylogfile << LOG_MYDWA[i] << ',';
+        // }
+        // mylogfile << std::endl;
+        // LOG_MYDWA.clear();
     }
 }
 
@@ -232,6 +233,41 @@ void MyDWA::cal_costs(int candIdx)
     LOG_MYDWA.push_back(vel_h_cost_tmp);
     LOG_MYDWA.push_back(head_h_cost_tmp);
     LOG_MYDWA.push_back(temp_cost);
+
+    costs.push_back(temp_cost);
+}
+
+void MyDWA::cal_costs_0924(int candIdx, double dist){
+    double temp_cost;
+    double head_h_cost, vel_h_cost;
+    double head_h_cost_tmp, vel_h_cost_tmp;
+    int temp_idx;
+
+    double basedist = (CandVel[candIdx][0]*thres_vel_time) * (CandVel[candIdx][0]*thres_vel_time)  + (CandVel[candIdx][1] * thres_ang_time) * (CandVel[candIdx][1] * thres_ang_time);
+    dist /= basedist;
+    if(dist > 1){
+        dist =1;
+    }
+
+
+    //for(int i=0; i < PredictTraj_r.size();i++){
+    //if(!isCollision[i]){
+    head_h_cost_tmp = cal_head_cost(candIdx);
+    //head_h_cost_tmp = cal_head_cost_pro(candIdx);
+    vel_h_cost_tmp = cal_vel_cost(candIdx);
+    // コストの計算
+    temp_cost = (1 - dist) + dist * (k_velocity * vel_h_cost_tmp + k_heading * head_h_cost_tmp);
+
+    cout << "CandVel " << candIdx << ":(" << CandVel[candIdx][0] << ", " << CandVel[candIdx][1] << ")" << endl;
+
+    cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
+    cout << "1 - ldist: " << 1 - dist << endl;
+    // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
+    // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
+    cout << "k_head: " << k_heading << " head_h_cost: " << head_h_cost_tmp << endl;
+    cout << "k_vel: " << k_velocity << " vel_h_cost: " << vel_h_cost_tmp << endl;
+    cout << "cost: " << temp_cost << endl;
+    cout << endl;
 
     costs.push_back(temp_cost);
 }
@@ -381,9 +417,10 @@ void MyDWA::cal_cost_sep(){
     cout << "opt idx is" << opt_index << endl << "vel:"  << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] <<endl;
 }
 
-void MyDWA::Proposed_0923(){
-    cal_dist_sep();
-    cal_cost_sep();
+void MyDWA::Proposed(){
+    // cal_dist_sep();
+    // cal_cost_sep();
+    search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
 }
 
 void MyDWA::clear_vector()
@@ -400,6 +437,8 @@ void MyDWA::clear_vector()
     costs.clear();
     dist_lin_ang.clear();
     collisionTime.clear();
+    LRFkdtree.clear();
+    LRFpoints.clear();
     // myDWA.clear();
     // ROS_INFO("candsize:%d",CandVel.size());
     // ROS_INFO("predict:%d",PredictTraj.size());

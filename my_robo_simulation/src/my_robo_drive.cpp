@@ -360,7 +360,7 @@ void MyDWA::DWAloop()
 
                 #ifdef MYDWA
                 //search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
-                Proposed_0923();
+                Proposed();
                 #endif
 
                 #ifdef ISSHARED
@@ -374,7 +374,7 @@ void MyDWA::DWAloop()
                 #endif
 
                 #ifdef MYDWA
-                if (sensor.odom.twist.twist.linear.x > -0)
+                if (sensor.joy_cmd_vel[0] >= -0)
                 {
                     std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" <<std::endl;
                     vel.linear.x = CandVel[opt_index][0];

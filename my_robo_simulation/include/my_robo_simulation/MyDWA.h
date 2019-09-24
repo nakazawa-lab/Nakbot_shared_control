@@ -67,6 +67,8 @@ private:
 
     void cal_costs(int);
 
+    void cal_costs_0924(int, double);
+
     double cal_head_cost_pro(int);
 
     // costをdistを介さずけいさんするための関数。kdツリーは使わない
@@ -104,7 +106,7 @@ public:
 
     std::ofstream mylogfile;
 
-    void Proposed_0923();
+    void Proposed();
 };
 
 #endif
