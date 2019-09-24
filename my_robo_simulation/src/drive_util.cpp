@@ -457,7 +457,7 @@ void my_robo::plot_gnuplot(FILE *gp)
     // 軌道内の各時刻に対する繰り返し
     for (int j = 0; j < PredictTraj_r[i].size(); j++)
     {
-      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * 0.53, PredictTraj_r[i][j][1]);
+      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * 3.75, PredictTraj_r[i][j][1]);
     }
   }
   fprintf(gp, "e\n");
@@ -475,12 +475,12 @@ void my_robo::plot_gnuplot(FILE *gp)
 #pragma endregion
 
 #pragma region ロボットの大きさの描画
-  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"green\" title \"robot\"\n");
-  for (int i = 0; i < spec.RobotSize.size(); i++)
-  {
-    fprintf(gp, "%f\t%f\n", spec.RobotSize[i][1] * RAD2DEG, spec.RobotSize[i][0]);
-  }
-  fprintf(gp, "e\n");
-  fflush(gp);
+  // fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"green\" title \"robot\"\n");
+  // for (int i = 0; i < spec.RobotSize.size(); i++)
+  // {
+  //   fprintf(gp, "%f\t%f\n", spec.RobotSize[i][1] * RAD2DEG, spec.RobotSize[i][0]);
+  // }
+  // fprintf(gp, "e\n");
+  // fflush(gp);
 #pragma endregion
 }
