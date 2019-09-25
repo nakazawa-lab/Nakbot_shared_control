@@ -19,9 +19,9 @@ void my_robo_sensor::cb_lrf(const sensor_msgs::LaserScan::ConstPtr &msg)
     if (count == 0)
     {
         ROS_INFO("first laser scan.");
-        range_point = latest_scan.ranges.size(); // 取得した点の数
-        center = range_point / 2;
-        ROS_INFO("range_point:%d.", range_point);
+        point_num = latest_scan.ranges.size(); // 取得した点の数
+        center = point_num / 2;
+        ROS_INFO("point_num:%d.", point_num);
         ROS_INFO("center:%d.", center);
         count++;
     }

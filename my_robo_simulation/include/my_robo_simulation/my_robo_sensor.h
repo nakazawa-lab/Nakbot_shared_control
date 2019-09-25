@@ -68,7 +68,7 @@ public:
     // LRFのインデックス計算のための定数
     // center: 真正面方向の点のインデックス
     // range_point: 総スキャン点数
-    int center, range_point;
+    int center, point_num;
 
     ros::Publisher pub_mark_arr;
 
