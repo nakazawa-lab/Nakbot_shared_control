@@ -27,7 +27,7 @@ private:
     // d-theta平面上での距離を図る際に、スケールを合わせるために掛ける数字。
     // 例えば、thをdegで表してスケールを整えないと角度のズレに対して非常に敏感になってしまい、少しでも角度がずれていると危険と判断されてしまう。
     const double point_scale_d = 1;
-    const double point_scale_th = 3.75;        // max_vel/max_angvel
+    const double point_scale_th = 1.875;        // max_vel/max_angvel
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
@@ -55,21 +55,13 @@ private:
 
     void cal_lin_ang_Dist(int, int,std::vector<std::vector<double>>&, double&, int );
 
-        // 同名の関数内で呼び出す、単一の軌道に対してLRFとの再接近点を求める
-    void search_LRF_Traj(sensor_msgs::LaserScan& latest_scan, std::vector<std::vector<double>>& PredictTraj);
-
-    // kd木によって、障害物を示す点群の中から、任意の点(d,theta)に対して最短距離となる点のインデックスを求める
-    // scan_index, traj_indexを求める
-    int kd_tree_nnSearch(const MyPoint query);
-
-        // LRFのスキャン点から、kdtreeを構築する
-    void kd_tree(sensor_msgs::LaserScan& scan,std::vector<std::vector<std::vector<double>>>& PredictTrajs,double& robot_rad);
-
     void cal_costs(int);
 
     void cal_costs_0924(int, double);
 
     double cal_head_cost_pro(int);
+
+    double cal_vel_cost_pro(int);
 
     // costをdistを介さずけいさんするための関数。kdツリーは使わない
     void cal_dist_sep();
@@ -79,6 +71,18 @@ private:
     double cal_lincost_sep_(int,int);
 
     double cal_angcost_sep_(int,int);
+
+    void proposed_0925();
+
+    void cal_opt_0925();
+
+    void cal_dist_0925(int candId);
+
+    void kd_tree_0925();
+
+    void record_param();
+
+    void make_mylog(double,double,double,double,double,double,double,int);
 
 public:
     MyDWA(){
@@ -96,7 +100,7 @@ public:
     };
 
     // 現在わかっているLRFの情報と、軌道の情報から、2つの点群が最も近いときの距離を計算、最適な候補軌道のインデックスを計算して保持しておく関数
-    void search_LRF_Traj(sensor_msgs::LaserScan& latest_scan, std::vector<std::vector<std::vector<double>>>& PredictTrajs,double robot_rad);
+    void search_LRF_Traj();
 
     void DWAloop();
 

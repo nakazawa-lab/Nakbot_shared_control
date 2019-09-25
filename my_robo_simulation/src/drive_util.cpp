@@ -88,14 +88,14 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
   int k=0;
   float green=0;
   float red=0;
-  bool flag = false;  // 採用軌道を示すもの  
+  bool Blueflag = false;  // 採用軌道を示すもの  
 // 候補の数ループ
   for (int i=0; i<PredictTraj.size();i+=3){
     //ROS_INFO("start put marker.");
 
     // float GREEN= (double)rand()/RAND_MAX;
-    if(i == index)flag = true;
-    else flag = false;
+    if(i == index)Blueflag = true;
+    else Blueflag = false;
 
     //予測時刻の数だけループ
     for (int j = 0; j < PredictTraj[i].size(); j += 2)
@@ -113,17 +113,12 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
       marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
       marker_array.markers[k].action = visualization_msgs::Marker::ADD;
 
+      if(Blueflag){
 
-      if(flag){
-      marker_array.markers[k].scale.x = 0.1;
-      marker_array.markers[k].scale.y = 0.1;
-      marker_array.markers[k].scale.z = 0.1;
       }
-      else
-      {
-      marker_array.markers[k].scale.x = 0.05;
-      marker_array.markers[k].scale.y = 0.05;
-      marker_array.markers[k].scale.z = 0.05;
+      else{
+
+
       }
 
       marker_array.markers[k].pose.position.x = PredictTraj[i][j][1];
@@ -134,37 +129,43 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
       marker_array.markers[k].pose.orientation.z = 0;
       marker_array.markers[k].pose.orientation.w = 1;
 
-      
-      if(flag){
+      if (Blueflag)
+      {
+        marker_array.markers[k].scale.x = 0.1;
+        marker_array.markers[k].scale.y = 0.1;
+        marker_array.markers[k].scale.z = 0.1;
+
         marker_array.markers[k].color.r = 0.0f;
-        marker_array.markers[k].color.g = 0.0f;
+        marker_array.markers[k].color.g = 1.0f;
         marker_array.markers[k].color.b = 1.0f;
         marker_array.markers[k].color.a = 1.0f;
       }
       else
       {
+        // marker_array.markers[k].color.r = 1.0f;
+        // marker_array.markers[k].color.g = CandVel[i][2];
+        // marker_array.markers[k].color.b = CandVel[i][2];
+        // marker_array.markers[k].color.a = 1.0f;
+
+        marker_array.markers[k].scale.x = 0.05;
+        marker_array.markers[k].scale.y = 0.05;
+        marker_array.markers[k].scale.z = 0.05;
+
         marker_array.markers[k].color.r = 1.0f;
-        marker_array.markers[k].color.g = CandVel[i][2];
-        marker_array.markers[k].color.b = CandVel[i][2];
+        marker_array.markers[k].color.g = 1.0f;
+        marker_array.markers[k].color.b = 1.0f;
         marker_array.markers[k].color.a = 1.0f;
       }
 
       k++;
 
     }
-      // green +=0.05;
-      // if(green>1)green=0;
-
-      // red +=0.05;
-      // if(red>1)red=0;
   }
- // pub_marker_array(marker_array);
-  //ROS_INFO("pub marker array.");
 
-// joyの予測軌道を緑色で入れる
-   //予測時刻の数だけループ
 
-    for (int j = 0; j < Joy_PredictTraj.size(); j ++)
+    // joyの予測軌道を緑色で入れる
+    //予測時刻の数だけループ
+    for (int j = 0; j < Joy_PredictTraj.size(); j +=2)
     {
     //ROS_INFO("start loop.");
 
@@ -177,9 +178,9 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
     // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
     marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
     marker_array.markers[k].action = visualization_msgs::Marker::ADD;
-    marker_array.markers[k].scale.x = 0.1;
-    marker_array.markers[k].scale.y = 0.1;
-    marker_array.markers[k].scale.z = 0.1;
+    marker_array.markers[k].scale.x = 0.08;
+    marker_array.markers[k].scale.y = 0.08;
+    marker_array.markers[k].scale.z = 0.08;
     marker_array.markers[k].pose.position.x = Joy_PredictTraj[j][1];
     marker_array.markers[k].pose.position.y = Joy_PredictTraj[j][2];
     marker_array.markers[k].pose.position.z = 0;
@@ -452,12 +453,12 @@ void my_robo::plot_gnuplot(FILE *gp)
 #pragma region 予測起動の描画
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
   // 候補軌道の数に対する繰り返し
-  for (int i = 0; i < PredictTraj_r.size(); i++)
+  for (int i = 0; i < PredictTraj_r.size(); i+=2)
   {
     // 軌道内の各時刻に対する繰り返し
-    for (int j = 0; j < PredictTraj_r[i].size(); j++)
+    for (int j = 0; j < PredictTraj_r[i].size(); j+=2)
     {
-      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * 3.75, PredictTraj_r[i][j][1]);
+      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] , PredictTraj_r[i][j][1]);
     }
   }
   fprintf(gp, "e\n");
@@ -466,9 +467,9 @@ void my_robo::plot_gnuplot(FILE *gp)
 
 #pragma region スキャン点の描画
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
-  for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
+  for (int i = 0; i < sensor.latest_scan.ranges.size(); i+=3)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) * 3.75 , sensor.latest_scan.ranges[i]);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i)  , sensor.latest_scan.ranges[i]);
   }
   fprintf(gp, "e\n");
   fflush(gp);

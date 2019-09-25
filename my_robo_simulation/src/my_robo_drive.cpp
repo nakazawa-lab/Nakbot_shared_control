@@ -285,6 +285,8 @@ void MyDWA::DWAloop()
     auto start_time = std::chrono::system_clock::now();
     bool plot_flag = false;
 
+    record_param();
+
     //g.open();
 
     while (ros::ok())
@@ -350,18 +352,20 @@ void MyDWA::DWAloop()
 
                 double D = 1;
 
-                int index = cal_J_sharedDWA(D);
+                int opt_index = cal_J_sharedDWA(D);
                 //say_time("cal J", now);
                 
-                // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
-                visualization_msgs::MarkerArray markers = make_traj_marker_array(index);
-                pub_marker_array(markers);
+
                 #endif
 
                 #ifdef MYDWA
                 //search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
                 Proposed();
                 #endif
+
+                // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
+                visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
+                pub_marker_array(markers);
 
                 #ifdef ISSHARED
 
@@ -381,7 +385,6 @@ void MyDWA::DWAloop()
                     vel.angular.z = CandVel[opt_index][1];
                 }
                 #endif
-                // MyDWA
                 #endif
                 
                 ROS_INFO("pubvel:%f,%f", vel.linear.x, vel.angular.z);
@@ -442,34 +445,48 @@ void MyDWA::DWAloop()
     }
 }
 
+std::string get_current_time(){
+    time_t timer;     /* 時刻を取り出すための型（実際はunsigned long型） */
+    struct tm *local; /* tm構造体（時刻を扱う */
+
+    /* 年月日と時分秒保存用 */
+    int year, month, day, hour, minute, second;
+
+    timer = time(NULL);        /* 現在時刻を取得 */
+    local = localtime(&timer); /* 地方時に変換 */
+
+    /* 年月日と時分秒をtm構造体の各パラメタから変数に代入 */
+    year = local->tm_year + 1900; /* 1900年からの年数が取得されるため */
+    month = local->tm_mon + 1;    /* 0を1月としているため */
+    day = local->tm_mday;
+    hour = local->tm_hour;
+    minute = local->tm_min;
+    second = local->tm_sec;
+
+    return std::to_string(month) + std::to_string(day) + std::to_string(hour) + std::to_string(minute);
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
     //my_robo robot;
     MyDWA robot;
 
-    robot.logfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log.csv");
+    std::string date = get_current_time();
+
+    std::string logfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_" + date + ".csv";
+    std::string mylogfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog_" + date + ".csv";
+
+    robot.logfile.open(logfilename);
     //log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");
-    robot.mylogfile.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog.csv");
+    robot.mylogfile.open(mylogfilename);
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
-    fprintf(gp, "set xrange [-8:8]\n");
+    fprintf(gp, "set xrange [-3:3]\n");
     fprintf(gp, "set yrange [-0.2:7]\n");
     fprintf(gp, "set xlabel \"theta\"\n");
     fprintf(gp, "set ylabel \"distance\"\n");
-
-
-    std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
-    robot.logfile << logRowName << std::endl;
-
-    std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,dist,velnormdist,angnormdist,vel_h_cost,ang_h_cost,cost";
-    robot.mylogfile << mylogRowName << std::endl;
-
-    
-
-    //logRowName = "time,d,theta";
-    //log_traj_file << logRowName;
 
     // robot.controlloop();
     robot.DWAloop();
