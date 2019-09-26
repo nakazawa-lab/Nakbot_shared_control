@@ -80,7 +80,7 @@ visualization_msgs::Marker my_robo::make_pos_marker(position p){
 }
 
 // k番目の速度候補
-visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
+visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
 {
   visualization_msgs::MarkerArray marker_array;
   marker_array.markers.resize((PredictTraj[0].size()+1) * PredictTraj.size());
@@ -152,8 +152,8 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
         marker_array.markers[k].scale.z = 0.05;
 
         marker_array.markers[k].color.r = 1.0f;
-        marker_array.markers[k].color.g = 1.0f;
-        marker_array.markers[k].color.b = 1.0f;
+        marker_array.markers[k].color.g = dists[i];
+        marker_array.markers[k].color.b = dists[i];
         marker_array.markers[k].color.a = 1.0f;
       }
 
