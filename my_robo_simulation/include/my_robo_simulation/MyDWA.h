@@ -24,10 +24,12 @@ private:
 
     std::vector<double> lin_normdists, ang_normdists;
 
+    std::vector<double> dists;
+
     // d-theta平面上での距離を図る際に、スケールを合わせるために掛ける数字。
     // 例えば、thをdegで表してスケールを整えないと角度のズレに対して非常に敏感になってしまい、少しでも角度がずれていると危険と判断されてしまう。
     const double point_scale_d = 1;
-    const double point_scale_th = 1.875;        // max_vel/max_angvel
+    const double point_scale_th = 8;        // max_vel/max_angvel
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
@@ -57,7 +59,7 @@ private:
 
     void cal_costs(int);
 
-    void cal_costs_0924(int, double);
+    void cal_costs_0926(int, double);
 
     double cal_head_cost_pro(int);
 
@@ -72,17 +74,15 @@ private:
 
     double cal_angcost_sep_(int,int);
 
-    void proposed_0925();
+    void proposed_0926();
 
-    void cal_opt_0925();
+    void cal_opt_0926();
 
-    void cal_dist_0925(int candId);
-
-    void kd_tree_0925();
+    void kd_tree_0926();
 
     void record_param();
 
-    void make_mylog(double,double,double,double,double,double,double,int);
+    void make_mylog(double,double,double,double,double,int);
 
 public:
     MyDWA(){
