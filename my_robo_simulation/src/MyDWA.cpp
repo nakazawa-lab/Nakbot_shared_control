@@ -142,7 +142,7 @@ void MyDWA::cal_costs(int candIdx)
     costs.push_back(temp_cost);
 }
 
-void MyDWA::cal_costs_0924(int candIdx, double dist){
+void MyDWA::cal_costs_0926(int candIdx, double dist){
     double temp_cost;
     double head_h_cost, vel_h_cost;
     double head_h_cost_tmp, vel_h_cost_tmp;
@@ -328,56 +328,37 @@ void MyDWA::cal_cost_sep(){
     cout << "opt idx is" << opt_index << endl << "vel:"  << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] <<endl;
 }
 
-// cal_dist_sepと似ている
-void MyDWA::cal_dist_0925(int candId)
-{
 
-}
-
-void MyDWA::cal_opt_0925(){
-    double temp_cost, cost = 100000;
+void MyDWA::cal_opt_0926(){
+    double temp_cost, cost = 10000000;
     double head_h_cost_tmp, vel_h_cost_tmp;
     double idx_temp;
 
     for (int i = 0; i < CandVel.size(); i++)
     {
-        // distを0から1までの間にクリッピングする処理
-        if (dist_lin_ang[i][0] > 1)
-        {
-            dist_lin_ang[i][0] = 1;
-        }
-        if (dist_lin_ang[i][1] > 1)
-        {
-            //cout << "dist_lin_ang[i][1]: " << dist_lin_ang[i][1] << endl;
-            dist_lin_ang[i][1] = 1;
-        }
 
+        // distを0から1までの間にクリッピングする処理
+        if (dists[i] > 1)
+        {
+            dists[i] = 1;
+        }
         //head_h_cost_tmp = cal_head_cost(i);
         head_h_cost_tmp = cal_head_cost_pro(i);
         vel_h_cost_tmp = cal_vel_cost(i);
 
-        double linadm = 1 - dist_lin_ang[i][0];
-        double angadm = 1 - dist_lin_ang[i][1];
-        // double linsafe = sqrt(1 - (1 - dist_lin_ang[i][0]) * (1 - dist_lin_ang[i][0]));
-        // double angsafe = sqrt(1 - (1 - dist_lin_ang[i][1]) * (1 - dist_lin_ang[i][1]));
-        double linsafe = dist_lin_ang[i][0];
-        double angsafe = dist_lin_ang[i][1];
-
         // temp_cost = (1 - dist_lin_ang[i][0]) + (1 - dist_lin_ang[i][1]) + (k_velocity * dist_lin_ang[i][0]* vel_h_cost_tmp + k_heading * dist_lin_ang[i][1] * head_h_cost_tmp);
-        temp_cost = linadm + angadm + (k_velocity * linsafe * vel_h_cost_tmp + k_heading * angsafe * head_h_cost_tmp);
+        temp_cost = (1 - dists[i]) + dists[i] * (k_velocity * vel_h_cost_tmp + k_heading  * head_h_cost_tmp);
 
-            // cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
-            // cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
-            // // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
-            // // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
-            // cout << "angsafe: " << angsafe << " head_h_cost: " << head_h_cost_tmp << endl;
-            // cout << "linsafe: " << linsafe << " vel_h_cost: " << vel_h_cost_tmp << endl;
-            // cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
-            // cout << "cost: " << temp_cost << endl;
-            // cout << endl;
+            cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
+            cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
+            // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
+            // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
+            cout << "safe: " << dists[i] << " adm:"  << 1-dists[i] << endl;
+            cout << " head_h_cost: " << head_h_cost_tmp <<  " vel_h_cost: " << vel_h_cost_tmp << endl;
+            cout << "cost: " << temp_cost << endl;
+            cout << endl;
 
-
-        make_mylog(linadm,linsafe,angadm,angsafe,vel_h_cost_tmp,head_h_cost_tmp,temp_cost,i);
+        make_mylog(dists[i],1-dists[i],vel_h_cost_tmp,head_h_cost_tmp,temp_cost,i);
 
         if (temp_cost < cost)
         {
@@ -386,13 +367,25 @@ void MyDWA::cal_opt_0925(){
         }
     }
 
+
+
     mylogfile << endl;
     opt_index = idx_temp;
-    // cout << "opt idx is" << opt_index << endl
-    //      << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
+
+    // あまりにきけんなときは停止する
+    if(cost > 0.99){
+        CandVel.push_back(vector<double>());
+        CandVel.back().push_back(0.0);
+        CandVel.back().push_back(CandVel[opt_index][1]);
+        opt_index = CandVel.size()-1;
+        cout << "update cand. cand size:" << CandVel.size() <<endl;
+    }
+
+    cout << "opt idx is" << opt_index << endl
+         << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
 }
 
-void MyDWA::kd_tree_0925(){
+void MyDWA::kd_tree_0926(){
     for (int i = 0; i < sensor.point_num; i++)
     {
         LRFpoints.push_back(MyPoint(sensor.index_to_rad(i) * point_scale_th, sensor.latest_scan.ranges[i] * point_scale_d));
@@ -403,72 +396,57 @@ void MyDWA::kd_tree_0925(){
     MyPoint query;
 
     double tmp_dist, tmp_ang;
-    double dist, ang;
+    double dist=numeric_limits<double>::max(), ang;
     vector<double> nearest_points;
+    int tmp_scan_id,scan_id_nearest;
+    int traj_id_nearest;
+    double dist_bynorm;
+
     for (int candId = 0; candId < CandVel.size(); candId++)
     {
         nearest_points.clear();
         dist_lin_ang.push_back(vector<double>());
         int traj_size = PredictTraj_r[candId].size();
+        dist_bynorm = sqrt((CandVel[candId][0] * thres_vel_time * point_scale_d) * (CandVel[candId][0] * thres_vel_time* point_scale_d) + (CandVel[candId][1] * thres_ang_time* point_scale_th) * (CandVel[candId][1] * thres_ang_time* point_scale_d)); 
 
         for (int traj_id = 0; traj_id < traj_size; traj_id++)
         {
-            tmp_dist = cal_lincost_sep_(candId, traj_id);
-            nearest_points.push_back(tmp_dist);
+            query[0] = PredictTraj_r[candId][traj_id][2] * point_scale_th;
+            query[1] = PredictTraj_r[candId][traj_id][1] * point_scale_d;
+
+            tmp_scan_id = LRFkdtree.nnSearch(query);
+
+            tmp_dist = sqrt((sensor.index_to_rad(tmp_scan_id) * point_scale_th - query[0]) * (sensor.index_to_rad(tmp_scan_id) * point_scale_th - query[0]) + (sensor.latest_scan.ranges[tmp_scan_id]- query[1]) * (sensor.latest_scan.ranges[tmp_scan_id] - query[1])  );
+            
+            if(tmp_dist < dist){
+                dist = tmp_dist;
+                traj_id_nearest = traj_id;
+                scan_id_nearest = tmp_scan_id;
+            }
+            // tmp_dist = cal_lincost_sep_(candId, traj_id);
+            // nearest_points.push_back(tmp_dist);
         }
 
-        double nearest = *min_element(nearest_points.begin(), nearest_points.end());
-        int nearestId = (int)distance(nearest_points.begin(),min_element(nearest_points.begin(),nearest_points.end()));
-
-        if (nearest < spec.robot_rad)
-        {
-            isCollision.push_back(true);
-            collisionTime.push_back(dt_traj * nearestId);
-
-            dist = 0;
-            ang = abs(PredictTraj_r[candId][traj_size - 1][2]) / spec.z_max_ang;
-
-            dist_lin_ang[candId].push_back(dist);
-            dist_lin_ang[candId].push_back(abs(ang));
+        if(abs(sensor.latest_scan.ranges[scan_id_nearest] - PredictTraj_r[candId][traj_id_nearest][1]*point_scale_d) < spec.robot_rad) {
+            dists.push_back(0);
         }
-        else
-        {
-            isCollision.push_back(false);
-            collisionTime.push_back(numeric_limits<double>::max());
-
-            // PredictTrajをクエリのMyPointに変換
-            query[0] = PredictTraj_r[candId][traj_size - 1][2] * point_scale_th;
-            query[1] = PredictTraj_r[candId][traj_size - 1][1] * point_scale_d;
-            //cout << "query[0]:" << query[0] << " query[1]:" << query[1] << endl;
-            //ROS_INFO("query[0]: %f, query[1]:%f", query[0], query[1]);
-
-            if (isnan(query[0]))
-                query[0] = 0;
-            if (isnan(query[1]))
-                query[1] = 0;
-
-            int temp_scan_idx = LRFkdtree.nnSearch(query);
-
-            double lindist = abs(LRFpoints[temp_scan_idx][1] - query[1]);
-            double angdist = abs(LRFpoints[temp_scan_idx][0] - query[0]);
-
-            dist_lin_ang[candId].push_back(lindist / abs(CandVel[candId][0] * thres_vel_time));
-            dist_lin_ang[candId].push_back(angdist / abs(CandVel[candId][1] * thres_ang_time));
+        else{
+            dists.push_back(dist/dist_bynorm);
         }
     }
-    
+    cout << " dists size:" << dists.size() <<endl;
 }
 
-void MyDWA::proposed_0925(){
-    kd_tree_0925();
-    cal_opt_0925();
+void MyDWA::proposed_0926(){
+    kd_tree_0926();
+    cal_opt_0926();
 }
 
 void MyDWA::Proposed(){
     // cal_dist_sep();
     // cal_cost_sep();
     //search_LRF_Traj();
-    proposed_0925();
+    proposed_0926();
 }
 
 void MyDWA::clear_vector()
@@ -487,6 +465,7 @@ void MyDWA::clear_vector()
     collisionTime.clear();
     LRFkdtree.clear();
     LRFpoints.clear();
+    dists.clear();
     // myDWA.clear();
     // ROS_INFO("candsize:%d",CandVel.size());
     // ROS_INFO("predict:%d",PredictTraj.size());
@@ -507,11 +486,11 @@ void MyDWA::record_param(){
     mylogfile << dt << "," << dt_traj << "," << PredictTime << "," << looprate << "," << k_heading << "," << k_velocity 
             << "," << thres_vel_time << "," << thres_ang_time << "," << point_scale_d << "," << point_scale_th << endl<<endl;
 
-    std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost";
+    std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,adm,safe,vel_h_cost,ang_h_cost,cost";
     mylogfile << mylogRowName << std::endl;
 }
 
-void MyDWA::make_mylog(double linadm,double linsafe,double angadm,double angsafe,double vel_h_cost_tmp,double head_h_cost_tmp,double temp_cost,int i){
-    mylogfile << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << CandVel[i][0] << "," << CandVel[i][1] << "," << linadm << "," << linsafe 
-            << "," << angadm << "," << angsafe << "," << vel_h_cost_tmp << "," << head_h_cost_tmp << "," << temp_cost << endl;
+void MyDWA::make_mylog(double safe,double adm,double vel_h_cost_tmp,double head_h_cost_tmp,double temp_cost,int i){
+    mylogfile << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << CandVel[i][0] << "," << CandVel[i][1] << "," << adm << "," << safe 
+            << "," << vel_h_cost_tmp << "," << head_h_cost_tmp << "," << temp_cost << endl;
 }

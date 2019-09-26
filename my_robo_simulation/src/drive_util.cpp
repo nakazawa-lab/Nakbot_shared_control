@@ -135,9 +135,9 @@ visualization_msgs::MarkerArray my_robo::make_traj_marker_array(int index)
         marker_array.markers[k].scale.y = 0.1;
         marker_array.markers[k].scale.z = 0.1;
 
-        marker_array.markers[k].color.r = 0.0f;
+        marker_array.markers[k].color.r = 1.0f;
         marker_array.markers[k].color.g = 1.0f;
-        marker_array.markers[k].color.b = 1.0f;
+        marker_array.markers[k].color.b = 0.0f;
         marker_array.markers[k].color.a = 1.0f;
       }
       else
