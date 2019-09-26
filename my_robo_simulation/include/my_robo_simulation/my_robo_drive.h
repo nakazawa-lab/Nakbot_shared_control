@@ -80,8 +80,6 @@ public:
 
     visualization_msgs::Marker make_pos_marker(position p);
 
-    visualization_msgs::MarkerArray make_traj_marker_array(int index);
-
     void pub_marker_array(visualization_msgs::MarkerArray markers)
     {
         pub_mark_arr.publish(markers);

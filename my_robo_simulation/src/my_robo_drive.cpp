@@ -477,9 +477,9 @@ int main(int argc, char **argv)
     std::string logfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_" + date + ".csv";
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog_" + date + ".csv";
 
-    robot.logfile.open(logfilename);
+    //robot.logfile.open(logfilename);
     //log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");
-    robot.mylogfile.open(mylogfilename);
+    //robot.mylogfile.open(mylogfilename);
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
@@ -491,8 +491,8 @@ int main(int argc, char **argv)
     // robot.controlloop();
     robot.DWAloop();
 
-    robot.logfile.close();
-    robot.mylogfile.close();
+    //robot.logfile.close();
+    //robot.mylogfile.close();
     //log_traj_file.close();
     //robot.g.close();
     pclose(gp);
