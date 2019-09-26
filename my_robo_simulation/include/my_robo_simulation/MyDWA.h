@@ -84,6 +84,8 @@ private:
 
     void make_mylog(double,double,double,double,double,double,double,int);
 
+    visualization_msgs::MarkerArray make_traj_marker_array(int index);
+
 public:
     MyDWA(){
     };
