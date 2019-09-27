@@ -8,6 +8,7 @@
 #include <tf/transform_broadcaster.h>
 
 #include "my_robo_spec.h"
+#include "DWA_var.h"
 
 #ifndef MY_ROBO_SENSOR
 #define MY_ROBO_SENSOR
@@ -101,6 +102,8 @@ public:
 
     // インデックスを与えると、真正面から見た角度を返す(符号あり)
     double index_to_rad(int index);
+
+    position index_to_pos(int);
 };
 
 
