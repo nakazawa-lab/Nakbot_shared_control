@@ -256,15 +256,24 @@ void MyDWA::cal_dist_sep(){
 
 double MyDWA::cal_lincost_sep_(int i,int j){
     double tmp_dist,dist = 10000;
+    int scanId;
+
+    // PredictTraj_r[i][j][2]に最も近いkを求める
     for (int k = 0; k < sensor.latest_scan.ranges.size(); k++)
     {
         // dist についての最近傍点を求め、コストに変換する
-        tmp_dist = abs(PredictTraj_r[i][j][1] - sensor.latest_scan.ranges[k]);
+        tmp_dist = abs(PredictTraj_r[i][j][2] - sensor.index_to_rad(k)) * RAD2DEG;
 
+        if(isnan(tmp_dist)){
+            tmp_dist=0;
+        }
         if(tmp_dist < dist){
-            dist = tmp_dist;
+            scanId=k;
+            break;
         }
     }
+
+    dist = abs(PredictTraj_r[i][j][1] - sensor.latest_scan.ranges[scanId]);
 
     return dist;
 }
@@ -281,6 +290,7 @@ double MyDWA::cal_angcost_sep_(int i, int j){
             //cout << "update ang. ang=" << ang <<endl;
         }
     }
+    
 
     return ang;
 }
@@ -364,17 +374,17 @@ void MyDWA::cal_opt_0925(){
         double angsafe = dist_lin_ang[i][1];
 
         // temp_cost = (1 - dist_lin_ang[i][0]) + (1 - dist_lin_ang[i][1]) + (k_velocity * dist_lin_ang[i][0]* vel_h_cost_tmp + k_heading * dist_lin_ang[i][1] * head_h_cost_tmp);
-        temp_cost = linadm + angadm + (k_velocity * linsafe * vel_h_cost_tmp + k_heading * angsafe * head_h_cost_tmp);
+        temp_cost = linadm + angadm + (k_velocity * angsafe * vel_h_cost_tmp + k_heading * linsafe * head_h_cost_tmp);
 
-            // cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
-            // cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
-            // // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
-            // // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
-            // cout << "angsafe: " << angsafe << " head_h_cost: " << head_h_cost_tmp << endl;
-            // cout << "linsafe: " << linsafe << " vel_h_cost: " << vel_h_cost_tmp << endl;
-            // cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
-            // cout << "cost: " << temp_cost << endl;
-            // cout << endl;
+            cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
+            cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
+            // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
+            // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
+            cout << "angsafe: " << angsafe << " head_h_cost: " << head_h_cost_tmp << endl;
+            cout << "linsafe: " << linsafe << " vel_h_cost: " << vel_h_cost_tmp << endl;
+            cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
+            cout << "cost: " << temp_cost << endl;
+            cout << endl;
 
 
         make_mylog(linadm,linsafe,angadm,angsafe,vel_h_cost_tmp,head_h_cost_tmp,temp_cost,i);
@@ -388,11 +398,13 @@ void MyDWA::cal_opt_0925(){
 
     mylogfile << endl;
     opt_index = idx_temp;
-    // cout << "opt idx is" << opt_index << endl
-    //      << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
+    cout << "opt idx is" << opt_index << endl
+         << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
 }
 
 void MyDWA::kd_tree_0925(){
+    cout << "kdtree" <<endl;
+    cout << spec.robot_rad <<endl;
     for (int i = 0; i < sensor.point_num; i++)
     {
         LRFpoints.push_back(MyPoint(sensor.index_to_rad(i) * point_scale_th, sensor.latest_scan.ranges[i] * point_scale_d));
@@ -413,6 +425,7 @@ void MyDWA::kd_tree_0925(){
 
         for (int traj_id = 0; traj_id < traj_size; traj_id++)
         {
+            
             tmp_dist = cal_lincost_sep_(candId, traj_id);
             nearest_points.push_back(tmp_dist);
         }
@@ -420,40 +433,49 @@ void MyDWA::kd_tree_0925(){
         double nearest = *min_element(nearest_points.begin(), nearest_points.end());
         int nearestId = (int)distance(nearest_points.begin(),min_element(nearest_points.begin(),nearest_points.end()));
 
+         cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")"  << "  nearest Id:" << nearestId << " nearenst:" << nearest <<endl;
+
         if (nearest < spec.robot_rad)
         {
             isCollision.push_back(true);
             collisionTime.push_back(dt_traj * nearestId);
 
-            dist = 0;
-            ang = abs(PredictTraj_r[candId][traj_size - 1][2]) / spec.z_max_ang;
-
+            dist = abs(PredictTraj_r[candId][nearestId][1]) / (1);
+            // ang = abs(PredictTraj_r[candId][traj_size - 1][2]) / (spec.z_max_ang * thres_ang_time);
+            ang = abs(PredictTraj_r[candId][nearestId][2]) / (1);
             dist_lin_ang[candId].push_back(dist);
             dist_lin_ang[candId].push_back(abs(ang));
+            dist_lin_ang[candId].push_back(numeric_limits<int>::quiet_NaN());
         }
         else
         {
-            isCollision.push_back(false);
-            collisionTime.push_back(numeric_limits<double>::max());
+             isCollision.push_back(false);
+            // collisionTime.push_back(numeric_limits<double>::max());
 
-            // PredictTrajをクエリのMyPointに変換
-            query[0] = PredictTraj_r[candId][traj_size - 1][2] * point_scale_th;
-            query[1] = PredictTraj_r[candId][traj_size - 1][1] * point_scale_d;
-            //cout << "query[0]:" << query[0] << " query[1]:" << query[1] << endl;
-            //ROS_INFO("query[0]: %f, query[1]:%f", query[0], query[1]);
+            // // PredictTrajをクエリのMyPointに変換
+            // query[0] = PredictTraj_r[candId][traj_size - 1][2] * point_scale_th;
+            // query[1] = PredictTraj_r[candId][traj_size - 1][1] * point_scale_d;
+            // //cout << "query[0]:" << query[0] << " query[1]:" << query[1] << endl;
+            // //ROS_INFO("query[0]: %f, query[1]:%f", query[0], query[1]);
 
-            if (isnan(query[0]))
-                query[0] = 0;
-            if (isnan(query[1]))
-                query[1] = 0;
+            // if (isnan(query[0]))
+            //     query[0] = 0;
+            // if (isnan(query[1]))
+            //     query[1] = 0;
 
-            int temp_scan_idx = LRFkdtree.nnSearch(query);
+            // int temp_scan_idx = LRFkdtree.nnSearch(query);
 
-            double lindist = abs(LRFpoints[temp_scan_idx][1] - query[1]);
-            double angdist = abs(LRFpoints[temp_scan_idx][0] - query[0]);
+            // double lindist = abs(LRFpoints[temp_scan_idx][1] - query[1]);
+            // double angdist = abs(LRFpoints[temp_scan_idx][0] - query[0]);
 
-            dist_lin_ang[candId].push_back(lindist / abs(CandVel[candId][0] * thres_vel_time));
-            dist_lin_ang[candId].push_back(angdist / abs(CandVel[candId][1] * thres_ang_time));
+            // // dist_lin_ang[candId].push_back(lindist / abs(spec.x_max_vel * thres_vel_time));
+            // // dist_lin_ang[candId].push_back(angdist / abs(spec.z_max_ang * thres_ang_time));
+            // dist_lin_ang[candId].push_back(lindist / 1);
+            // dist_lin_ang[candId].push_back(angdist / 1);
+            // dist_lin_ang[candId].push_back(temp_scan_idx);
+
+            dist_lin_ang[candId].push_back(1);
+            dist_lin_ang[candId].push_back(1);
         }
     }
     
@@ -470,6 +492,38 @@ void MyDWA::Proposed(){
     //search_LRF_Traj();
     proposed_0925();
 }
+
+visualization_msgs::Marker MyDWA::make_nearest_LRF_marker(int optId){
+    position p = sensor.index_to_pos(optId);
+
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "/odom";
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "basic_shapes";
+    marker.id = 0;
+
+    marker.type = visualization_msgs::Marker::CUBE;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = (ros::Duration)0.5;
+
+    marker.scale.x = 1;
+    marker.scale.y = 1;
+    marker.scale.z = 1;
+    marker.pose.position.x=p.x;
+    marker.pose.position.y=p.y;
+    marker.pose.position.z=0;
+    marker.pose.orientation.x=0;
+    marker.pose.orientation.y=0;
+    marker.pose.orientation.z=0;
+    marker.pose.orientation.w=1;
+    marker.color.r = 0.0f;
+    marker.color.g = 1.0f;
+    marker.color.b = 0.0f;
+    marker.color.a = 1.0f;
+    // pub_mark.publish(marker);
+    return marker;
+}
+
 
 void MyDWA::clear_vector()
 {

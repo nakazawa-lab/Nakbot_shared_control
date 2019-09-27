@@ -229,6 +229,31 @@ visualization_msgs::MarkerArray line::make_edge_marker(int center,const sensor_m
     return make_markers_2Dvector(lineedge);
 }
 
+// インデックスから絶対座標を取得
+position my_robo_sensor::index_to_pos(int scanId){
+    position p;
+    if(isnan(scanId)){
+        p.x=0;
+        p.y=0;    
+    }
+    else{
+        double roll, yaw, pitch;
+        // 今のrpyを求める
+        geometry_quat_to_rpy(roll, pitch, yaw, odom.pose.pose.orientation);
+
+        // ロボット座標から見たときの座標xs,ys 絶対座標xo,yo
+        double xs = latest_scan.ranges[scanId] * cos(index_to_rad(scanId));
+        double ys = latest_scan.ranges[scanId] * sin(index_to_rad(scanId));
+        double xo = odom.pose.pose.position.x + cos(yaw) * xs - sin(yaw) * ys;
+        double yo = odom.pose.pose.position.y + sin(yaw) * xs + cos(yaw) * ys;
+
+        p.x = xo;
+        p.y = yo;
+    }
+
+    return p;
+}
+
 // scanを受け取ってthごと、左右wthまでの点の座標を計算し、そのマーカーの位置を計算する関数を呼び出して返す
 // 計算される障害物の座標は絶対座標
 visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose)
