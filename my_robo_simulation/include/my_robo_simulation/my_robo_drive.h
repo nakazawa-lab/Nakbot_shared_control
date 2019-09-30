@@ -99,8 +99,6 @@ public:
 
     void plot_d_deg_scan_gnuplot(FILE *gp);
 
-    void plot_gnuplot(FILE *gp);
-
     void proposed_dist();
 
     std::vector<double> test;

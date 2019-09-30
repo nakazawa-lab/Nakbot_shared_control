@@ -90,7 +90,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
   float red=0;
   bool Blueflag = false;  // 採用軌道を示すもの  
 // 候補の数ループ
-  for (int i=0; i<PredictTraj.size();i+=3){
+  for (int i=0; i<PredictTraj.size();i+=2){
     //ROS_INFO("start put marker.");
 
     // float GREEN= (double)rand()/RAND_MAX;
@@ -98,7 +98,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
     else Blueflag = false;
 
     //予測時刻の数だけループ
-    for (int j = 0; j < PredictTraj[i].size(); j += 2)
+    for (int j = 0; j < PredictTraj[i].size(); j += 3)
     {
  
        //ROS_INFO("start loop.");
@@ -135,9 +135,9 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
         marker_array.markers[k].scale.y = 0.1;
         marker_array.markers[k].scale.z = 0.1;
 
-        marker_array.markers[k].color.r = 1.0f;
+        marker_array.markers[k].color.r = 0.0f;
         marker_array.markers[k].color.g = 1.0f;
-        marker_array.markers[k].color.b = 0.0f;
+        marker_array.markers[k].color.b = 1.0f;
         marker_array.markers[k].color.a = 1.0f;
       }
       else
@@ -147,13 +147,20 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
         // marker_array.markers[k].color.b = CandVel[i][2];
         // marker_array.markers[k].color.a = 1.0f;
 
+        double x=1;
+        if(isCollision[i]){
+          x=0;
+        }
+
         marker_array.markers[k].scale.x = 0.05;
         marker_array.markers[k].scale.y = 0.05;
         marker_array.markers[k].scale.z = 0.05;
 
+        double dist = sqrt(dist_lin_ang[i][0] * dist_lin_ang[i][0] + dist_lin_ang[i][1] * dist_lin_ang[i][1]);
+
         marker_array.markers[k].color.r = 1.0f;
-        marker_array.markers[k].color.g = dists[i];
-        marker_array.markers[k].color.b = dists[i];
+        marker_array.markers[k].color.g = x;
+        marker_array.markers[k].color.b = x;
         marker_array.markers[k].color.a = 1.0f;
       }
 
@@ -446,7 +453,7 @@ void my_robo::plot_d_deg_scan_gnuplot(FILE *gp)
   fflush(gp);
 }
 
-void my_robo::plot_gnuplot(FILE *gp)
+void MyDWA::plot_gnuplot(FILE *gp)
 {
   fprintf(gp, "clear\n");
 
@@ -458,7 +465,7 @@ void my_robo::plot_gnuplot(FILE *gp)
     // 軌道内の各時刻に対する繰り返し
     for (int j = 0; j < PredictTraj_r[i].size(); j+=2)
     {
-      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] , PredictTraj_r[i][j][1]);
+      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * point_scale_th , PredictTraj_r[i][j][1] *point_scale_d);
     }
   }
   fprintf(gp, "e\n");
@@ -469,7 +476,7 @@ void my_robo::plot_gnuplot(FILE *gp)
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
   for (int i = 0; i < sensor.latest_scan.ranges.size(); i+=3)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i)  , sensor.latest_scan.ranges[i]);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) *point_scale_th  , sensor.latest_scan.ranges[i] * point_scale_d);
   }
   fprintf(gp, "e\n");
   fflush(gp);
