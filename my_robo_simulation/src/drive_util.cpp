@@ -90,7 +90,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
   float red=0;
   bool Blueflag = false;  // 採用軌道を示すもの  
 // 候補の数ループ
-  for (int i=0; i<PredictTraj.size();i+=3){
+  for (int i=0; i<PredictTraj.size();i+=1){
     //ROS_INFO("start put marker.");
 
     // float GREEN= (double)rand()/RAND_MAX;
@@ -98,7 +98,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
     else Blueflag = false;
 
     //予測時刻の数だけループ
-    for (int j = 0; j < PredictTraj[i].size(); j += 2)
+    for (int j = 0; j < PredictTraj[i].size(); j += 4)
     {
  
        //ROS_INFO("start loop.");
