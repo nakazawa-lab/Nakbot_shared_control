@@ -261,17 +261,20 @@ double MyDWA::cal_lincost_sep_(int i,int j){
     // PredictTraj_r[i][j][2]に最も近いkを求める
     for (int k = 0; k < sensor.latest_scan.ranges.size(); k++)
     {
-        // dist についての最近傍点を求め、コストに変換する
-        tmp_dist = abs(PredictTraj_r[i][j][2] - sensor.index_to_rad(k)) * RAD2DEG;
+        // ang方向の最近傍点を求め、そのときのd方向の距離を出す
+        tmp_dist = abs(PredictTraj_r[i][j][2] - sensor.index_to_rad(k));
 
         if(isnan(tmp_dist)){
             tmp_dist=0;
         }
         if(tmp_dist < dist){
             scanId=k;
-            break;
+            dist = tmp_dist;
         }
     }
+
+    // cout << "考えている軌道とその時刻(" << CandVel[i][0] << "," << CandVel[i][1] << ") ," << "t=" << j*dt_traj << endl;
+    // cout << "Predicttraj[i][j][2]:" << PredictTraj_r[i][j][2] << ", k=" << scanId << ", rad=" << sensor.index_to_rad(scanId) <<endl;
 
     dist = abs(PredictTraj_r[i][j][1] - sensor.latest_scan.ranges[scanId]);
 
@@ -366,15 +369,17 @@ void MyDWA::cal_opt_0925(){
         head_h_cost_tmp = cal_head_cost_pro(i);
         vel_h_cost_tmp = cal_vel_cost(i);
 
-        double linadm = 1 - dist_lin_ang[i][0];
-        double angadm = 1 - dist_lin_ang[i][1];
-        // double linsafe = sqrt(1 - (1 - dist_lin_ang[i][0]) * (1 - dist_lin_ang[i][0]));
-        // double angsafe = sqrt(1 - (1 - dist_lin_ang[i][1]) * (1 - dist_lin_ang[i][1]));
-        double linsafe = dist_lin_ang[i][0];
-        double angsafe = dist_lin_ang[i][1];
+
+        double linsafe = dist_lin_ang[i][0]*dist_lin_ang[i][0];
+        double angsafe = dist_lin_ang[i][1]*dist_lin_ang[i][1];
+        // double linsafe = dist_lin_ang[i][0];
+        // double angsafe = dist_lin_ang[i][1];
+
+        double linadm = 1 - linsafe;
+        double angadm = 1 - angsafe;
 
         // temp_cost = (1 - dist_lin_ang[i][0]) + (1 - dist_lin_ang[i][1]) + (k_velocity * dist_lin_ang[i][0]* vel_h_cost_tmp + k_heading * dist_lin_ang[i][1] * head_h_cost_tmp);
-        temp_cost = linadm + angadm + (k_velocity * angsafe * vel_h_cost_tmp + k_heading * linsafe * head_h_cost_tmp);
+        temp_cost = linadm + angadm + (k_velocity * linsafe * vel_h_cost_tmp + k_heading * angsafe * head_h_cost_tmp);
 
             cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
             cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
@@ -382,7 +387,9 @@ void MyDWA::cal_opt_0925(){
             // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
             cout << "angsafe: " << angsafe << " head_h_cost: " << head_h_cost_tmp << endl;
             cout << "linsafe: " << linsafe << " vel_h_cost: " << vel_h_cost_tmp << endl;
-            cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
+            cout << "k_vel*angsafe*vel_h_cost: " << k_velocity * angsafe * vel_h_cost_tmp << endl;
+            cout << "k_ang*linsafe*ang_h_cost: " << k_heading * linsafe * head_h_cost_tmp<< endl;
+            //cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
             cout << "cost: " << temp_cost << endl;
             cout << endl;
 
@@ -398,6 +405,17 @@ void MyDWA::cal_opt_0925(){
 
     mylogfile << endl;
     opt_index = idx_temp;
+
+
+    // あまりにきけんなときは停止する
+    if(cost > 0.99){
+        CandVel.push_back(vector<double>());
+        CandVel.back().push_back(0.0);
+        CandVel.back().push_back(CandVel[opt_index][1]);
+        opt_index = CandVel.size()-1;
+        cout << "update cand. cand size:" << CandVel.size() <<endl;
+    }
+
     cout << "opt idx is" << opt_index << endl
          << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
 }
@@ -430,22 +448,28 @@ void MyDWA::kd_tree_0925(){
             nearest_points.push_back(tmp_dist);
         }
 
-        double nearest = *min_element(nearest_points.begin(), nearest_points.end());
-        int nearestId = (int)distance(nearest_points.begin(),min_element(nearest_points.begin(),nearest_points.end()));
+        double nearestDist = *min_element(nearest_points.begin(), nearest_points.end());
+        if(isnan(nearestDist)) nearestDist = numeric_limits<double>::infinity();
+        int nearestTrajId = (int)distance(nearest_points.begin(),min_element(nearest_points.begin(),nearest_points.end()));
 
-         cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")"  << "  nearest Id:" << nearestId << " nearenst:" << nearest <<endl;
+        //cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")"  << "  nearest Id:" << nearestId << " nearenst:" << nearest <<endl;
 
-        if (nearest < spec.robot_rad)
+        if (nearestDist < spec.robot_rad)
         {
             isCollision.push_back(true);
-            collisionTime.push_back(dt_traj * nearestId);
+            collisionTime.push_back(dt_traj * nearestTrajId);
 
-            dist = abs(PredictTraj_r[candId][nearestId][1]) / (1);
-            // ang = abs(PredictTraj_r[candId][traj_size - 1][2]) / (spec.z_max_ang * thres_ang_time);
-            ang = abs(PredictTraj_r[candId][nearestId][2]) / (1);
+            dist = abs(PredictTraj_r[candId][nearestTrajId][1] / (CandVel[candId][0] * thres_vel_time));
+            ang = abs(PredictTraj_r[candId][nearestTrajId][2] / (CandVel[candId][1] * thres_ang_time));
+            //ang = abs(PredictTraj_r[candId][nearestTrajId][2]) / (1);
             dist_lin_ang[candId].push_back(dist);
             dist_lin_ang[candId].push_back(abs(ang));
-            dist_lin_ang[candId].push_back(numeric_limits<int>::quiet_NaN());
+            //dist_lin_ang[candId].push_back(numeric_limits<int>::quiet_NaN());
+
+            // cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
+            // cout << "PredictTraj_r_dist:" << PredictTraj_r[candId][nearestTrajId][1] << " _ang:" << PredictTraj_r[candId][nearestTrajId][2] << endl;
+            // cout << "dist:" << dist << " ang:" << ang << endl;
+            // cout << endl;
         }
         else
         {
