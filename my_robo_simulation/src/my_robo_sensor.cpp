@@ -267,3 +267,29 @@ visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &
 double my_robo_sensor::index_to_rad(int index){
     return latest_scan.angle_increment * (index - center);
 }
+
+
+// インデックスから絶対座標を取得
+position my_robo_sensor::index_to_pos(int scanId){
+    position p;
+    if(isnan(scanId)){
+        p.x=0;
+        p.y=0;    
+    }
+    else{
+        double roll, yaw, pitch;
+        // 今のrpyを求める
+        geometry_quat_to_rpy(roll, pitch, yaw, odom.pose.pose.orientation);
+
+        // ロボット座標から見たときの座標xs,ys 絶対座標xo,yo
+        double xs = latest_scan.ranges[scanId] * cos(index_to_rad(scanId));
+        double ys = latest_scan.ranges[scanId] * sin(index_to_rad(scanId));
+        double xo = odom.pose.pose.position.x + cos(yaw) * xs - sin(yaw) * ys;
+        double yo = odom.pose.pose.position.y + sin(yaw) * xs + cos(yaw) * ys;
+
+        p.x = xo;
+        p.y = yo;
+    }
+
+    return p;
+}

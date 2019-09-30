@@ -366,6 +366,8 @@ void MyDWA::DWAloop()
                 // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
                 visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
                 pub_marker_array(markers);
+                visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
+                pub_marker(marker);
 
                 #ifdef ISSHARED
 
@@ -477,9 +479,9 @@ int main(int argc, char **argv)
     std::string logfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_" + date + ".csv";
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog_" + date + ".csv";
 
-    //robot.logfile.open(logfilename);
+    robot.logfile.open(logfilename);
     //log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");
-    //robot.mylogfile.open(mylogfilename);
+    robot.mylogfile.open(mylogfilename);
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
@@ -491,8 +493,8 @@ int main(int argc, char **argv)
     // robot.controlloop();
     robot.DWAloop();
 
-    //robot.logfile.close();
-    //robot.mylogfile.close();
+    robot.logfile.close();
+    robot.mylogfile.close();
     //log_traj_file.close();
     //robot.g.close();
     pclose(gp);
