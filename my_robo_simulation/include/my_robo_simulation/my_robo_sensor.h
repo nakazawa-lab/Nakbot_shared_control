@@ -76,13 +76,6 @@ public:
     // 検出された線についての情報
     std::vector<line> lines;
 
-    // my_roboのコンストラクタでも行っている
-    my_robo_sensor()
-    {
-        joy_cmd_vel[0] = 0;
-        joy_cmd_vel[1] = 0;
-    }
-
     // 正面からth度ずつwth度まで、障害物の位置を計算する
     visualization_msgs::MarkerArray cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose);
 
@@ -93,8 +86,6 @@ public:
     void cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg);
 
     visualization_msgs::MarkerArray make_obs_markers(std::vector<std::vector<double>> obs);
-
-    void pub_joy_marker();
 
     void detect_line(const sensor_msgs::LaserScan &scan);
     

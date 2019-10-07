@@ -25,8 +25,6 @@ void my_robo_sensor::cb_lrf(const sensor_msgs::LaserScan::ConstPtr &msg)
         ROS_INFO("center:%d.", center);
         count++;
     }
-    // <TODO>>
-    // 測定範囲外の場合の対応
 }
 
 void my_robo_sensor::cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg)
@@ -34,15 +32,6 @@ void my_robo_sensor::cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg)
     // // ジョイスティック左側
     // // 上→axes[1]の正方向
     // // 左→axes[0]の正方向
-    // joy_cmd_vel[0] =spec.x_max_vel*joy_msg.axes[1];
-    // //cmd_vel.linear.y =joy_msg.axes[2];
-
-    // if(joy_msg.axes[1]>=0) joy_cmd_vel[1]=spec.z_max_ang*joy_msg.axes[0];
-
-    // else joy_cmd_vel[1] = -1*spec.z_max_ang*joy_msg.axes[0];
-
-    // ROS_INFO("x_joy: %f",joy_cmd_vel[0]);
-    // ROS_INFO("z_ang: %f\n",joy_cmd_vel[1]);
 
     // メッセージを保管しておく
     joy = *joy_msg;
@@ -90,10 +79,6 @@ visualization_msgs::MarkerArray my_robo_sensor::make_obs_markers(std::vector<std
         k++;
     }
     return marker_array;
-}
-
-void my_robo_sensor::pub_joy_marker(){
-    
 }
 
 // 線を検出する
@@ -272,7 +257,7 @@ double my_robo_sensor::index_to_rad(int index){
 // インデックスから絶対座標を取得
 position my_robo_sensor::index_to_pos(int scanId){
     position p;
-    if(isnan(scanId) || isinf(scanId)){
+    if(isnan(scanId) || isinf(scanId) || 99999999){
         p.x=0;
         p.y=0;    
     }
