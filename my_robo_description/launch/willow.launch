@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-  <arg name="world_name" value="$(find my_robo_description)/worlds/sample_house_v2.world"/> 
+  <arg name="world_name" value="$(find my_robo_description)/worlds/house_1007.world"/> 
  <!--   <arg name="world_name" value="/usr/share/gazebo-9/worlds/office_small.world"/> -->
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>

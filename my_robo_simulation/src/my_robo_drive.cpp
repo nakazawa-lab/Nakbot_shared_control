@@ -22,7 +22,7 @@ FILE *gp;       // gnuplotに指令を与えるためのテキストファイル
 
 //#define PABLODWA
 #define MYDWA
-#define ISSHARED
+//#define ISSHARED
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
