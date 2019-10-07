@@ -511,13 +511,13 @@
             <format>R8G8B8</format>
           </image>
           <clip>
-            <near>0.5</near>
+            <near>0.01</near>
             <far>8.0</far>
           </clip>
           <noise>
             <type>gaussian</type>
             <mean>0.0</mean>
-            <stddev>0.007</stddev> 
+            <stddev>0.004</stddev> 
           </noise>
         </camera>
 

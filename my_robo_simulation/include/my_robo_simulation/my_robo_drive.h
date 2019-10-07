@@ -47,7 +47,6 @@ public:
     ros::Publisher pub_mark_arr;
 
     my_robo();
-    //~my_robo();
 
     void controlloop();
 
@@ -61,7 +60,7 @@ public:
 
     // 障害物との入力相当距離(SharedDWAのd_Uにあたる)を求め,Admを返す
     // すべてのLRFの点を用いたバージョン
-    void cal_Dist();
+    // void cal_Dist();
 
     // LRFの代表点を用いたバージョン
     void cal_Dist2();
@@ -105,7 +104,6 @@ public:
 
     std::vector<double> LOG;
     std::ofstream logfile;
-    //MyDWA myDWA;
 
     double cal_head_cost(int);
 

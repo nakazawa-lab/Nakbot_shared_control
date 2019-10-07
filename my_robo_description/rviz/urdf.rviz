@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1
-        - /PointCloud21
         - /TF1
         - /LaserScan1
         - /Camera1
@@ -273,8 +272,7 @@ Visualization Manager:
       Marker Topic: /marker
       Name: Marker
       Namespaces:
-        basic_shapes: true
-        cmd_vel_display: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -282,7 +280,7 @@ Visualization Manager:
       Marker Topic: /marker_array
       Name: MarkerArray
       Namespaces:
-        cmd_vel_display: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -313,16 +311,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.5995731949806213
+      Distance: 160.28541564941406
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 2.3875014781951904
-        Y: -0.7024118900299072
-        Z: 2.6310596466064453
+        X: -6.497054100036621
+        Y: -13.981037139892578
+        Z: -141.7527618408203
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
