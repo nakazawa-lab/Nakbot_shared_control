@@ -33,6 +33,20 @@ private:
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
+
+    struct selected_vel_info{
+        public:
+        double linadm;
+        double linsafe;
+        double angadm;
+        double angsafe;
+
+        double vel,ang;
+        double vel_h_cost;
+        double head_h_cost;
+        double cost;
+    };
+    selected_vel_info selected;
     
     // 軌道ごとのコストを保存
     //std::vector<std::array<double,2>> costs;
@@ -83,6 +97,8 @@ private:
     void record_param();
 
     void make_mylog(double,double,double,double,double,double,double,int);
+
+    void make_mylog_perloop(double);
 
     visualization_msgs::MarkerArray make_traj_marker_array(int index);
 

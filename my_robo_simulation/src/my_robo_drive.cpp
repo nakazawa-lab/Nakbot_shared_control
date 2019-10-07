@@ -22,7 +22,7 @@ FILE *gp;       // gnuplotに指令を与えるためのテキストファイル
 
 //#define PABLODWA
 #define MYDWA
-//#define ISSHARED
+#define ISSHARED
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -282,8 +282,9 @@ void MyDWA::DWAloop()
     ROS_INFO("control loop start.");
 
     ros::Rate rate(looprate);
-    auto start_time = std::chrono::system_clock::now();
+    start_time = std::chrono::system_clock::now();
     bool plot_flag = false;
+    
 
     record_param();
 
@@ -386,11 +387,16 @@ void MyDWA::DWAloop()
                     vel.linear.x = CandVel[opt_index][0];
                     vel.angular.z = CandVel[opt_index][1];
                 }
+
+                // auto now = std::chrono::system_clock::now();
+                // auto dur = now - start_time;
+                // auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+                // double sec = (double)(msec/1000.0);
+                //make_mylog_perloop(sec);
                 #endif
                 #endif
                 
                 ROS_INFO("pubvel:%f,%f", vel.linear.x, vel.angular.z);
-
 
                 double distance;
                 if (sensor.latest_scan.ranges[sensor.center] == 0)distance=10;
@@ -424,12 +430,12 @@ void MyDWA::DWAloop()
         rate.sleep();
         say_time("after waiting",now);
 
-        for (int i = 0; i < LOG.size(); i++)
-        {
-            logfile << LOG[i] << ',';
-        }
-        logfile << std::endl;
-        LOG.clear();
+        // for (int i = 0; i < LOG.size(); i++)
+        // {
+        //     logfile << LOG[i] << ',';
+        // }
+        // logfile << std::endl;
+        // LOG.clear();
         //g.clear();
 
         // なにかのキーが押されていることの判定
