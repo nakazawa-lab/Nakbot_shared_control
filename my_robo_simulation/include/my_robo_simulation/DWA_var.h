@@ -35,6 +35,8 @@ public:
     const float thres_vel_time = 3;
     const float thres_ang_time = 3;
 
+    std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
+
     // 予測軌道 [index][時刻index][time,x,y,sin cos]
     std::vector<std::vector<std::vector<double>>> PredictTraj;
 

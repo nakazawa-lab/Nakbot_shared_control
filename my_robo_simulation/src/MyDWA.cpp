@@ -2,6 +2,7 @@
 #include "my_robo_simulation/my_robo_util.h"
 #include "my_robo_simulation/kdtree.h"
 #include <limits>
+#include <chrono>
 
 using namespace std;
 
@@ -382,18 +383,31 @@ void MyDWA::cal_opt_0930(){
             // cout << "cost: " << temp_cost << endl;
             // cout << endl;
 
-        make_mylog(linadm,linsafe,angadm,angsafe,vel_h_cost_tmp,head_h_cost_tmp,temp_cost,i);
+        //make_mylog(linadm,linsafe,angadm,angsafe,vel_h_cost_tmp,head_h_cost_tmp,temp_cost,i);
 
         if (temp_cost < cost)
         {
             cost = temp_cost;
-            idx_temp = i;
+            idx_temp = i;           
+
+
+            selected.linadm = linadm;
+            selected.linsafe = linsafe;
+            selected.angadm = angadm;
+            selected.angsafe = angsafe;
+            selected.vel = CandVel[i][0];
+            selected.ang = CandVel[i][1];
+            selected.vel_h_cost = vel_h_cost_tmp;
+            selected.head_h_cost = head_h_cost_tmp;
+            selected.cost = cost;
+
+            //cout << "soon after " <<*selected.linsafe <<endl;
         }
     }
 
 
 
-    mylogfile << endl;
+    // mylogfile << endl;
     opt_index = idx_temp;
 
     // あまりにきけんなときは停止する
@@ -403,14 +417,27 @@ void MyDWA::cal_opt_0930(){
         CandVel.back().push_back(CandVel[opt_index][1]);
         CandVel.back().push_back(numeric_limits<double>::quiet_NaN());
         opt_index = CandVel.size()-1;
+
+        dist_lin_ang[opt_index].push_back(numeric_limits<double>::quiet_NaN());
         cout << "update cand. cand size:" << CandVel.size() <<endl;
+
+        selected.vel = CandVel[opt_index][0];
+        selected.ang = CandVel[opt_index][1];
     }
 
     
 
     cout << "opt idx is" << opt_index << endl
          << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
-    cout << dist_lin_ang[opt_index][2] <<endl;
+
+
+    auto now = std::chrono::system_clock::now();
+    auto dur = now - start_time;
+    auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+    cout << selected.angadm << " " << selected.head_h_cost << endl;
+    mylogfile << (double)(msec/1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm 
+    << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << "," 
+    << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang << endl;
 }
 
 void MyDWA::kd_tree_0930(){
@@ -460,12 +487,12 @@ void MyDWA::kd_tree_0930(){
             isCollision.push_back(true);
             lin = abs(PredictTraj_r[candId][traj_id_nearest][1] / (CandVel[candId][0] * thres_vel_time));
             ang = abs(PredictTraj_r[candId][traj_id_nearest][2] / (CandVel[candId][1] * thres_ang_time));
-            cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
-            cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id_nearest][1] << " " << PredictTraj_r[candId][traj_id_nearest][2] <<endl;
-            cout << "sensor: " << sensor.latest_scan.ranges[scan_id_nearest] << endl;
-            cout << "lin:" <<lin << " ang:" <<ang <<endl;
-            cout << "traj_id:" <<traj_id_nearest << " scan_id:" <<scan_id_nearest <<endl;
-            cout <<endl;
+            // cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
+            // cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id_nearest][1] << " " << PredictTraj_r[candId][traj_id_nearest][2] <<endl;
+            // cout << "sensor: " << sensor.latest_scan.ranges[scan_id_nearest] << endl;
+            // cout << "lin:" <<lin << " ang:" <<ang <<endl;
+            // cout << "traj_id:" <<traj_id_nearest << " scan_id:" <<scan_id_nearest <<endl;
+            // cout <<endl;
            dist_lin_ang[candId].push_back(lin);
            dist_lin_ang[candId].push_back(ang);
            dist_lin_ang[candId].push_back(scan_id_nearest);
@@ -487,16 +514,13 @@ void MyDWA::proposed_0930(){
 void MyDWA::Proposed(){
     // cal_dist_sep();
     // cal_cost_sep();
-    //search_LRF_Traj();
+    // search_LRF_Traj();
     proposed_0930();
 }
 
 
 visualization_msgs::Marker MyDWA::make_nearest_LRF_marker(int optId){
-    cout << "optid" << optId<< endl;
     position p = sensor.index_to_pos(optId);
-
-    cout << "pos" << std::endl;
 
     visualization_msgs::Marker marker;
     marker.header.frame_id = "/odom";
@@ -563,12 +587,22 @@ void MyDWA::record_param(){
     mylogfile << dt << "," << dt_traj << "," << PredictTime << "," << looprate << "," << k_heading << "," << k_velocity 
             << "," << thres_vel_time << "," << thres_ang_time << "," << point_scale_d << "," << point_scale_th << endl<<endl;
 
-    std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost";
+    // std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost";
+    // mylogfile << mylogRowName << std::endl;
+
+    std::string mylogRowName = "timestep,pos.x,pos.y,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w";
     mylogfile << mylogRowName << std::endl;
 }
 
+void MyDWA::make_mylog(double linadm, double linsafe, double angadm, double angsafe, double vel_h_cost_tmp, double head_h_cost_tmp, double temp_cost, int i)
+{
+    mylogfile << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << CandVel[i][0] << "," << CandVel[i][1] << "," << linadm << "," << linsafe
+              << "," << angadm << "," << angsafe << "," << vel_h_cost_tmp << "," << head_h_cost_tmp << "," << temp_cost << endl;
+}
 
-void MyDWA::make_mylog(double linadm,double linsafe,double angadm,double angsafe,double vel_h_cost_tmp,double head_h_cost_tmp,double temp_cost,int i){
-    mylogfile << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << CandVel[i][0] << "," << CandVel[i][1] << "," << linadm << "," << linsafe 
-            << "," << angadm << "," << angsafe << "," << vel_h_cost_tmp << "," << head_h_cost_tmp << "," << temp_cost << endl;
+void MyDWA::make_mylog_perloop(double time)
+{
+    cout << selected.angadm << " " << selected.head_h_cost << endl;
+    mylogfile << time << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm << "," << selected.linsafe
+              << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << "," << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang<< endl;
 }

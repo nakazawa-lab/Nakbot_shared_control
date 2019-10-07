@@ -272,7 +272,7 @@ double my_robo_sensor::index_to_rad(int index){
 // インデックスから絶対座標を取得
 position my_robo_sensor::index_to_pos(int scanId){
     position p;
-    if(isnan(scanId)){
+    if(isnan(scanId) || isinf(scanId)){
         p.x=0;
         p.y=0;    
     }
