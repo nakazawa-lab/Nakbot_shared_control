@@ -1,0 +1,4 @@
+dt,dt_traj,PredictTime,looprate,k_head,k_vel,thres_vel_time,thres_ang_time,d_scale,th_scale
+0.2,0.1,3,5,1,1,3,3,1,1
+
+timestep,pos.x,pos.y,adm,safe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w

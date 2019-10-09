@@ -109,7 +109,7 @@ void MyDWA::cal_opt_0930(){
             selected.cost = cost;
         }
     }
-    cout <<"finish cal cost" <<endl;
+    //cout <<"finish cal cost" <<endl;
 
     // mylogfile << endl;
     opt_index = idx_temp;
@@ -132,11 +132,11 @@ void MyDWA::cal_opt_0930(){
         selected.ang = CandVel[opt_index][1];
     }
 
-    cout << "dist_lin_ang[opt].size " << dist_lin_ang[opt_index].size() <<endl;
-    cout << "dist_lin_ang[opt][2] " <<dist_lin_ang[opt_index][2] <<endl;   
+    //cout << "dist_lin_ang[opt].size " << dist_lin_ang[opt_index].size() <<endl;
+    //cout << "dist_lin_ang[opt][2] " <<dist_lin_ang[opt_index][2] <<endl;   
 
-    cout << "opt idx is" << opt_index << endl
-         << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
+    //cout << "opt idx is" << opt_index << endl
+     //    << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
 
 
     auto now = std::chrono::system_clock::now();
@@ -154,7 +154,7 @@ void MyDWA::kd_tree_0930(){
     }
 
     kdt::KDTree<MyPoint> LRFkdtree(LRFpoints);
-    cout << "make kd tree" <<endl;
+   // cout << "make kd tree" <<endl;
 
     MyPoint query;
 
@@ -212,7 +212,7 @@ void MyDWA::kd_tree_0930(){
             dist_lin_ang[candId].push_back(scan_id_nearest);
         }
     }
-    cout << "finish cal dist" <<endl;
+    //cout << "finish cal dist" <<endl;
 }
 
 void MyDWA::proposed_0930(){
@@ -287,6 +287,8 @@ void MyDWA::clear_vector()
     LRFkdtree.clear();
 
     vector<MyPoint>().swap(LRFpoints);
+
+    vector<double>().swap(LOG);
     // myDWA.clear();
     // ROS_INFO("candsize:%d",CandVel.size());
     // ROS_INFO("predict:%d",PredictTraj.size());
@@ -296,10 +298,14 @@ void MyDWA::clear_vector()
 void MyDWA::record_param(){
     std::string property = "dt,dt_traj,PredictTime,looprate,k_head,k_vel,thres_vel_time,thres_ang_time,d_scale,th_scale";
     logfile << property << std::endl;
+
     logfile << dt << "," << dt_traj << "," << PredictTime << "," << looprate << "," << k_heading << "," << k_velocity 
             << "," << thres_vel_time << "," << thres_ang_time << "," << point_scale_d << "," << point_scale_th << endl<<endl;
 
-    std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
+    // std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
+    // logfile << logRowName << std::endl;
+
+    std::string logRowName = "timestep,pos.x,pos.y,adm,safe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w";
     logfile << logRowName << std::endl;
 
 

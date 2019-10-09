@@ -27,7 +27,7 @@ private:
     // d-theta平面上での距離を図る際に、スケールを合わせるために掛ける数字。
     // 例えば、thをdegで表してスケールを整えないと角度のズレに対して非常に敏感になってしまい、少しでも角度がずれていると危険と判断されてしまう。
     const double point_scale_d = 1;
-    const double point_scale_th = 1;        // maxang/maxvel * 2 = 3.75
+    const double point_scale_th = 2;        // maxang/maxvel * 2 = 3.75
 
     // 最終的に採用する軌道のインデックス
     int opt_index;

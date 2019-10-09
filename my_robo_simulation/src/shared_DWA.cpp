@@ -335,10 +335,10 @@ void my_robo::cal_Dist2()
 // 最小の評価関数の添字を返す
 int my_robo::cal_J_sharedDWA(double D)
 {
-    double a;
+    double adm_min;
     double cost = 1000;
-    double h;
-    double v;
+    double head_min;
+    double vel_min;
     int index = 0;
 
     for (int i = 0; i < CandVel.size(); i++)
@@ -360,9 +360,9 @@ int my_robo::cal_J_sharedDWA(double D)
         {
             //ROS_INFO(co)
             cost = temp;
-            a = adm;
-            h = head;
-            v = velocity;
+            adm_min = adm;
+            head_min = head;
+            vel_min = velocity;
             index = i;
 
             // ROS_INFO("i:%d", i);
@@ -386,11 +386,19 @@ int my_robo::cal_J_sharedDWA(double D)
     // ROS_INFO("head:%lf", h);
     // ROS_INFO("velocity:%lf", v);
     // ROS_INFO("cost:%f\n", cost);
-
-    LOG.push_back(CandVel[index][2]);
-    LOG.push_back(v);
-    LOG.push_back(h);
+    LOG.push_back(adm_min);
+    LOG.push_back(1-adm_min);
+    LOG.push_back(vel_min);
+    LOG.push_back(head_min);
     LOG.push_back(cost);
+    LOG.push_back(CandVel[index][0]);
+    LOG.push_back(CandVel[index][1]);
+
+    logfile << LOG[0];
+    for(int i=1; i < LOG.size();i++){
+        logfile << "," << LOG[i];
+    }
+    logfile << std::endl;
 
     return index;
 }
