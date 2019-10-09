@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <chrono>
+#include <experimental/filesystem>
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 #include "my_robo_simulation/my_robo_util.h"
@@ -282,6 +283,9 @@ void MyDWA::DWAloop()
         auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
         LOG.push_back((double)msec/1000);
 
+        LOG.push_back(sensor.odom.pose.pose.position.x);
+        LOG.push_back(sensor.odom.pose.pose.position.y);
+
         if (sensor.latest_scan.ranges.size() == 0)
         {
             ROS_INFO("no LRF data.waiting...");
@@ -303,7 +307,7 @@ void MyDWA::DWAloop()
             //if (sensor.odom.twist.twist.linear.x >= -0.5)
             //{
                 cal_DWA();
-                LOG.push_back(CandVel.size());
+                //LOG.push_back(CandVel.size());
                 say_time("cal DWA",now);
 
                 cal_predict_position();
@@ -315,7 +319,7 @@ void MyDWA::DWAloop()
                 say_time("cal dist", now);
                 
 
-                LOG.push_back(cal_average_d_U(CandVel));
+                //LOG.push_back(cal_average_d_U(CandVel));
 
                 // double D = cal_vel_sat();
 
@@ -329,8 +333,9 @@ void MyDWA::DWAloop()
                 {
 #ifdef MYDWA
                     Proposed();
-#endif
                     say_time("proposed", now);
+#endif
+                    
 
                     // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
                     //visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
@@ -344,11 +349,9 @@ void MyDWA::DWAloop()
 #ifdef ISSHARED
 
 #ifdef PABLODWA
-                    if (sensor.joy_cmd_vel[0] >= 0)
-                    {
-                        vel.linear.x = CandVel[index][0];
-                        vel.angular.z = CandVel[index][1];
-                    }
+                    vel.linear.x = CandVel[opt_index][0];
+                    vel.angular.z = CandVel[opt_index][1];
+
 #endif
 
 #ifdef MYDWA
@@ -356,10 +359,10 @@ void MyDWA::DWAloop()
                     std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" << std::endl;
                     vel.linear.x = CandVel[opt_index][0];
                     vel.angular.z = CandVel[opt_index][1];
+
+#endif
+#endif
                 }
-                #endif
-                #endif
-                
                 ROS_INFO("pubvel:%f,%f", vel.linear.x, vel.angular.z);
 
                 double distance;
@@ -402,6 +405,7 @@ void MyDWA::DWAloop()
     }
 }
 
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
@@ -411,6 +415,9 @@ int main(int argc, char **argv)
 
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog_" + date + ".csv";
     robot.mylogfile.open(mylogfilename);
+
+    std::string logfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_" + date + ".csv";
+    robot.logfile.open(logfilename);
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
