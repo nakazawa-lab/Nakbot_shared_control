@@ -82,7 +82,6 @@ def make_house():
     fill_list_3_y = [-0.5,4,4,-0.5]
 
     boxes_center = [[14,8], [12.5,5], [14.5,3], [11,3]]
-    goal = [14,0]
 
     for i in range(len(house_shape)):
         plt.plot(house_shape[i][0],house_shape[i][1],'k-', lw=4)
@@ -94,11 +93,26 @@ def make_house():
     for i in range(len(boxes_center)):
         line_range_x, line_range_y = make_box(boxes_center[i][0],boxes_center[i][1])
         plt.fill(line_range_x,line_range_y,color="gray")
+    
+    plot_start_goal()
+
+
+
+
+def plot_start_goal():
+    goal = [14,0]
+    start = [0,0]
 
     rad = np.arange(0, 2*np.pi, np.pi/100)
-    x = goal[0] + 0.2*np.cos(rad)
-    y = goal[1] + 0.2*np.sin(rad)
-    plt.plot(x,y,color="red")
+    gx = goal[0] + 0.2*np.cos(rad)
+    gy = goal[1] + 0.2*np.sin(rad)
+
+    sx = start[0] + 0.2*np.cos(rad)
+    sy = start[1] + 0.2*np.sin(rad)
+
+    plt.plot(gx,gy,color="red")
+    plt.plot(sx,sy,color="blue")
+
 
 
 def main():
@@ -113,19 +127,19 @@ def main():
     log = read_log(pablo_csv_path)
 
     ############-3D cost graph-##########
-    fig = plt.figure()
-    ax = Axes3D(fig)
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.set_zlabel("cost")
-    ax.plot(mylog["pos_x"],mylog["pos_y"],mylog["cost"],marker="o")
-    plt.show()
-    plt.close()
+    # fig = plt.figure()
+    # ax = Axes3D(fig)
+    # ax.set_xlabel("X")
+    # ax.set_ylabel("Y")
+    # ax.set_zlabel("cost")
+    # ax.plot(mylog["pos_x"],mylog["pos_y"],mylog["cost"],marker="o")
+    # plt.show()
+    # plt.close()
 
     ############-2D path Proposed-##########
     fig2 = plt.figure()
-    plt.title("Proposed Shared DWA")
-    plt.plot(mylog["pos_x"],mylog["pos_y"],label="robot_path")
+    #plt.title("Proposed Shared DWA")
+    #plt.plot(mylog["pos_x"],mylog["pos_y"],label="robot_path")
     make_house()
     plt.xlabel("X")
     plt.ylabel("Y")
@@ -135,15 +149,15 @@ def main():
 
 
     ############-2D path Shared-##########
-    fig3 = plt.figure()
-    plt.title("Shared DWA")
-    plt.xlabel("X")
-    plt.ylabel("Y")
-    plt.plot(log["pos_x"],log["pos_y"],label="robot path")
-    make_house()
-    plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
-    plt.show()
-    plt.close()
+    # fig3 = plt.figure()
+    # plt.title("Shared DWA")
+    # plt.xlabel("X")
+    # plt.ylabel("Y")
+    # plt.plot(log["pos_x"],log["pos_y"],label="robot path")
+    # make_house()
+    # plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
+    # plt.show()
+    # plt.close()
 
 
 if __name__ == '__main__':

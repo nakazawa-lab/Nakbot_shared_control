@@ -98,7 +98,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
     else Blueflag = false;
 
     //予測時刻の数だけループ
-    for (int j = 0; j < PredictTraj[i].size(); j += 3)
+    for (int j = 0; j < PredictTraj[i].size(); j += 4)
     {
  
        //ROS_INFO("start loop.");
@@ -156,7 +156,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
         marker_array.markers[k].scale.y = 0.05;
         marker_array.markers[k].scale.z = 0.05;
 
-        double dist = sqrt(dist_lin_ang[i][0] * dist_lin_ang[i][0] + dist_lin_ang[i][1] * dist_lin_ang[i][1]);
+        //double dist = sqrt(dist_lin_ang[i][0] * dist_lin_ang[i][0] + dist_lin_ang[i][1] * dist_lin_ang[i][1]);
 
         marker_array.markers[k].color.r = 1.0f;
         marker_array.markers[k].color.g = x;
@@ -172,7 +172,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
 
     // joyの予測軌道を緑色で入れる
     //予測時刻の数だけループ
-    for (int j = 0; j < Joy_PredictTraj.size(); j +=2)
+    for (int j = 0; j < Joy_PredictTraj.size(); j +=4)
     {
     //ROS_INFO("start loop.");
 

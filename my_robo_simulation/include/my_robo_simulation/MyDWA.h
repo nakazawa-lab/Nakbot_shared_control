@@ -24,10 +24,10 @@ private:
 
     std::vector<double> lin_normdists, ang_normdists;
 
-    // d-theta平面上での距離を図る際に、スケールを合わせるために掛ける数字。
-    // 例えば、thをdegで表してスケールを整えないと角度のズレに対して非常に敏感になってしまい、少しでも角度がずれていると危険と判断されてしまう。
+    // 小さいと、その次元の距離を実際の距離より小さくみつもることになり、その次元は危険とみなされる
+    // 小さいとその次元の距離が短くなる
     const double point_scale_d = 1;
-    const double point_scale_th = 2;        // maxang/maxvel * 2 = 3.75
+    const double point_scale_th = 0.85;        // maxang/maxvel * 2 = 3.75
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
@@ -64,7 +64,7 @@ private:
 
     double cal_vel_cost_pro(int);
 
-    void proposed_0930();
+    void proposed_0930(std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds>);
 
     void cal_opt_0930();
 
@@ -90,7 +90,7 @@ public:
 
     std::ofstream mylogfile;
 
-    void Proposed();
+    void Proposed(std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds>);
 
     visualization_msgs::Marker make_nearest_LRF_marker(int optId);
 };

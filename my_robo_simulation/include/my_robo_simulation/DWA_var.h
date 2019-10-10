@@ -32,8 +32,8 @@ public:
     const double k_velocity = 1;
 
     // この秒数後の衝突に対して衝突危険正規化距離を１未満にする。これ以上の場合は1で安全
-    const float thres_vel_time = 3;
-    const float thres_ang_time = 3;
+    const float thres_vel_time = 2;
+    const float thres_ang_time = 2;
 
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
 
