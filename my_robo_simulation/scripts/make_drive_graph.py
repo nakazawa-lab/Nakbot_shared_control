@@ -4,6 +4,7 @@ import numpy as np
 import seaborn as sns
 from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
+import argparse
 
 sns.set_style("darkgrid")
 
@@ -15,6 +16,7 @@ def make_box(center_x,center_y):
 
 def read_log(csv_path):
     csv_file = pd.read_csv(csv_path,header=2)
+    timestep = csv_file["timestep"]
     pos_x = csv_file["pos.x"]
     pos_y = csv_file["pos.y"]
     adm = csv_file["adm"]
@@ -24,8 +26,11 @@ def read_log(csv_path):
     cost = csv_file["cost"]
     cal_vel_v = csv_file["cal_vel.v"]
     cal_vel_w = csv_file["cal_val.w"]
+    joy_v = csv_file["joy_v"]
+    joy_w =csv_file["joy_w"]
 
-    log = { "pos_x":pos_x,\
+    log = {   "timestep":timestep,  \
+              "pos_x":pos_x,\
               "pos_y":pos_y, \
               "adm"  :adm, \
               "safe" :safe, \
@@ -34,11 +39,14 @@ def read_log(csv_path):
               "cost":cost, \
               "cal_vel_v":cal_vel_v, \
               "cal_vel_w":cal_vel_w, \
+              "joy_v":joy_v, \
+              "joy_w":joy_w
             }
     return log
 
 def read_mylog(csv_path):
     csv_file = pd.read_csv(csv_path,header=2)
+    timestep = csv_file["timestep"]
     pos_x = csv_file["pos.x"]
     pos_y = csv_file["pos.y"]
     linadm = csv_file["linadm"]
@@ -50,8 +58,11 @@ def read_mylog(csv_path):
     cost = csv_file["cost"]
     cal_vel_v = csv_file["cal_vel.v"]
     cal_vel_w = csv_file["cal_val.w"]
+    joy_v = csv_file["joy_v"]
+    joy_w =csv_file["joy_w"]
 
-    mylog = { "pos_x":pos_x,\
+    mylog = { "timestep":timestep, \
+              "pos_x":pos_x,\
               "pos_y":pos_y, \
               "linadm"  :linadm, \
               "linsafe" :linsafe, \
@@ -62,6 +73,8 @@ def read_mylog(csv_path):
               "cost":cost, \
               "cal_vel_v":cal_vel_v, \
               "cal_vel_w":cal_vel_w, \
+              "joy_v":joy_v, \
+              "joy_w":joy_w
             }
     return mylog
 
@@ -118,13 +131,22 @@ def plot_start_goal():
 def main():
     ############-settings-##############
     log_path = "../log"
-    pro_filename = "mylog_107191.csv"
-    pro_csv_path = os.path.join(log_path,pro_filename)
+    pro_filename = "mylog_10101948_3_2.csv"
+    pro_filename_noext = (pro_filename.split("."))[0]
+    pro_csv_path = os.path.join(log_path, pro_filename)
     mylog = read_mylog(pro_csv_path)
 
-    pablo_filename = "log_1091121.csv"
+    pablo_filename = "log_10101713_take1.csv"
+    pablo_filename_noext = (pablo_filename.split("."))[0]
     pablo_csv_path = os.path.join(log_path,pablo_filename)
     log = read_log(pablo_csv_path)
+
+    ############-argparse-############
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("method",help="pablo or pro")
+
+    args = parser.parse_args()
 
     ############-3D cost graph-##########
     # fig = plt.figure()
@@ -133,19 +155,23 @@ def main():
     # ax.set_ylabel("Y")
     # ax.set_zlabel("cost")
     # ax.plot(mylog["pos_x"],mylog["pos_y"],mylog["cost"],marker="o")
+    # ax.set_title("cost")
+    # ax.view_init(elev=30., azim=-120)
+    # plt.savefig('cost_figure_{}.png'.format(pro_filename_noext)) 
     # plt.show()
     # plt.close()
 
     ############-2D path Proposed-##########
-    fig2 = plt.figure()
-    #plt.title("Proposed Shared DWA")
-    #plt.plot(mylog["pos_x"],mylog["pos_y"],label="robot_path")
-    make_house()
-    plt.xlabel("X")
-    plt.ylabel("Y")
-    plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
-    plt.show()
-    plt.close()
+    # fig2 = plt.figure()
+    # plt.title("Proposed Shared DWA")
+    # plt.plot(mylog["pos_x"],mylog["pos_y"],label="robot_path")
+    # make_house()
+    # plt.xlabel("X")
+    # plt.ylabel("Y")
+    # plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
+    # plt.savefig('path_figure_{}.png'.format(pro_filename_noext)) 
+    # plt.show()
+    # plt.close()
 
 
     ############-2D path Shared-##########
@@ -156,8 +182,60 @@ def main():
     # plt.plot(log["pos_x"],log["pos_y"],label="robot path")
     # make_house()
     # plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
+    # plt.savefig('path_figure_{}.png'.format(pablo_filename_noext)) 
     # plt.show()
     # plt.close()
+
+
+    #########-2D linvel graph-###############
+    linvelfig = plt.figure()
+    plt.xlabel("Time")
+    plt.ylabel("m/s")
+    if args.method=="pablo":
+        plt.plot(log["timestep"],log["joy_v"],label="joy linear vel")
+        plt.plot(log["timestep"],log["cal_vel_v"],label="calculated linear vel")
+        plt.legend()
+        plt.savefig("linvel_figure_{}".format(pablo_filename_noext))
+    elif args.method=="pro":
+        plt.plot(mylog["timestep"],mylog["joy_v"],label="joy linear vel")
+        plt.plot(mylog["timestep"],mylog["cal_vel_v"],label="calculated linear vel")
+        plt.legend()
+        plt.savefig("linvel_figure_{}".format(pro_filename_noext))
+    plt.show()
+    plt.close()
+    
+
+    #########-2D angvel graph-###############
+    angvelfig = plt.figure()
+    plt.xlabel("Time")
+    plt.ylabel("rad/s")
+    if args.method=="pablo":
+        plt.plot(log["timestep"],log["joy_w"],label="joy angular vel")
+        plt.plot(log["timestep"],log["cal_vel_w"],label="calculated angular vel")
+        plt.legend()
+        plt.savefig("angnvel_figure_{}".format(pablo_filename_noext))
+    elif args.method=="pro":
+        plt.plot(mylog["timestep"],mylog["joy_w"],label="joy angular vel")
+        plt.plot(mylog["timestep"],mylog["cal_vel_w"],label="calculated angular vel")
+        plt.legend()
+        plt.savefig("angvel_figure_{}".format(pro_filename_noext))
+    plt.show()
+    plt.close()
+
+    #########-2D cost graph-###############
+    costfig = plt.figure()
+    plt.xlabel("Time")
+    plt.ylabel("cost")
+    if args.method=="pablo":
+        plt.plot(log["timestep"],log["cost"],label="cost")
+        plt.legend()
+        plt.savefig("cost2d_figure_{}".format(pablo_filename_noext))
+    elif args.method=="pro":
+        plt.plot(mylog["timestep"],mylog["cost"],label="cost")
+        plt.legend()
+        plt.savefig("cost2d_figure_{}".format(pro_filename_noext))
+    plt.show()
+    plt.close()
 
 
 if __name__ == '__main__':
