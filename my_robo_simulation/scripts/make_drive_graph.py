@@ -136,7 +136,7 @@ def main():
     pro_csv_path = os.path.join(log_path, pro_filename)
     mylog = read_mylog(pro_csv_path)
 
-    pablo_filename = "log_10101713_take1.csv"
+    pablo_filename = "log_10101716_take2.csv"
     pablo_filename_noext = (pablo_filename.split("."))[0]
     pablo_csv_path = os.path.join(log_path,pablo_filename)
     log = read_log(pablo_csv_path)
@@ -148,49 +148,46 @@ def main():
 
     args = parser.parse_args()
 
-    ############-3D cost graph-##########
-    # fig = plt.figure()
-    # ax = Axes3D(fig)
-    # ax.set_xlabel("X")
-    # ax.set_ylabel("Y")
-    # ax.set_zlabel("cost")
-    # ax.plot(mylog["pos_x"],mylog["pos_y"],mylog["cost"],marker="o")
-    # ax.set_title("cost")
-    # ax.view_init(elev=30., azim=-120)
-    # plt.savefig('cost_figure_{}.png'.format(pro_filename_noext)) 
-    # plt.show()
-    # plt.close()
-
-    ############-2D path Proposed-##########
-    # fig2 = plt.figure()
-    # plt.title("Proposed Shared DWA")
-    # plt.plot(mylog["pos_x"],mylog["pos_y"],label="robot_path")
-    # make_house()
-    # plt.xlabel("X")
-    # plt.ylabel("Y")
-    # plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
-    # plt.savefig('path_figure_{}.png'.format(pro_filename_noext)) 
-    # plt.show()
-    # plt.close()
+    #########-3D cost graph-###############
+    costfig = plt.figure()
+    ax = Axes3D(costfig)
+    ax.set_xlabel("X[m]")
+    ax.set_ylabel("Y[m]")
+    ax.set_zlabel("cost")
+    if args.method=="pablo":
+        ax.plot(log["pos_x"],log["pos_y"],log["cost"],marker="o")
+        ax.view_init(elev=30., azim=-120)
+        plt.savefig('cost_figure_{}.png'.format(pablo_filename_noext)) 
+    elif args.method=="pro":
+        ax.plot(mylog["pos_x"],mylog["pos_y"],mylog["cost"],marker="o")
+        ax.view_init(elev=30., azim=-120)
+        plt.savefig('cost_figure_{}.png'.format(pro_filename_noext)) 
+    plt.show()
+    plt.close()
 
 
-    ############-2D path Shared-##########
-    # fig3 = plt.figure()
-    # plt.title("Shared DWA")
-    # plt.xlabel("X")
-    # plt.ylabel("Y")
-    # plt.plot(log["pos_x"],log["pos_y"],label="robot path")
-    # make_house()
-    # plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
-    # plt.savefig('path_figure_{}.png'.format(pablo_filename_noext)) 
-    # plt.show()
-    # plt.close()
+    #########-2D path graph-###############
+    pathfig = plt.figure()
+    plt.xlabel("X[m]")
+    plt.ylabel("Y[m]")
+    make_house()
+    if args.method=="pablo":
+        plt.plot(log["pos_x"],log["pos_y"],label="robot path")
+        plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
+        plt.savefig("path_figure_{}".format(pablo_filename_noext))
+    elif args.method=="pro":
+        plt.plot(mylog["pos_x"],mylog["pos_y"],label="robot path")
+        plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
+        plt.savefig("path_figure_{}".format(pro_filename_noext))
+    plt.show()
+    plt.close()
+
 
 
     #########-2D linvel graph-###############
     linvelfig = plt.figure()
-    plt.xlabel("Time")
-    plt.ylabel("m/s")
+    plt.xlabel("Time[s]")
+    plt.ylabel("linear velocity[m/s]")
     if args.method=="pablo":
         plt.plot(log["timestep"],log["joy_v"],label="joy linear vel")
         plt.plot(log["timestep"],log["cal_vel_v"],label="calculated linear vel")
@@ -207,8 +204,8 @@ def main():
 
     #########-2D angvel graph-###############
     angvelfig = plt.figure()
-    plt.xlabel("Time")
-    plt.ylabel("rad/s")
+    plt.xlabel("Time[s]")
+    plt.ylabel("angular velocity[rad/s]")
     if args.method=="pablo":
         plt.plot(log["timestep"],log["joy_w"],label="joy angular vel")
         plt.plot(log["timestep"],log["cal_vel_w"],label="calculated angular vel")
@@ -224,7 +221,7 @@ def main():
 
     #########-2D cost graph-###############
     costfig = plt.figure()
-    plt.xlabel("Time")
+    plt.xlabel("Time[s]")
     plt.ylabel("cost")
     if args.method=="pablo":
         plt.plot(log["timestep"],log["cost"],label="cost")
