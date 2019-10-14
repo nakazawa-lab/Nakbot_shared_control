@@ -131,7 +131,7 @@ def plot_start_goal():
 def main():
     ############-settings-##############
     log_path = "../log"
-    pro_filename = "mylog_10101948_3_2.csv"
+    pro_filename = "mylog_10101950_3_3.csv"
     pro_filename_noext = (pro_filename.split("."))[0]
     pro_csv_path = os.path.join(log_path, pro_filename)
     mylog = read_mylog(pro_csv_path)
@@ -162,6 +162,28 @@ def main():
         ax.plot(mylog["pos_x"],mylog["pos_y"],mylog["cost"],marker="o")
         ax.view_init(elev=30., azim=-120)
         plt.savefig('cost_figure_{}.png'.format(pro_filename_noext)) 
+    plt.show()
+    plt.close()
+
+    ######-3D adm graph-############
+    admfig=plt.figure()
+    ax2=Axes3D(admfig)
+    #ax2 = admfig.gca(projection='3d')
+    ax2.set_xlabel("X[m]")
+    ax2.set_ylabel("Y[m]")
+    ax2.set_zlabel("danger")
+    if args.method=="pablo":
+        ax2.plot(log["pos_x"],log["pos_y"],log["adm"],marker="o",label="danger")
+        ax2.view_init(elev=30., azim=-120)
+        plt.legend()
+        plt.savefig('adm_figure_{}.png'.format(pablo_filename_noext))
+        
+    elif args.method=="pro":
+        ax2.plot(mylog["pos_x"],mylog["pos_y"],mylog["linadm"],marker="o",label="lin danger")
+        ax2.plot(mylog["pos_x"],mylog["pos_y"],mylog["angadm"],marker="o",label="ang danger")
+        ax2.view_init(elev=30., azim=-120)
+        plt.legend()
+        plt.savefig('adm_figure_{}.png'.format(pro_filename_noext)) 
     plt.show()
     plt.close()
 
