@@ -16,9 +16,10 @@
 
 FILE *gp;       // gnuplotに指令を与えるためのテキストファイル
 
-//#define PABLODWA
-#define MYDWA
+#define PABLODWA
+//#define MYDWA
 #define ISSHARED
+bool IsProposed; 
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -281,6 +282,7 @@ void MyDWA::DWAloop()
         auto now = std::chrono::system_clock::now();
         auto dur = now - start_time;
         auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+        loop_start_time =now;
         LOG.push_back((double)msec/1000);
 
         LOG.push_back(sensor.odom.pose.pose.position.x);
@@ -302,10 +304,8 @@ void MyDWA::DWAloop()
 
             // cal_Dist2ではこれを用いてｄ＿Uを計算するのでコメントしてはならない
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
-            // pub_marker_array(obsmarkers);
-            
-            //if (sensor.odom.twist.twist.linear.x >= -0.5)
-            //{
+            pub_marker_array(obsmarkers);
+
                 cal_DWA();
                 //LOG.push_back(CandVel.size());
                 say_time("cal DWA",now);
@@ -319,7 +319,7 @@ void MyDWA::DWAloop()
                 say_time("cal dist", now);
                 
 
-                //LOG.push_back(cal_average_d_U(CandVel));
+                // LOG.push_back(cal_average_d_U(CandVel));
 
                 // double D = cal_vel_sat();
 
@@ -332,14 +332,15 @@ void MyDWA::DWAloop()
                 if (sensor.joy_cmd_vel[0] >= -0)
                 {
 #ifdef MYDWA
-                    Proposed(now);
+                    Proposed();
                     say_time("proposed", now);
 #endif
                     
 
                     // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
-                    // visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
-                    // pub_marker_array(markers);
+
+                     visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index,IsProposed);
+                     pub_marker_array(markers);
                     // std::cout << "finish make traj marker" << std::endl;
 
 #ifdef MYDWA
@@ -366,11 +367,6 @@ void MyDWA::DWAloop()
 #endif
                 }
                 ROS_INFO("pubvel:%f,%f", vel.linear.x, vel.angular.z);
-
-                double distance;
-                if (sensor.latest_scan.ranges[sensor.center] == 0)distance=10;
-                else distance = sensor.latest_scan.ranges[sensor.center];
-                //LOG.push_back(distance);
 
                 if (plot_flag)
                 {
@@ -407,22 +403,25 @@ void MyDWA::DWAloop()
     }
 }
 
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
     MyDWA robot;
 
     std::string date = get_current_time();
+    
 
-    #ifdef MYDWA
+#ifdef MYDWA
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog_" + date + ".csv";
     robot.mylogfile.open(mylogfilename);
-    #endif
-    #ifdef PABLODWA
+    IsProposed=True;
+#endif
+#ifdef PABLODWA
     std::string logfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_" + date + ".csv";
     robot.logfile.open(logfilename);
-    #endif
+    IsProposed=false;
+#endif
+
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
     fprintf(gp, "set xrange [-3:3]\n");
@@ -435,6 +434,7 @@ int main(int argc, char **argv)
 
     robot.logfile.close();
     robot.mylogfile.close();
+
     pclose(gp);
 
     return 0;
