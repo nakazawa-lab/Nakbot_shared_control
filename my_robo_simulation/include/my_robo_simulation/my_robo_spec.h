@@ -27,7 +27,11 @@ public:
 
     // ロボットの縦と横の長さ これにより衝突半径を計算する
     float robot_width = 0.4;
+<<<<<<< HEAD
     float robot_length = 0.4;
+=======
+    float robot_length = 0.3;
+>>>>>>> 0930
     float robot_rad;        // ロボットの衝突判定となる円.コンストラクタに記述
 
     // ロボット自身の大きさを保持するもの

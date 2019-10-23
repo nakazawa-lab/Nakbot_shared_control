@@ -20,7 +20,8 @@ double cal_average_d_U(std::vector<std::vector<double>>& CandVel){
   return sum / size;
 }
 
-void my_robo::check_joy(){
+void my_robo::check_joy()
+{
 
   if (sensor.countj != 0)
   {
@@ -50,36 +51,38 @@ void my_robo::check_joy(){
   }
 }
 
-visualization_msgs::Marker my_robo::make_pos_marker(position p){
-    visualization_msgs::Marker marker;
-    marker.header.frame_id = "/odom";
-    marker.header.stamp = ros::Time::now();
-    marker.ns = "basic_shapes";
-    marker.id = 0;
+visualization_msgs::Marker my_robo::make_pos_marker(position p)
+{
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = "/odom";
+  marker.header.stamp = ros::Time::now();
+  marker.ns = "basic_shapes";
+  marker.id = 0;
 
-    marker.type = visualization_msgs::Marker::CUBE;
-    marker.action = visualization_msgs::Marker::ADD;
-    marker.lifetime = (ros::Duration)0.5;
+  marker.type = visualization_msgs::Marker::CUBE;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.lifetime = (ros::Duration)0.5;
 
-    marker.scale.x = 0.1;
-    marker.scale.y = 0.1;
-    marker.scale.z = 0.1;
-    marker.pose.position.x=p.x;
-    marker.pose.position.y=p.y;
-    marker.pose.position.z=0;
-    marker.pose.orientation.x=0;
-    marker.pose.orientation.y=0;
-    marker.pose.orientation.z=0;
-    marker.pose.orientation.w=1;
-    marker.color.r = 0.0f;
-    marker.color.g = 1.0f;
-    marker.color.b = 0.0f;
-    marker.color.a = 1.0f;
-    // pub_mark.publish(marker);
-    return marker;
+  marker.scale.x = 0.1;
+  marker.scale.y = 0.1;
+  marker.scale.z = 0.1;
+  marker.pose.position.x = p.x;
+  marker.pose.position.y = p.y;
+  marker.pose.position.z = 0;
+  marker.pose.orientation.x = 0;
+  marker.pose.orientation.y = 0;
+  marker.pose.orientation.z = 0;
+  marker.pose.orientation.w = 1;
+  marker.color.r = 0.0f;
+  marker.color.g = 1.0f;
+  marker.color.b = 0.0f;
+  marker.color.a = 1.0f;
+  // pub_mark.publish(marker);
+  return marker;
 }
 
 // k番目の速度候補
+<<<<<<< HEAD
 visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
 {
   visualization_msgs::MarkerArray marker_array;
@@ -91,39 +94,51 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
   bool Blueflag = false;  // 採用軌道を示すもの  
 // 候補の数ループ
   for (int i=0; i<PredictTraj.size();i+=1){
+=======
+visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool IsProposed)
+{
+  visualization_msgs::MarkerArray marker_array;
+  marker_array.markers.resize((PredictTraj[0].size() + 1) * PredictTraj.size());
+
+  int k = 0;
+  float green = 0;
+  float red = 0;
+  bool Blueflag = false; // 採用軌道を示すもの
+                         // 候補の数ループ
+  for (int i = 0; i < PredictTraj.size(); i += 2)
+  {
+>>>>>>> 0930
     //ROS_INFO("start put marker.");
 
     // float GREEN= (double)rand()/RAND_MAX;
-    if(i == index)Blueflag = true;
-    else Blueflag = false;
+    if (i == index)
+      Blueflag = true;
+    else
+      Blueflag = false;
 
     //予測時刻の数だけループ
+<<<<<<< HEAD
     for (int j = 0; j < PredictTraj[i].size(); j += 4)
+=======
+    for (int j = 0; j < PredictTraj[i].size(); j += 5)
+>>>>>>> 0930
     {
- 
-       //ROS_INFO("start loop.");
+
+      //ROS_INFO("start loop.");
 
       marker_array.markers[k].header.frame_id = "/odom";
       marker_array.markers[k].header.stamp = ros::Time::now();
       marker_array.markers[k].ns = "cmd_vel_display";
       marker_array.markers[k].id = k;
-      marker_array.markers[k].lifetime = (ros::Duration)(1 /looprate);   //1ループ存在
+      marker_array.markers[k].lifetime = (ros::Duration)(1 / looprate); //1ループ存在
 
       // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
       marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
       marker_array.markers[k].action = visualization_msgs::Marker::ADD;
 
-      if(Blueflag){
-
-      }
-      else{
-
-
-      }
-
       marker_array.markers[k].pose.position.x = PredictTraj[i][j][1];
       marker_array.markers[k].pose.position.y = PredictTraj[i][j][2];
-      marker_array.markers[k].pose.position.z =  0;
+      marker_array.markers[k].pose.position.z = 0;
       marker_array.markers[k].pose.orientation.x = 0;
       marker_array.markers[k].pose.orientation.y = 0;
       marker_array.markers[k].pose.orientation.z = 0;
@@ -136,12 +151,13 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
         marker_array.markers[k].scale.z = 0.1;
 
         marker_array.markers[k].color.r = 0.0f;
-        marker_array.markers[k].color.g = 1.0f;
+        marker_array.markers[k].color.g = 0.0f;
         marker_array.markers[k].color.b = 1.0f;
         marker_array.markers[k].color.a = 1.0f;
       }
       else
       {
+<<<<<<< HEAD
         // marker_array.markers[k].color.r = 1.0f;
         // marker_array.markers[k].color.g = CandVel[i][2];
         // marker_array.markers[k].color.b = CandVel[i][2];
@@ -149,29 +165,52 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
         double x=1;
         if(isCollision[i]){
           x=0;
+=======
+        double x = 1;
+        if (isCollision[i])
+        {
+          x = 0;
+>>>>>>> 0930
         }
 
         marker_array.markers[k].scale.x = 0.05;
         marker_array.markers[k].scale.y = 0.05;
         marker_array.markers[k].scale.z = 0.05;
+        if (IsProposed)
+        {
+          //double dist = sqrt(dist_lin_ang[i][0] * dist_lin_ang[i][0] + dist_lin_ang[i][1] * dist_lin_ang[i][1]);
 
+<<<<<<< HEAD
         double dist = sqrt(dist_lin_ang[i][0] * dist_lin_ang[i][0] + dist_lin_ang[i][1] * dist_lin_ang[i][1]);
 
         marker_array.markers[k].color.r = 1.0f;
         marker_array.markers[k].color.g = x;
         marker_array.markers[k].color.b = x;
         marker_array.markers[k].color.a = 1.0f;
+=======
+          marker_array.markers[k].color.r = 1.0f;
+          marker_array.markers[k].color.g = dist_lin_ang[i][0];
+          marker_array.markers[k].color.b = dist_lin_ang[i][0];
+          marker_array.markers[k].color.a = 1.0f;
+        }
+        else
+        {
+          marker_array.markers[k].color.r = 1.0f;
+          marker_array.markers[k].color.g = CandVel[i][2];
+          marker_array.markers[k].color.b = CandVel[i][2];
+          marker_array.markers[k].color.a = 1.0f;
+        }
+>>>>>>> 0930
       }
 
       k++;
-
     }
   }
 
 
     // joyの予測軌道を緑色で入れる
     //予測時刻の数だけループ
-    for (int j = 0; j < Joy_PredictTraj.size(); j +=2)
+    for (int j = 0; j < Joy_PredictTraj.size(); j +=5)
     {
     //ROS_INFO("start loop.");
 
@@ -184,9 +223,9 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
     // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
     marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
     marker_array.markers[k].action = visualization_msgs::Marker::ADD;
-    marker_array.markers[k].scale.x = 0.08;
-    marker_array.markers[k].scale.y = 0.08;
-    marker_array.markers[k].scale.z = 0.08;
+    marker_array.markers[k].scale.x = 0.1;
+    marker_array.markers[k].scale.y = 0.1;
+    marker_array.markers[k].scale.z = 0.1;
     marker_array.markers[k].pose.position.x = Joy_PredictTraj[j][1];
     marker_array.markers[k].pose.position.y = Joy_PredictTraj[j][2];
     marker_array.markers[k].pose.position.z = 0;
@@ -452,7 +491,7 @@ void my_robo::plot_d_deg_scan_gnuplot(FILE *gp)
   fflush(gp);
 }
 
-void my_robo::plot_gnuplot(FILE *gp)
+void MyDWA::plot_gnuplot(FILE *gp)
 {
   fprintf(gp, "clear\n");
 
@@ -464,7 +503,7 @@ void my_robo::plot_gnuplot(FILE *gp)
     // 軌道内の各時刻に対する繰り返し
     for (int j = 0; j < PredictTraj_r[i].size(); j+=2)
     {
-      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] , PredictTraj_r[i][j][1]);
+      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * point_scale_th , PredictTraj_r[i][j][1] *point_scale_d);
     }
   }
   fprintf(gp, "e\n");
@@ -475,7 +514,7 @@ void my_robo::plot_gnuplot(FILE *gp)
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
   for (int i = 0; i < sensor.latest_scan.ranges.size(); i+=3)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i)  , sensor.latest_scan.ranges[i]);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) *point_scale_th  , sensor.latest_scan.ranges[i] * point_scale_d);
   }
   fprintf(gp, "e\n");
   fflush(gp);

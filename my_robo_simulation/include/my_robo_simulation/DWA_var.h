@@ -20,7 +20,11 @@ class DWA_var
 {
 public:
     // DWA設定の刻み.ループレイトと同じが望ましい
+<<<<<<< HEAD
     const double dt = 0.4;
+=======
+    const double dt = 0.15;
+>>>>>>> 0930
     // 軌道計算の刻み
     const double dt_traj = 0.1;
     // 軌道予測時刻
@@ -34,6 +38,8 @@ public:
     // この秒数後の衝突に対して衝突危険正規化距離を１未満にする。これ以上の場合は1で安全
     const float thres_vel_time = 3;
     const float thres_ang_time = 3;
+
+    std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
 
     // 予測軌道 [index][時刻index][time,x,y,sin cos]
     std::vector<std::vector<std::vector<double>>> PredictTraj;

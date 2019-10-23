@@ -47,7 +47,6 @@ public:
     ros::Publisher pub_mark_arr;
 
     my_robo();
-    //~my_robo();
 
     void controlloop();
 
@@ -61,7 +60,7 @@ public:
 
     // 障害物との入力相当距離(SharedDWAのd_Uにあたる)を求め,Admを返す
     // すべてのLRFの点を用いたバージョン
-    void cal_Dist();
+    // void cal_Dist();
 
     // LRFの代表点を用いたバージョン
     void cal_Dist2();
@@ -80,7 +79,10 @@ public:
 
     visualization_msgs::Marker make_pos_marker(position p);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0930
     void pub_marker_array(visualization_msgs::MarkerArray markers)
     {
         pub_mark_arr.publish(markers);
@@ -100,15 +102,12 @@ public:
 
     void plot_d_deg_scan_gnuplot(FILE *gp);
 
-    void plot_gnuplot(FILE *gp);
-
     void proposed_dist();
 
     std::vector<double> test;
 
     std::vector<double> LOG;
     std::ofstream logfile;
-    //MyDWA myDWA;
 
     double cal_head_cost(int);
 

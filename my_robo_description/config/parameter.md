@@ -1,16 +1,17 @@
 # parameter
-
+- 最終更新日 20191023
 ## DWA_var.h
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
-|DWA計算のステップ時刻  |DWA.dt         |0.25   |
-|軌道計算の刻み         |dt_traj        |0.2    |
+|DWA計算のステップ時刻  |DWA.dt         |0.15   |
+|軌道計算の刻み         |dt_traj        |0.1    |
 |軌道予測時刻           |DWA.PredictTime|3      |
-|計算周期               |looprate       |4      |
+|計算周期               |looprate       |6.6667      |
 |                       |k_head         |1      |
 |                       |k_vel          |1      |
-|                       |thres_vel_time      |2      |
-|                       |thres_ang_time      |2      |
+|                       |thres_vel_time      |3      |
+|                       |thres_ang_time      |3      |
+- thres_vel_time,thres_ang_timeはpredictTimeと同じがよいか?
 
 
 ## my_robo_drive.cpp
@@ -77,12 +78,13 @@ my_robo:
 ## my_robo_spec.h
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
-|ロボットの横幅         |robot_width    |0.25   |
+|ロボットの横幅         |robot_width    |0.4  |
 |縦幅                   |robot_length   |0.3    |
 
 ## MyDWA.h
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
-|d_scaling         |robot_width    |0.25   |
-|th_scaling                   |robot_length   |0.3    |
+|d_scaling         |d_scaling     |1  |
+|th_scaling                   |th_scaling     |1    |
 |
+- スケーリングは何がいいのかわからない

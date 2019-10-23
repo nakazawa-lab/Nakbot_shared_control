@@ -7,22 +7,19 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <chrono>
+#include <experimental/filesystem>
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 #include "my_robo_simulation/my_robo_util.h"
 #include "my_robo_simulation/MyDWA.h"
 
 
-//std::ofstream log_traj_file;
-
-//std::vector<double> LOG_Traj;
-// LOGの中身
-
 FILE *gp;       // gnuplotに指令を与えるためのテキストファイル
 
-//#define PABLODWA
-#define MYDWA
+#define PABLODWA
+//#define MYDWA
 #define ISSHARED
+bool IsProposed; 
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -50,6 +47,27 @@ int kbhit(void)
     }
 
     return 0;
+}
+
+std::string get_current_time(){
+    time_t timer;     /* 時刻を取り出すための型（実際はunsigned long型） */
+    struct tm *local; /* tm構造体（時刻を扱う */
+
+    /* 年月日と時分秒保存用 */
+    int year, month, day, hour, minute, second;
+
+    timer = time(NULL);        /* 現在時刻を取得 */
+    local = localtime(&timer); /* 地方時に変換 */
+
+    /* 年月日と時分秒をtm構造体の各パラメタから変数に代入 */
+    year = local->tm_year + 1900; /* 1900年からの年数が取得されるため */
+    month = local->tm_mon + 1;    /* 0を1月としているため */
+    day = local->tm_mday;
+    hour = local->tm_hour;
+    minute = local->tm_min;
+    second = local->tm_sec;
+
+    return std::to_string(month) + std::to_string(day) + std::to_string(hour) + std::to_string(minute);
 }
 
 void trans_inf(sensor_msgs::LaserScan& scan){
@@ -212,45 +230,10 @@ void my_robo::cal_predict_position()
             PredictTraj_r.back().back().push_back(time);
             PredictTraj_r.back().back().push_back(d);
             PredictTraj_r.back().back().push_back(theta);
-    
-            // LOG_Traj.push_back(time);
-            // LOG_Traj.push_back(d);
-            // LOG_Traj.push_back(theta);
-
-            // for (int i = 0; i < LOG_Traj.size(); i++)
-            // {
-            //     log_traj_file << LOG_Traj[i] << ',';
-            // }
-            // log_traj_file << std::endl;
 
             p = np;
             time += dt_traj;
         }
-
-        // #pragma region 
-        // std::ofstream d_theta_file("d_theta_file.dat");
-
-        // // 候補軌道の数に対する繰り返し
-        // for(int i=0; i<PredictTraj_r.size();i++){
-        //     // 軌道内の各時刻に対する繰り返し
-        //     for(int j=0;j<PredictTraj_r[i].size();j++)
-        //     {
-        //         for (int k = 0; k < 3; k++)
-        //         {
-        //             d_theta_file << PredictTraj_r[i][j][k]<<" ";
-        //         }
-        //         d_theta_file << std::endl;
-        //     }
-
-        //     d_theta_file << std::endl << std::endl;
-        // }
-        // d_theta_file.close();
-        // #pragma endregion
-
-        // log_traj_file << std::endl;
-        // LOG_Traj.clear();
-
-        //ROS_INFO("TrajSize%d", PredictTraj.back().size());
     }
 
     //ROS_INFO("candidate size is %d",CandVel.size());
@@ -282,8 +265,9 @@ void MyDWA::DWAloop()
     ROS_INFO("control loop start.");
 
     ros::Rate rate(looprate);
-    auto start_time = std::chrono::system_clock::now();
+    start_time = std::chrono::system_clock::now();
     bool plot_flag = false;
+    
 
     record_param();
 
@@ -292,14 +276,17 @@ void MyDWA::DWAloop()
     while (ros::ok())
     {
         ros::spinOnce();
-        //g.screen(-120.,-1.,120.,10.);
         
         ROS_INFO("get DWA loop.");
 
         auto now = std::chrono::system_clock::now();
         auto dur = now - start_time;
         auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+        loop_start_time =now;
         LOG.push_back((double)msec/1000);
+
+        LOG.push_back(sensor.odom.pose.pose.position.x);
+        LOG.push_back(sensor.odom.pose.pose.position.y);
 
         if (sensor.latest_scan.ranges.size() == 0)
         {
@@ -313,125 +300,109 @@ void MyDWA::DWAloop()
 
             trans_inf(sensor.latest_scan);
 
-            LOG.push_back(sensor.odom.twist.twist.linear.x);
-            LOG.push_back(sensor.odom.twist.twist.angular.z);
-            LOG.push_back(sensor.joy_cmd_vel[0]);
-            LOG.push_back(sensor.joy_cmd_vel[1]);
-
-            //　say_time("check joy",now);
-
-            // sensor.detect_line(sensor.latest_scan);
-            // for(int i=0; i<sensor.lines.size();i++){
-            //     visualization_msgs::MarkerArray linemarkers = sensor.lines[i].make_edge_marker(sensor.center,sensor.latest_scan,sensor.odom.pose);
-            //     pub_marker_array(linemarkers);
-            // }
-
+            say_time("check joy",now);
 
             // cal_Dist2ではこれを用いてｄ＿Uを計算するのでコメントしてはならない
             visualization_msgs::MarkerArray obsmarkers = sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
-            // pub_marker_array(obsmarkers);
-            
-            //if (sensor.odom.twist.twist.linear.x >= -0.5)
-            //{
+            pub_marker_array(obsmarkers);
+
                 cal_DWA();
-                LOG.push_back(CandVel.size());
-                // say_time("cal DWA",now);
+                //LOG.push_back(CandVel.size());
+                say_time("cal DWA",now);
 
                 cal_predict_position();
-                //say_time("predict position",now);
+                say_time("predict position",now);
 
-                #ifdef PABLODWA
+#ifdef PABLODWA
                 //cal_Dist();
                 cal_Dist2();
-                //say_time("cal dist", now);
+                say_time("cal dist", now);
                 
 
-                LOG.push_back(cal_average_d_U(CandVel));
+                // LOG.push_back(cal_average_d_U(CandVel));
 
                 // double D = cal_vel_sat();
 
                 double D = 1;
 
                 int opt_index = cal_J_sharedDWA(D);
-                //say_time("cal J", now);
-                
+                say_time("cal J", now);
 
-                #endif
+#endif
+                if (sensor.joy_cmd_vel[0] >= -0)
+                {
+#ifdef MYDWA
+                    Proposed();
+                    say_time("proposed", now);
+#endif
+                    
 
-                #ifdef MYDWA
-                //search_LRF_Traj(sensor.latest_scan,PredictTraj_r,spec.robot_rad);
-                Proposed();
-                #endif
+                    // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
 
+<<<<<<< HEAD
                 // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
                 visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
                 pub_marker_array(markers);
                 // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
                 // pub_marker(marker);
+=======
+                     visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index,IsProposed);
+                     pub_marker_array(markers);
+                    // std::cout << "finish make traj marker" << std::endl;
+>>>>>>> 0930
 
-                #ifdef ISSHARED
+#ifdef MYDWA
+                    // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
+                    // pub_marker(marker);
+#endif
+                    say_time("pub marker", now);
 
-                #ifdef PABLODWA
-                if (sensor.joy_cmd_vel[0] >= 0)
-                {
-                    vel.linear.x = CandVel[index][0];
-                    vel.angular.z = CandVel[index][1];
-                }
-                #endif
+#ifdef ISSHARED
 
+<<<<<<< HEAD
                 #ifdef MYDWA
                 if (sensor.joy_cmd_vel[0] >= -0)
                 {
                     std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" <<std::endl;
                     std::cout << "opt scan id:" << dist_lin_ang[opt_index][2] <<std::endl; 
+=======
+#ifdef PABLODWA
+>>>>>>> 0930
                     vel.linear.x = CandVel[opt_index][0];
                     vel.angular.z = CandVel[opt_index][1];
+
+#endif
+
+#ifdef MYDWA
+
+                    std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" << std::endl;
+                    vel.linear.x = CandVel[opt_index][0];
+                    vel.angular.z = CandVel[opt_index][1];
+
+#endif
+#endif
                 }
-                #endif
-                #endif
-                
                 ROS_INFO("pubvel:%f,%f", vel.linear.x, vel.angular.z);
-
-
-                double distance;
-                if (sensor.latest_scan.ranges[sensor.center] == 0)distance=10;
-                else distance = sensor.latest_scan.ranges[sensor.center];
-                LOG.push_back(distance);
 
                 if (plot_flag)
                 {
-                    // <matplotlib> //
-                    //plot_d_deg();
-                    //plot_predict_traj();
-                    //g.line(1,1,10,10,"red");
-                    //g.line(1,10,20,1,"Yellow");
-                    //g.line(100,100,10,10);
-
                     // <gnuplot> //
                     plot_gnuplot(gp);
+                    say_time("plot",now);
                 }
-                //say_time("plot",now);
+                
             //}
 
         }
 
         pub_cmd.publish(vel);
 
-        ROS_INFO("pub vel.\n");
 
         clear_vector();
         say_time("clear vector", now);
 
         rate.sleep();
         say_time("after waiting",now);
-
-        for (int i = 0; i < LOG.size(); i++)
-        {
-            logfile << LOG[i] << ',';
-        }
-        logfile << std::endl;
-        LOG.clear();
-        //g.clear();
 
         // なにかのキーが押されていることの判定
         if (kbhit())
@@ -448,41 +419,24 @@ void MyDWA::DWAloop()
     }
 }
 
-std::string get_current_time(){
-    time_t timer;     /* 時刻を取り出すための型（実際はunsigned long型） */
-    struct tm *local; /* tm構造体（時刻を扱う */
-
-    /* 年月日と時分秒保存用 */
-    int year, month, day, hour, minute, second;
-
-    timer = time(NULL);        /* 現在時刻を取得 */
-    local = localtime(&timer); /* 地方時に変換 */
-
-    /* 年月日と時分秒をtm構造体の各パラメタから変数に代入 */
-    year = local->tm_year + 1900; /* 1900年からの年数が取得されるため */
-    month = local->tm_mon + 1;    /* 0を1月としているため */
-    day = local->tm_mday;
-    hour = local->tm_hour;
-    minute = local->tm_min;
-    second = local->tm_sec;
-
-    return std::to_string(month) + std::to_string(day) + std::to_string(hour) + std::to_string(minute);
-}
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
-    //my_robo robot;
     MyDWA robot;
 
     std::string date = get_current_time();
+    
 
-    std::string logfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_" + date + ".csv";
+#ifdef MYDWA
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog_" + date + ".csv";
-
-    robot.logfile.open(logfilename);
-    //log_traj_file.open("/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_traj.csv");
     robot.mylogfile.open(mylogfilename);
+    IsProposed=True;
+#endif
+#ifdef PABLODWA
+    std::string logfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_" + date + ".csv";
+    robot.logfile.open(logfilename);
+    IsProposed=false;
+#endif
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
@@ -496,8 +450,7 @@ int main(int argc, char **argv)
 
     robot.logfile.close();
     robot.mylogfile.close();
-    //log_traj_file.close();
-    //robot.g.close();
+
     pclose(gp);
 
     return 0;
