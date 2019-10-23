@@ -365,17 +365,17 @@ int my_robo::cal_J_sharedDWA(double D)
             vel_min = velocity;
             index = i;
 
-            // ROS_INFO("i:%d", i);
-            // ROS_INFO("now vel:%f, %f", sensor.odom.twist.twist.linear.x, sensor.odom.twist.twist.angular.z);
-            // ROS_INFO("joy vel:%f, %f", sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
-            // ROS_INFO("cand vel:%f, %f", CandVel[i][0], CandVel[i][1]);
-            // ROS_INFO("joy atan2:%f", atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]));
-            // ROS_INFO("cand atan2:%f ", atan2(CandVel[i][0],CandVel[i][1]));
+            ROS_INFO("i:%d", i);
+            ROS_INFO("now vel:%f, %f", sensor.odom.twist.twist.linear.x, sensor.odom.twist.twist.angular.z);
+            ROS_INFO("joy vel:%f, %f", sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
+            ROS_INFO("cand vel:%f, %f", CandVel[i][0], CandVel[i][1]);
+            ROS_INFO("joy atan2:%f", atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]));
+            ROS_INFO("cand atan2:%f ", atan2(CandVel[i][0],CandVel[i][1]));
 
-            // ROS_INFO("adm:%lf", adm);
-            // ROS_INFO("head:%lf", head);
-            // ROS_INFO("velocity:%lf", velocity);
-            //ROS_INFO("cost:%lf\n", temp);
+            ROS_INFO("adm:%lf", adm);
+            ROS_INFO("head:%lf", head);
+            ROS_INFO("velocity:%lf", velocity);
+            ROS_INFO("cost:%lf\n", temp);
         }
     }
     // ROS_INFO("finish cal_J");

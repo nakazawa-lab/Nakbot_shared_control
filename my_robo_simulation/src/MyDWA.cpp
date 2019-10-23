@@ -3,6 +3,7 @@
 #include "my_robo_simulation/kdtree.h"
 #include <limits>
 #include <chrono>
+#include <cassert>
 
 using namespace std;
 
@@ -71,8 +72,8 @@ void MyDWA::cal_opt_0930(){
         //head_h_cost_tmp = cal_head_cost_pro(i);
         vel_h_cost_tmp = cal_vel_cost(i);
 
-        double linsafe = dist_lin_ang[i][0]*dist_lin_ang[i][0];
-        double angsafe = dist_lin_ang[i][1]*dist_lin_ang[i][1];
+        double linsafe = dist_lin_ang[i][0]*dist_lin_ang[i][0]*dist_lin_ang[i][0];
+        double angsafe = dist_lin_ang[i][1]*dist_lin_ang[i][1]*dist_lin_ang[i][1];
         //double linsafe = dist_lin_ang[i][0];
         //double angsafe = dist_lin_ang[i][1];
 
@@ -83,17 +84,17 @@ void MyDWA::cal_opt_0930(){
         
         temp_cost = linadm + angadm + (k_velocity * linsafe * vel_h_cost_tmp + k_heading * angsafe * head_h_cost_tmp);
 
-            cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
-            cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
-            // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
-            // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
-            cout << "angsafe: " << angsafe << " head_h_cost: " << head_h_cost_tmp << endl;
-            cout << "linsafe: " << linsafe << " vel_h_cost: " << vel_h_cost_tmp << endl;
-            cout << "k_vel*angsafe*vel_h_cost: " << k_velocity * angsafe * vel_h_cost_tmp << endl;
-            cout << "k_ang*linsafe*ang_h_cost: " << k_heading * linsafe * head_h_cost_tmp<< endl;
-            //cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
-            cout << "cost: " << temp_cost << endl;
-            cout << endl;
+            // cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
+            // cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
+            // // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
+            // // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
+            // cout << "angsafe: " << angsafe << " head_h_cost: " << head_h_cost_tmp << endl;
+            // cout << "linsafe: " << linsafe << " vel_h_cost: " << vel_h_cost_tmp << endl;
+            // cout << "k_vel*angsafe*vel_h_cost: " << k_velocity * angsafe * vel_h_cost_tmp << endl;
+            // cout << "k_ang*linsafe*ang_h_cost: " << k_heading * linsafe * head_h_cost_tmp<< endl;
+            // //cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
+            // cout << "cost: " << temp_cost << endl;
+            // cout << endl;
 
         //make_mylog(linadm,linsafe,angadm,angsafe,vel_h_cost_tmp,head_h_cost_tmp,temp_cost,i);
 
@@ -187,52 +188,56 @@ void MyDWA::kd_tree_0930(){
             tmp_scan_id = LRFkdtree.nnSearch(query);
 
             tmp_dist = sqrt((sensor.index_to_rad(tmp_scan_id) * point_scale_th - query[0]) * (sensor.index_to_rad(tmp_scan_id) * point_scale_th - query[0]) + (sensor.latest_scan.ranges[tmp_scan_id]*point_scale_d- query[1]) * (sensor.latest_scan.ranges[tmp_scan_id]*point_scale_d - query[1])  );
-            
-            if(tmp_dist < dist){
-                dist = tmp_dist;
-                traj_id_nearest = traj_id;
-                scan_id_nearest = tmp_scan_id;
-            }
+
+            // if (tmp_dist < dist)
+            // {
+            //     dist = tmp_dist;
+            //     traj_id_nearest = traj_id;
+            //     scan_id_nearest = tmp_scan_id;
+            // }
             // tmp_dist = cal_lincost_sep_(candId, traj_id);
             // nearest_points.push_back(tmp_dist);
-        }
-
-        
-        if(cal_coll_thres(sensor.latest_scan.ranges[scan_id_nearest],sensor.index_to_rad(scan_id_nearest),PredictTraj_r[candId][traj_id_nearest][1],PredictTraj_r[candId][traj_id_nearest][2]) < spec.robot_rad) {
-            isCollision.push_back(true);
-            lin = abs(PredictTraj_r[candId][traj_id_nearest][1] / (CandVel[candId][0] * thres_vel_time));
-            ang = abs(PredictTraj_r[candId][traj_id_nearest][2] / (CandVel[candId][1] * thres_ang_time));
-            // cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
-            // cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id_nearest][1] << " " << PredictTraj_r[candId][traj_id_nearest][2] <<endl;
-            // cout << "sensor: " << sensor.latest_scan.ranges[scan_id_nearest] << endl;
-            // cout << "lin:" <<lin << " ang:" <<ang <<endl;
-            // cout << "traj_id:" <<traj_id_nearest << " scan_id:" <<scan_id_nearest <<endl;
-            // cout <<endl;
-           dist_lin_ang[candId].push_back(lin);
-           dist_lin_ang[candId].push_back(ang);
-           dist_lin_ang[candId].push_back(scan_id_nearest);
-        }
-        else{
-            isCollision.push_back(false);
-            dist_lin_ang[candId].push_back(1);
-            dist_lin_ang[candId].push_back(1);
-            dist_lin_ang[candId].push_back(scan_id_nearest);
+            if (cal_coll_thres(sensor.latest_scan.ranges[tmp_scan_id], sensor.index_to_rad(tmp_scan_id), PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]) < spec.robot_rad)
+            {
+                isCollision.push_back(true);
+                lin = abs(PredictTraj_r[candId][traj_id][1] / (CandVel[candId][0] * thres_vel_time));
+                ang = abs(PredictTraj_r[candId][traj_id][2] / (CandVel[candId][1] * thres_ang_time));
+                cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
+                cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id][1] << " " << PredictTraj_r[candId][traj_id][2] <<endl;
+                cout << "sensor: " << sensor.latest_scan.ranges[tmp_scan_id] << endl;
+                cout << "lin:" <<lin << " ang:" <<ang <<endl;
+                cout << "traj_id:" <<traj_id << " scan_id:" <<tmp_scan_id <<endl;
+                cout <<endl;
+                dist_lin_ang[candId].push_back(lin);
+                dist_lin_ang[candId].push_back(ang);
+                dist_lin_ang[candId].push_back(tmp_scan_id);
+                break;
+            }
+            else if (traj_id == traj_size - 1)
+            {
+                isCollision.push_back(false);
+                dist_lin_ang[candId].push_back(1);
+                dist_lin_ang[candId].push_back(1);
+                dist_lin_ang[candId].push_back(tmp_scan_id);
+            }
         }
     }
+    assert(isCollision.size() == CandVel.size());
+    assert(dist_lin_ang.size() == CandVel.size());
     //cout << "finish cal dist" <<endl;
 }
 
-void MyDWA::proposed_0930(std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds> now){
+void MyDWA::proposed_0930(){
     kd_tree_0930();
-    say_time("after kd_tree",now);
+    say_time("after kd_tree",loop_start_time);
     cal_opt_0930();
 }
 
-void MyDWA::Proposed(std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds> now){
+void MyDWA::Proposed(){
     // cal_dist_sep();
     // cal_cost_sep();
     // search_LRF_Traj();
-    proposed_0930(now);
+    proposed_0930();
 }
 
 

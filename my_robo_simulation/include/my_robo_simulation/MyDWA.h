@@ -27,7 +27,7 @@ private:
     // 小さいと、その次元の距離を実際の距離より小さくみつもることになり、その次元は危険とみなされる
     // 小さいとその次元の距離が短くなる
     const double point_scale_d = 1;
-    const double point_scale_th = 0.85;        // maxang/maxvel * 2 = 3.75
+    const double point_scale_th = 1;        // maxang/maxvel * 2 = 3.75
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
@@ -64,7 +64,7 @@ private:
 
     double cal_vel_cost_pro(int);
 
-    void proposed_0930(std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds>);
+    void proposed_0930();
 
     void cal_opt_0930();
 
@@ -76,9 +76,11 @@ private:
 
     void make_mylog_perloop(double);
 
-    visualization_msgs::MarkerArray make_traj_marker_array(int index);
+    visualization_msgs::MarkerArray make_traj_marker_array(int, bool);
 
     void plot_gnuplot(FILE *gp);
+
+    std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds> loop_start_time;
 
 public:
     MyDWA(){
@@ -90,7 +92,7 @@ public:
 
     std::ofstream mylogfile;
 
-    void Proposed(std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds>);
+    void Proposed();
 
     visualization_msgs::Marker make_nearest_LRF_marker(int optId);
 };
