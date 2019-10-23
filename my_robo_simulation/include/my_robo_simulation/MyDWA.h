@@ -27,11 +27,7 @@ private:
     // 小さいと、その次元の距離を実際の距離より小さくみつもることになり、その次元は危険とみなされる
     // 小さいとその次元の距離が短くなる
     const double point_scale_d = 1;
-<<<<<<< HEAD
-    const double point_scale_th = 1;        // max_vel/max_angvel
-=======
     const double point_scale_th = 1;        // maxang/maxvel * 2 = 3.75
->>>>>>> 0930
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
@@ -78,17 +74,7 @@ private:
 
     void make_mylog(double,double,double,double,double,double,double,int);
 
-<<<<<<< HEAD
-    visualization_msgs::MarkerArray make_traj_marker_array(int index);
-
-    visualization_msgs::Marker make_nearest_LRF_marker(int);
-
-public:
-    MyDWA(){
-    };
-=======
     void make_mylog_perloop(double);
->>>>>>> 0930
 
     visualization_msgs::MarkerArray make_traj_marker_array(int, bool);
 
