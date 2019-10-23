@@ -339,17 +339,9 @@ void MyDWA::DWAloop()
 
                     // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
 
-<<<<<<< HEAD
-                // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
-                visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
-                pub_marker_array(markers);
-                // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
-                // pub_marker(marker);
-=======
                      visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index,IsProposed);
                      pub_marker_array(markers);
                     // std::cout << "finish make traj marker" << std::endl;
->>>>>>> 0930
 
 #ifdef MYDWA
                     // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
@@ -359,15 +351,7 @@ void MyDWA::DWAloop()
 
 #ifdef ISSHARED
 
-<<<<<<< HEAD
-                #ifdef MYDWA
-                if (sensor.joy_cmd_vel[0] >= -0)
-                {
-                    std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" <<std::endl;
-                    std::cout << "opt scan id:" << dist_lin_ang[opt_index][2] <<std::endl; 
-=======
 #ifdef PABLODWA
->>>>>>> 0930
                     vel.linear.x = CandVel[opt_index][0];
                     vel.angular.z = CandVel[opt_index][1];
 

@@ -157,20 +157,10 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool Is
       }
       else
       {
-<<<<<<< HEAD
-        // marker_array.markers[k].color.r = 1.0f;
-        // marker_array.markers[k].color.g = CandVel[i][2];
-        // marker_array.markers[k].color.b = CandVel[i][2];
-        // marker_array.markers[k].color.a = 1.0f;
-        double x=1;
-        if(isCollision[i]){
-          x=0;
-=======
         double x = 1;
         if (isCollision[i])
         {
           x = 0;
->>>>>>> 0930
         }
 
         marker_array.markers[k].scale.x = 0.05;
@@ -180,14 +170,6 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool Is
         {
           //double dist = sqrt(dist_lin_ang[i][0] * dist_lin_ang[i][0] + dist_lin_ang[i][1] * dist_lin_ang[i][1]);
 
-<<<<<<< HEAD
-        double dist = sqrt(dist_lin_ang[i][0] * dist_lin_ang[i][0] + dist_lin_ang[i][1] * dist_lin_ang[i][1]);
-
-        marker_array.markers[k].color.r = 1.0f;
-        marker_array.markers[k].color.g = x;
-        marker_array.markers[k].color.b = x;
-        marker_array.markers[k].color.a = 1.0f;
-=======
           marker_array.markers[k].color.r = 1.0f;
           marker_array.markers[k].color.g = dist_lin_ang[i][0];
           marker_array.markers[k].color.b = dist_lin_ang[i][0];
@@ -200,7 +182,6 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool Is
           marker_array.markers[k].color.b = CandVel[i][2];
           marker_array.markers[k].color.a = 1.0f;
         }
->>>>>>> 0930
       }
 
       k++;
