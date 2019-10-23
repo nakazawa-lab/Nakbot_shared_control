@@ -82,19 +82,6 @@ visualization_msgs::Marker my_robo::make_pos_marker(position p)
 }
 
 // k番目の速度候補
-<<<<<<< HEAD
-visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
-{
-  visualization_msgs::MarkerArray marker_array;
-  marker_array.markers.resize((PredictTraj[0].size()+1) * PredictTraj.size());
-
-  int k=0;
-  float green=0;
-  float red=0;
-  bool Blueflag = false;  // 採用軌道を示すもの  
-// 候補の数ループ
-  for (int i=0; i<PredictTraj.size();i+=1){
-=======
 visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool IsProposed)
 {
   visualization_msgs::MarkerArray marker_array;
@@ -107,7 +94,6 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool Is
                          // 候補の数ループ
   for (int i = 0; i < PredictTraj.size(); i += 2)
   {
->>>>>>> 0930
     //ROS_INFO("start put marker.");
 
     // float GREEN= (double)rand()/RAND_MAX;
@@ -117,11 +103,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool Is
       Blueflag = false;
 
     //予測時刻の数だけループ
-<<<<<<< HEAD
-    for (int j = 0; j < PredictTraj[i].size(); j += 4)
-=======
     for (int j = 0; j < PredictTraj[i].size(); j += 5)
->>>>>>> 0930
     {
 
       //ROS_INFO("start loop.");
