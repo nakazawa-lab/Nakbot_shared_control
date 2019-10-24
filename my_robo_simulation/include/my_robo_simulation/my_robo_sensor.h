@@ -77,7 +77,7 @@ public:
     std::vector<line> lines;
 
     // 正面からth度ずつwth度まで、障害物の位置を計算する
-    visualization_msgs::MarkerArray cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose);
+    void cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose);
 
     void cb_odom(const nav_msgs::Odometry::ConstPtr &msg);
 
@@ -85,7 +85,7 @@ public:
 
     void cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg);
 
-    visualization_msgs::MarkerArray make_obs_markers(std::vector<std::vector<double>> obs);
+    visualization_msgs::MarkerArray make_obs_markers();
 
     void detect_line(const sensor_msgs::LaserScan &scan);
     

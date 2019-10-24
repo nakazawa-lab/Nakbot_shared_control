@@ -82,7 +82,7 @@ visualization_msgs::Marker my_robo::make_pos_marker(position p)
 }
 
 // k番目の速度候補
-visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool IsProposed)
+visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
 {
   visualization_msgs::MarkerArray marker_array;
   marker_array.markers.resize((PredictTraj[0].size() + 1) * PredictTraj.size());
@@ -90,17 +90,15 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool Is
   int k = 0;
   float green = 0;
   float red = 0;
-  bool Blueflag = false; // 採用軌道を示すもの
+  bool adopt_flag = false; // 採用軌道を示すもの
                          // 候補の数ループ
-  for (int i = 0; i < PredictTraj.size(); i += 2)
+  for (int i = 0; i < PredictTraj.size(); i += 1)
   {
     //ROS_INFO("start put marker.");
-
-    // float GREEN= (double)rand()/RAND_MAX;
     if (i == index)
-      Blueflag = true;
+      adopt_flag = true;
     else
-      Blueflag = false;
+      adopt_flag = false;
 
     //予測時刻の数だけループ
     for (int j = 0; j < PredictTraj[i].size(); j += 5)
@@ -126,7 +124,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool Is
       marker_array.markers[k].pose.orientation.z = 0;
       marker_array.markers[k].pose.orientation.w = 1;
 
-      if (Blueflag)
+      if (adopt_flag)
       {
         marker_array.markers[k].scale.x = 0.1;
         marker_array.markers[k].scale.y = 0.1;
@@ -139,33 +137,21 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index, bool Is
       }
       else
       {
-        double x = 1;
-        if (isCollision[i])
-        {
-          x = 0;
-        }
+        // double x = 1;
+        // if (isCollision[i])
+        // {
+        //   x = 0;
+        // }
 
         marker_array.markers[k].scale.x = 0.05;
         marker_array.markers[k].scale.y = 0.05;
         marker_array.markers[k].scale.z = 0.05;
-        if (IsProposed)
-        {
-          //double dist = sqrt(dist_lin_ang[i][0] * dist_lin_ang[i][0] + dist_lin_ang[i][1] * dist_lin_ang[i][1]);
 
-          marker_array.markers[k].color.r = 1.0f;
-          marker_array.markers[k].color.g = dist_lin_ang[i][0];
-          marker_array.markers[k].color.b = dist_lin_ang[i][0];
-          marker_array.markers[k].color.a = 1.0f;
-        }
-        else
-        {
-          marker_array.markers[k].color.r = 1.0f;
-          marker_array.markers[k].color.g = CandVel[i][2];
-          marker_array.markers[k].color.b = CandVel[i][2];
-          marker_array.markers[k].color.a = 1.0f;
-        }
+        marker_array.markers[k].color.r = 1.0f;
+        marker_array.markers[k].color.g = CandVel[i][2];
+        marker_array.markers[k].color.b = CandVel[i][2];
+        marker_array.markers[k].color.a = 1.0f;
       }
-
       k++;
     }
   }
