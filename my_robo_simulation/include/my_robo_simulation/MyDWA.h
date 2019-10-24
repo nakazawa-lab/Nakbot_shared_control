@@ -76,7 +76,7 @@ private:
 
     void make_mylog_perloop(double);
 
-    visualization_msgs::MarkerArray make_traj_marker_array(int, bool);
+    visualization_msgs::MarkerArray make_traj_marker_array(int);
 
     void plot_gnuplot(FILE *gp);
 
