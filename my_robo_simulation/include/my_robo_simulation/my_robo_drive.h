@@ -91,16 +91,10 @@ public:
 
     position cal_nowp(nav_msgs::Odometry &odom);
 
-    void say_log();
-
     // gnuplotで表示
-    void plot_d_deg_gnuplot(FILE *gp);
+    //void plot_d_deg_gnuplot(FILE *gp);
 
-    void plot_d_deg_scan_gnuplot(FILE *gp);
-
-    void proposed_dist();
-
-    std::vector<double> test;
+    //void plot_d_deg_scan_gnuplot(FILE *gp);
 
     std::vector<double> LOG;
     std::ofstream logfile;
