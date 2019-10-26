@@ -43,7 +43,7 @@ double MyDWA::cal_vel_cost_pro(int candIdx){
     return cost;
 }
 
-void MyDWA::cal_opt_0930(){
+void MyDWA::cal_opt(){
     double temp_cost, cost = 10000000;
     double head_h_cost_tmp, vel_h_cost_tmp;
     double idx_temp;
@@ -95,8 +95,6 @@ void MyDWA::cal_opt_0930(){
             // //cout << "linnormDist  + angnormDist: " << dist_lin_ang[i][0] + dist_lin_ang[i][1] << endl;
             // cout << "cost: " << temp_cost << endl;
             // cout << endl;
-
-        //make_mylog(linadm,linsafe,angadm,angsafe,vel_h_cost_tmp,head_h_cost_tmp,temp_cost,i);
 
         if (temp_cost < cost)
         {
@@ -154,7 +152,7 @@ void MyDWA::cal_opt_0930(){
     << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1]<< endl;
 }
 
-void MyDWA::kd_tree_0930(){
+void MyDWA::kd_tree(){
     for (int i = 0; i < sensor.point_num; i++)
     {
         LRFpoints.push_back(MyPoint(sensor.index_to_rad(i) * point_scale_th, sensor.latest_scan.ranges[i] * point_scale_d));
@@ -227,19 +225,11 @@ void MyDWA::kd_tree_0930(){
     //cout << "finish cal dist" <<endl;
 }
 
-void MyDWA::proposed_0930(){
-    kd_tree_0930();
-    say_time("after kd_tree",loop_start_time);
-    cal_opt_0930();
-}
-
 void MyDWA::Proposed(){
-    // cal_dist_sep();
-    // cal_cost_sep();
-    // search_LRF_Traj();
-    proposed_0930();
+    kd_tree();
+    say_time("after kd_tree",loop_start_time);
+    cal_opt();
 }
-
 
 visualization_msgs::Marker MyDWA::make_nearest_LRF_marker(int optId){
     cout << "make nearest LRF marker optId "  << optId  <<endl;
@@ -334,16 +324,16 @@ void MyDWA::record_param(){
     mylogfile << mylogRowName << std::endl;
 }
 
-void MyDWA::make_mylog(double linadm, double linsafe, double angadm, double angsafe, double vel_h_cost_tmp, double head_h_cost_tmp, double temp_cost, int i)
-{
-    mylogfile << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << CandVel[i][0] << "," << CandVel[i][1] << "," << linadm << "," << linsafe
-              << "," << angadm << "," << angsafe << "," << vel_h_cost_tmp << "," << head_h_cost_tmp << "," << temp_cost << endl;
-}
+// void MyDWA::make_mylog(double linadm, double linsafe, double angadm, double angsafe, double vel_h_cost_tmp, double head_h_cost_tmp, double temp_cost, int i)
+// {
+//     mylogfile << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << CandVel[i][0] << "," << CandVel[i][1] << "," << linadm << "," << linsafe
+//               << "," << angadm << "," << angsafe << "," << vel_h_cost_tmp << "," << head_h_cost_tmp << "," << temp_cost << endl;
+// }
 
-void MyDWA::make_mylog_perloop(double time)
-{
-    cout << selected.angadm << " " << selected.head_h_cost << endl;
-    mylogfile << time << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm << "," << selected.linsafe
-              << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << "," << selected.head_h_cost << "," << selected.cost << ","
-               << selected.vel << "," << selected.ang << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1]<< endl;
-}
+// void MyDWA::make_mylog_perloop(double time)
+// {
+//     cout << selected.angadm << " " << selected.head_h_cost << endl;
+//     mylogfile << time << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm << "," << selected.linsafe
+//               << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << "," << selected.head_h_cost << "," << selected.cost << ","
+//                << selected.vel << "," << selected.ang << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1]<< endl;
+// }
