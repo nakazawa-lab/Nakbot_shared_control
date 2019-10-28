@@ -26,8 +26,8 @@ private:
 
     // 小さいと、その次元の距離を実際の距離より小さくみつもることになり、その次元は危険とみなされる
     // 小さいとその次元の距離が短くなる
-    const double point_scale_d = 1;
-    const double point_scale_th = 1;        // maxang/maxvel * 2 = 3.75
+    //const double point_scale_d = 1;
+    //const double point_scale_th = 1;        // maxang/maxvel * 2 = 3.75
 
     // 最終的に採用する軌道のインデックス
     int opt_index;
@@ -43,6 +43,8 @@ private:
         double vel_h_cost;
         double head_h_cost;
         double cost;
+
+        double lindist,angdist;
     };
     selected_vel_info selected;
  

@@ -443,7 +443,7 @@ void MyDWA::plot_gnuplot(FILE *gp)
     // 軌道内の各時刻に対する繰り返し
     for (int j = 0; j < PredictTraj_r[i].size(); j+=2)
     {
-      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * point_scale_th , PredictTraj_r[i][j][1] *point_scale_d);
+      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] , PredictTraj_r[i][j][1]);
     }
   }
   fprintf(gp, "e\n");
@@ -454,7 +454,7 @@ void MyDWA::plot_gnuplot(FILE *gp)
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
   for (int i = 0; i < sensor.latest_scan.ranges.size(); i+=3)
   {
-    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) *point_scale_th  , sensor.latest_scan.ranges[i] * point_scale_d);
+    fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i), sensor.latest_scan.ranges[i] );
   }
   fprintf(gp, "e\n");
   fflush(gp);

@@ -18,7 +18,7 @@ FILE *gp;       // gnuplotに指令を与えるためのテキストファイル
 
 //#define PABLODWA
 #define MYDWA
-#define ISSHARED
+//#define ISSHARED
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -321,16 +321,17 @@ void MyDWA::DWAloop()
             say_time("cal J", now);
 
 #endif
-            if (sensor.joy_cmd_vel[0] > -0)
-            {
+
 #ifdef MYDWA
-                Proposed();
-                say_time("proposed", now);
+            Proposed();
+            say_time("proposed", now);
 #endif
 
-                // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
+            // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
 
-                visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
+            visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
+            if (sensor.joy_cmd_vel[0] > -0)
+            {
                 pub_marker_array(markers);
                 // std::cout << "finish make traj marker" << std::endl;
 
