@@ -405,46 +405,57 @@ int my_robo::cal_J_sharedDWA(double D)
     return index;
 }
 
-double my_robo::cal_head_cost(int trajidx){
-    // 角度コストの計算
-    double arctan2,head;
-    if (CandVel[trajidx][0] == 0 && CandVel[trajidx][1] == 0)
+double my_robo::cal_head_cost(int candId){
+    double arctan2_cand, arctan2_h,head;
+
+    // 候補速度のatan2の計算
+    if (CandVel[candId][0] == 0 && CandVel[candId][1] == 0)
     {
-        arctan2 = 0;
+        arctan2_cand = 0;
     }
     else
     {
-        arctan2 = atan2(CandVel[trajidx][0], CandVel[trajidx][1]);
+        arctan2_cand = atan2(CandVel[candId][0], CandVel[candId][1]);
     }
 
-    // 2 速度指令が共に０のとき
-    if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
-    {
-        //ROS_INFO("both 0");
-        head = abs(CandVel[trajidx][1]) / M_PI;
+    if(sensor.joy_cmd_vel[1]==0 && sensor.joy_cmd_vel[0]==0){
+        arctan2_h = 0;
     }
-    // 1 角速度指令が0、速度指令値が0ではないとき
-    else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
-    {
-        //          ROS_INFO("only w 0");
-        if(CandVel[trajidx][0]==0 && CandVel[trajidx][1]==0) head = M_PI;
-        else head = abs(M_PI/2 - arctan2) / M_PI;
+    else{
+        arctan2_h = atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
     }
-    // 3 角速度指令が0ではなく、速度指令が0のとき
-    else if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0)
-    {
-        head = abs((CandVel[trajidx][1] - sensor.joy_cmd_vel[1])) / M_PI;
-    }
-    else
-    {
-        head = abs(arctan2 - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
-    }
+
+    head = abs(arctan2_cand - arctan2_h) / M_PI;
+
+    // //　joyの速度指令に応じて, コストを求める
+    // // 2 速度指令が共に０のとき
+    // if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
+    // {
+    //     //ROS_INFO("both 0");
+    //     head = abs(CandVel[candId][1]) / M_PI;
+    // }
+    // // 1 角速度指令が0、速度指令値が0ではないとき
+    // else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
+    // {
+    //     //          ROS_INFO("only w 0");
+    //     if(CandVel[candId][0]==0 && CandVel[candId][1]==0) head = M_PI;
+    //     else head = abs(M_PI/2 - arctan2) / M_PI;
+    // }
+    // // 3 角速度指令が0ではなく、速度指令が0のとき
+    // else if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0)
+    // {
+    //     head = abs((CandVel[candId][1] - sensor.joy_cmd_vel[1])) / M_PI;
+    // }
+    // else
+    // {
+    //     head = abs(arctan2 - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
+    // }
 
     return head;
 }
 
-double my_robo::cal_vel_cost(int trajidx){
-    double cost = abs(CandVel[trajidx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel; 
+double my_robo::cal_vel_cost(int candId){
+    double cost = abs(CandVel[candId][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel; 
     if(isnan(cost)) {
         std::cout << "isnan vel h cost" << std::endl;
         cost =0;
