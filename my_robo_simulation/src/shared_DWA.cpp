@@ -405,6 +405,8 @@ int my_robo::cal_J_sharedDWA(double D)
     LOG.push_back(CandVel[index][1]);
     LOG.push_back(sensor.joy_cmd_vel[0]);
     LOG.push_back(sensor.joy_cmd_vel[1]);
+    LOG.push_back(sensor.odom.twist.twist.linear.x);
+    LOG.push_back(sensor.odom.twist.twist.angular.z);
 
     logfile << LOG[0];
     for (int i = 1; i < LOG.size(); i++)
