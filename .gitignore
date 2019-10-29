@@ -5,3 +5,4 @@
 /my_robo_simulation/log
 /my_robo_description/worlds/sparse_house_model
 /my_robo_description/rviz/urdf.rviz
+/my_robo/simulation/scripts/drive_data

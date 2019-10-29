@@ -5,7 +5,7 @@
 |---                    |---            |---    |
 |DWA計算のステップ時刻  |DWA.dt         |0.15   |
 |軌道計算の刻み         |dt_traj        |0.1    |
-|軌道予測時刻           |DWA.PredictTime|4      |
+|軌道予測時刻           |DWA.PredictTime|3      |
 |計算周期               |looprate       |1/dt      |
 |                       |k_head         |1      |
 |                       |k_vel          |1      |
@@ -17,8 +17,8 @@
 ## my_robo_drive.cpp
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
-|衝突判定の角度         |sensor_cal_obs |4度ずつ80度|
-|DWAの候補速度の刻み    |set_resolutionの引数|acc*dt/4|
+|衝突判定の角度         |sensor::cal_obsの引数 |4度ずつ80度|
+|DWAの候補速度の刻み    |set_resolutionの引数|acc*dt/5|
 
 ## controller.yaml
 ```
