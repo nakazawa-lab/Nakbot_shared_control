@@ -102,7 +102,7 @@ my_robo::my_robo()
     sensor.joy_cmd_vel[0] = 0;
     sensor.joy_cmd_vel[1] = 0;
 
-    spec.set_resolution(spec.x_max_acc * dt / 4, spec.z_max_acc * dt / 4);
+    spec.set_resolution(spec.x_max_acc * dt / 5, spec.z_max_acc * dt / 5);
 }
 
 // スペック上の最大加速度と今の速度からDynamicWindowを求める vector<vector<float>>型のCanVelに格納される

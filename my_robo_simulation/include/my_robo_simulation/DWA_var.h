@@ -24,7 +24,7 @@ public:
     // 軌道計算の刻み
     const double dt_traj = 0.1;
     // 軌道予測時刻
-    const double PredictTime = 4;
+    const double PredictTime = 3;
     //const double looprate = 2;          // Hz
     const double looprate = 1 / dt;
 
