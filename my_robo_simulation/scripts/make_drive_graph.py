@@ -149,7 +149,7 @@ def main():
     pro_filename = "mylog_10291929_take3.csv"
     pro_filename_noext = (pro_filename.split("."))[0]
     pro_csv_path = os.path.join(log_path, pro_filename)
-    mylog = read_mylog(pro_csv_path)
+    #mylog = read_mylog(pro_csv_path)
 
     pablo_filename = "log_10291913_take2.csv"
     pablo_filename_noext = (pablo_filename.split("."))[0]

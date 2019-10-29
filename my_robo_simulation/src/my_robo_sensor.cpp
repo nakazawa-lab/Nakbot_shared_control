@@ -44,7 +44,7 @@ void my_robo_sensor::cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg)
     //ROS_INFO("count j:%d",countj);
 }
 
-visualization_msgs::MarkerArray my_robo_sensor::make_obs_markers(std::vector<std::vector<double>> obs)
+visualization_msgs::MarkerArray my_robo_sensor::make_obs_markers()
 {
     visualization_msgs::MarkerArray marker_array;
     marker_array.markers.resize(obs.size());
@@ -271,7 +271,7 @@ visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &
             // ROS_INFO("obs x:%f, y:%f",xo,yo);
         }
     }
-    return make_obs_markers(obs);
+    return make_obs_markers();
 }
 
 double my_robo_sensor::index_to_rad(int index){

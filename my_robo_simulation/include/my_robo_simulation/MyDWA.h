@@ -5,19 +5,20 @@
 #define MY_DWA
 
 // kdtree.hの利用のための、点を表すクラス
-class MyPoint: public std::array<double,2>
+class MyPoint : public std::array<double, 2>
 {
 public:
-    static const int DIM =2;
+    static const int DIM = 2;
 
-    MyPoint(){}
-    MyPoint(double x, double y){
+    MyPoint() {}
+    MyPoint(double x, double y)
+    {
         (*this)[0] = x;
         (*this)[1] = y;
     }
 };
 
-class MyDWA: public my_robo
+class MyDWA : public my_robo
 {
 private:
     std::vector<int> scan_indices, traj_indices;
@@ -32,14 +33,17 @@ private:
     // 最終的に採用する軌道のインデックス
     int opt_index;
 
-    struct selected_vel_info{
-        public:
+    bool IsProposed;
+
+    struct selected_vel_info
+    {
+    public:
         double linadm;
         double linsafe;
         double angadm;
         double angsafe;
 
-        double vel,ang;
+        double vel, ang;
         double vel_h_cost;
         double head_h_cost;
         double cost;
@@ -47,7 +51,7 @@ private:
         double lindist,angdist;
     };
     selected_vel_info selected;
- 
+
     // LRFのkd木
     kdt::KDTree<MyPoint> LRFkdtree;
 
@@ -57,7 +61,7 @@ private:
     // distを計算せず、直接d thのcostを計算していくときに保持するコスト
     std::vector<std::vector<double>> dist_lin_ang;
 
-    std::chrono::time_point<std::chrono::_V2::system_clock,std::chrono::nanoseconds> loop_start_time;
+    std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> loop_start_time;
 
     // DWA_var DWA;
 
@@ -86,14 +90,16 @@ private:
 
     visualization_msgs::Marker make_nearest_LRF_marker(int optId);
 
-    void clear_vector();
-
 public:
     MyDWA(){};
 
     void DWAloop();
+
+    void clear_vector();
     
     std::ofstream mylogfile;
+
+
 };
 
 #endif
