@@ -20,6 +20,12 @@
 |衝突判定の角度         |sensor::cal_obsの引数 |4度ずつ80度|
 |DWAの候補速度の刻み    |set_resolutionの引数|acc*dt/5|
 
+## Shared_DWA.cpp
+|項目                   |変数名         |値     |
+|---                    |---            |---    |
+|衝突判定のしきい値     |cal_Dist2()中の変数threshold |0.3|
+|    |set_resolutionの引数|acc*dt/4|
+
 ## controller.yaml
 ```
 my_robo:

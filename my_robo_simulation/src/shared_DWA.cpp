@@ -270,7 +270,7 @@ void my_robo::cal_Dist2()
     double d_lin, d_ang; // sharedDWAの論文における定義
     double d, th;        // レーザセンサに対応した距離と角度
     double d_U;
-    double threshold = 0.2;
+    double threshold = 0.3;
 
     // 軌道に対する繰り返し
     for (int i = 0; i < CandVel.size(); i++)
@@ -305,13 +305,18 @@ void my_robo::cal_Dist2()
             d_U = 1.0;
             CandVel[i].push_back(d_U);
             isCollision.push_back(false);
+
+            std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
+            std::cout << "coltime: nan" << std::endl;
+            std::cout << "d_U:" << d_U << std::endl
+                      << std::endl;
         }
         //　衝突あり 複数ある場合は最大となるときのｄ＿U を求める
         else
         {
-            int maxdistIndex = std::min_element(dist.begin(), dist.end()) - dist.begin();
-            d_lin = CandVel[i][0] * coltime[maxdistIndex];
-            d_ang = CandVel[i][1] * coltime[maxdistIndex];
+            int mindistIndex = std::min_element(dist.begin(), dist.end()) - dist.begin();
+            d_lin = CandVel[i][0] * coltime[mindistIndex];
+            d_ang = CandVel[i][1] * coltime[mindistIndex];
 
             double v_inev = sqrt(abs(2 * spec.x_min_acc * d_lin));
             double w_inev = sqrt(abs(2 * spec.z_min_acc * d_ang));
@@ -327,6 +332,11 @@ void my_robo::cal_Dist2()
 
             isCollision.push_back(true);
             CandVel[i].push_back(d_U);
+
+            std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
+            std::cout << "coltime:" << coltime[mindistIndex] << std::endl;
+            std::cout << "d_U:" << d_U << std::endl
+                      << std::endl;
         }
     }
 }
@@ -365,17 +375,17 @@ int my_robo::cal_J_sharedDWA(double D)
             vel_min = velocity;
             index = i;
 
-            ROS_INFO("i:%d", i);
-            ROS_INFO("now vel:%f, %f", sensor.odom.twist.twist.linear.x, sensor.odom.twist.twist.angular.z);
-            ROS_INFO("joy vel:%f, %f", sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
-            ROS_INFO("cand vel:%f, %f", CandVel[i][0], CandVel[i][1]);
-            ROS_INFO("joy atan2:%f", atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]));
-            ROS_INFO("cand atan2:%f ", atan2(CandVel[i][0],CandVel[i][1]));
+            // ROS_INFO("i:%d", i);
+            // ROS_INFO("now vel:%f, %f", sensor.odom.twist.twist.linear.x, sensor.odom.twist.twist.angular.z);
+            // ROS_INFO("joy vel:%f, %f", sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
+            // ROS_INFO("cand vel:%f, %f", CandVel[i][0], CandVel[i][1]);
+            // ROS_INFO("joy atan2:%f", atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]));
+            // ROS_INFO("cand atan2:%f ", atan2(CandVel[i][0],CandVel[i][1]));
 
-            ROS_INFO("adm:%lf", adm);
-            ROS_INFO("head:%lf", head);
-            ROS_INFO("velocity:%lf", velocity);
-            ROS_INFO("cost:%lf\n", temp);
+            // ROS_INFO("adm:%lf", adm);
+            // ROS_INFO("head:%lf", head);
+            // ROS_INFO("velocity:%lf", velocity);
+            // ROS_INFO("cost:%lf\n", temp);
         }
     }
     // ROS_INFO("finish cal_J");
@@ -387,7 +397,7 @@ int my_robo::cal_J_sharedDWA(double D)
     // ROS_INFO("velocity:%lf", v);
     // ROS_INFO("cost:%f\n", cost);
     LOG.push_back(adm_min);
-    LOG.push_back(1-adm_min);
+    LOG.push_back(1 - adm_min);
     LOG.push_back(vel_min);
     LOG.push_back(head_min);
     LOG.push_back(cost);
@@ -395,9 +405,12 @@ int my_robo::cal_J_sharedDWA(double D)
     LOG.push_back(CandVel[index][1]);
     LOG.push_back(sensor.joy_cmd_vel[0]);
     LOG.push_back(sensor.joy_cmd_vel[1]);
+    LOG.push_back(sensor.odom.twist.twist.linear.x);
+    LOG.push_back(sensor.odom.twist.twist.angular.z);
 
     logfile << LOG[0];
-    for(int i=1; i < LOG.size();i++){
+    for (int i = 1; i < LOG.size(); i++)
+    {
         logfile << "," << LOG[i];
     }
     logfile << std::endl;
@@ -405,8 +418,9 @@ int my_robo::cal_J_sharedDWA(double D)
     return index;
 }
 
-double my_robo::cal_head_cost(int candId){
-    double arctan2_cand, arctan2_h,head;
+double my_robo::cal_head_cost(int candId)
+{
+    double arctan2_cand, arctan2_h, head;
 
     // 候補速度のatan2の計算
     if (CandVel[candId][0] == 0 && CandVel[candId][1] == 0)
@@ -418,10 +432,12 @@ double my_robo::cal_head_cost(int candId){
         arctan2_cand = atan2(CandVel[candId][0], CandVel[candId][1]);
     }
 
-    if(sensor.joy_cmd_vel[1]==0 && sensor.joy_cmd_vel[0]==0){
+    if (sensor.joy_cmd_vel[1] == 0 && sensor.joy_cmd_vel[0] == 0)
+    {
         arctan2_h = 0;
     }
-    else{
+    else
+    {
         arctan2_h = atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
     }
 
@@ -454,11 +470,13 @@ double my_robo::cal_head_cost(int candId){
     return head;
 }
 
-double my_robo::cal_vel_cost(int candId){
-    double cost = abs(CandVel[candId][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel; 
-    if(isnan(cost)) {
+double my_robo::cal_vel_cost(int trajidx)
+{
+    double cost = abs(CandVel[trajidx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel;
+    if (isnan(cost))
+    {
         std::cout << "isnan vel h cost" << std::endl;
-        cost =0;
+        cost = 0;
     }
     //cout << "vel_h_cost: " << cost <<endl;
     return cost;

@@ -85,7 +85,7 @@ public:
 
     void cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg);
 
-    visualization_msgs::MarkerArray make_obs_markers(std::vector<std::vector<double>> obs);
+    visualization_msgs::MarkerArray make_obs_markers();
 
     void detect_line(const sensor_msgs::LaserScan &scan);
     
