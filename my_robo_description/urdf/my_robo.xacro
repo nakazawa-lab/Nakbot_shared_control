@@ -376,7 +376,7 @@
       <leftJoint>left_wheel_joint</leftJoint>
       <rightJoint>right_wheel_joint</rightJoint>
      <!-- <robotBaseFrame>base_link</robotBaseFrame> -->
-      <wheelSeparation>0.25</wheelSeparation> 
+      <wheelSeparation>0.285</wheelSeparation> 
       <wheelDiameter>0.15</wheelDiameter> 
       <publishWheelJointState>true</publishWheelJointState>
       <legacyMode>false</legacyMode>

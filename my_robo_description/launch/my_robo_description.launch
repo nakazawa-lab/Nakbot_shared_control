@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+<!-- 
+ <arg unless="$(arg house)" name="house" value="false"/>
+  <arg if="$(arg house)" name="house" value="true"/>
+  <arg unless="$(arg sparse_house)" name="sparse_house" value="false"/>
+  <arg if="$(arg sparse_house)" name="sparse_house" value="true"/>
+  <arg unless="$(arg empty)" name="empty" value="false"/>
+  <arg if="$(arg emtpy)" name="empty" value="true"/>
+-->
+  <arg name="house"	default="false"/>
+  <arg name="sparse_house" default="false"/>
+  <arg name="empty" default="false"/>
+
 
 <!-- include gazebo.launch,and launch gazebo,diff_drive_controller-->
- <include file="$(find my_robo_description)/launch/gazebo.launch"/>
+ <include file="$(find my_robo_description)/launch/gazebo.launch">
+  <arg name="house" value="$(arg house)"/>
+  <arg name="sparse_house" value="$(arg sparse_house)"/>
+  <arg name="empty" value="$(arg empty)"/>
+</include>
 
 <!-- set arg for rviz-->
   <arg name="rvizconfig" default="$(find my_robo_description)/rviz/urdf.rviz"/> 
