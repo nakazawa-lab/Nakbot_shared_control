@@ -152,7 +152,8 @@ void MyDWA::cal_opt(){
     mylogfile << (double)(msec/1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm 
     << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << "," 
     << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang 
-    << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1]<< "," << selected.lindist << "," << selected.angdist<< endl;
+    << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1]<< "," << selected.lindist << "," << selected.angdist
+    << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << endl;
 }
 
 void MyDWA::kd_tree(){
@@ -319,7 +320,7 @@ void MyDWA::record_param(){
     // std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost";
     // mylogfile << mylogRowName << std::endl;
 
-    std::string mylogRowName = "timestep,pos.x,pos.y,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,lindist,angdist";
+    std::string mylogRowName = "timestep,pos.x,pos.y,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,lindist,angdist,now_v,now_w";
     mylogfile << mylogRowName << std::endl;
 }
 
