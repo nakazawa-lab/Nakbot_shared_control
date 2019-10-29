@@ -60,6 +60,8 @@ def read_mylog(csv_path):
     cal_vel_w = csv_file["cal_val.w"]
     joy_v = csv_file["joy_v"]
     joy_w =csv_file["joy_w"]
+    lindist = csv_file["lindist"]
+    angdist = csv_file["angdist"]
 
     mylog = { "timestep":timestep, \
               "pos_x":pos_x,\
@@ -74,7 +76,9 @@ def read_mylog(csv_path):
               "cal_vel_v":cal_vel_v, \
               "cal_vel_w":cal_vel_w, \
               "joy_v":joy_v, \
-              "joy_w":joy_w
+              "joy_w":joy_w, \
+              "lindist":lindist, \
+              "angdist":angdist, \
             }
     return mylog
 
@@ -131,7 +135,7 @@ def plot_start_goal():
 def main():
     ############-settings-##############
     log_path = "../log"
-    pro_filename = "mylog_10101950_3_3.csv"
+    pro_filename = "mylog_10281244_take4.csv"
     pro_filename_noext = (pro_filename.split("."))[0]
     pro_csv_path = os.path.join(log_path, pro_filename)
     mylog = read_mylog(pro_csv_path)
@@ -147,7 +151,7 @@ def main():
     parser.add_argument("method",help="pablo or pro")
 
     args = parser.parse_args()
-
+    """
     #########-3D cost graph-###############
     costfig = plt.figure()
     ax = Axes3D(costfig)
@@ -164,7 +168,6 @@ def main():
         plt.savefig('cost_figure_{}.png'.format(pro_filename_noext)) 
     plt.show()
     plt.close()
-
     ######-3D adm graph-############
     admfig=plt.figure()
     ax2=Axes3D(admfig)
@@ -186,8 +189,6 @@ def main():
         plt.savefig('adm_figure_{}.png'.format(pro_filename_noext)) 
     plt.show()
     plt.close()
-
-
     #########-2D path graph-###############
     pathfig = plt.figure()
     plt.xlabel("X[m]")
@@ -203,9 +204,6 @@ def main():
         plt.savefig("path_figure_{}".format(pro_filename_noext))
     plt.show()
     plt.close()
-
-
-
     #########-2D linvel graph-###############
     linvelfig = plt.figure()
     plt.xlabel("Time[s]")
@@ -223,7 +221,6 @@ def main():
     plt.show()
     plt.close()
     
-
     #########-2D angvel graph-###############
     angvelfig = plt.figure()
     plt.xlabel("Time[s]")
@@ -240,7 +237,6 @@ def main():
         plt.savefig("angvel_figure_{}".format(pro_filename_noext))
     plt.show()
     plt.close()
-
     #########-2D cost graph-###############
     costfig = plt.figure()
     plt.xlabel("Time[s]")
@@ -255,7 +251,30 @@ def main():
         plt.savefig("cost2d_figure_{}".format(pro_filename_noext))
     plt.show()
     plt.close()
+    """
+    #########-2D lin graph-###############
+    linfig = plt.figure()
+    plt.xlabel("Time[s]")
+    plt.ylabel("lin")
+    plt.plot(mylog["timestep"], mylog["joy_v"], label="joy vel")
+    plt.plot(mylog["timestep"], mylog["vel_h_cost"], label="vel humen cost")
+    plt.plot(mylog["timestep"], mylog["cal_vel_v"], label="cal lin vel")
+    plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
+    plt.savefig("linfig_figure_{}".format(pro_filename_noext))
+    plt.show()
+    plt.close()
 
+    #########-2D head graph-###############
+    angfig = plt.figure()
+    plt.xlabel("Time[s]")
+    plt.ylabel("ang")
+    plt.plot(mylog["timestep"], mylog["joy_w"], label="joy ang")
+    plt.plot(mylog["timestep"], mylog["ang_h_cost"], label="ang humen cost")
+    plt.plot(mylog["timestep"], mylog["cal_vel_w"], label="cal ang vel")
+    plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=8)
+    plt.savefig("angfig_figure_{}".format(pro_filename_noext))
+    plt.show()
+    plt.close()
 
 if __name__ == '__main__':
     main()

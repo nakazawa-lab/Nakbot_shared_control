@@ -241,7 +241,7 @@ position my_robo_sensor::index_to_pos(int scanId){
 
 // scanを受け取ってthごと、左右wthまでの点の座標を計算し、そのマーカーの位置を計算する関数を呼び出して返す
 // 計算される障害物の座標は絶対座標
-void my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose)
+visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose)
 {
     obs.clear();
     // th 度相当の点の数degpを求める
@@ -271,6 +271,7 @@ void my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, double th, double wth
             // ROS_INFO("obs x:%f, y:%f",xo,yo);
         }
     }
+    return make_obs_markers();
 }
 
 double my_robo_sensor::index_to_rad(int index){
