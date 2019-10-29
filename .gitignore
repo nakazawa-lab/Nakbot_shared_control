@@ -3,3 +3,5 @@
 /index.html
 /.vscode
 /my_robo_simulation/log
+/my_robo_description/worlds/sparse_house_model
+/my_robo_description/rviz/urdf.rviz
