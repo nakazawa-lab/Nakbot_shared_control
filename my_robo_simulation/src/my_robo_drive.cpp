@@ -15,8 +15,8 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-#define PABLODWA
-//#define MYDWA
+//#define PABLODWA
+#define MYDWA
 #define ISSHARED
 
 // 何かキーが押されたときにループを抜けるための関数
@@ -403,11 +403,11 @@ int main(int argc, char **argv)
     std::string date = get_current_time();
 
 #ifdef MYDWA
-    std::string mylogfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/mylog_" + date + ".csv";
+    std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
     robot.mylogfile.open(mylogfilename);
 #endif
 #ifdef PABLODWA
-    std::string logfilename = "/home/kitajima/catkin_ws/src/my_robo/my_robo_simulation/log/log_" + date + ".csv";
+    std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
     robot.logfile.open(logfilename);
 #endif
 
