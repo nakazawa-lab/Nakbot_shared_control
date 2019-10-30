@@ -93,7 +93,21 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
   float green = 0;
   float red = 0;
   bool adopt_flag = false; // 採用軌道を示すもの
-                           // 候補の数ループ
+
+  double max_lin, max_ang, tmp = 0;
+  // dist_lin_ang[i][0]と[i][1]の最大値を取得する
+  for (int i = 0; i < dist_lin_ang.size(); i++)
+  {
+    if (tmp < (dist_lin_ang[i][0] + dist_lin_ang[i][1]))
+    {
+      max_lin = dist_lin_ang[i][0];
+      max_ang = dist_lin_ang[i][1];
+      tmp = dist_lin_ang[i][0] + dist_lin_ang[i][1];
+    }
+  }
+  std::cout << "max dist lin ang:" << max_lin << " " << max_ang << std::endl;
+
+  // 候補の数ループ
   for (int i = 0; i < PredictTraj.size(); i += 1)
   {
     //ROS_INFO("start put marker.");
@@ -139,7 +153,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
       {
         double color;
         if(IsProposed){
-          color = dist_lin_ang[i][0];
+          color = (dist_lin_ang[i][0] + dist_lin_ang[i][1]) / (max_lin + max_ang);
         }
         else{
           color = CandVel[i][2];
