@@ -17,7 +17,7 @@
 ## my_robo_drive.cpp
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
-|衝突判定の角度         |sensor::cal_obsの引数 |4度ずつ80度|
+|衝突判定の角度         |sensor::cal_obsの引数 |4度ずつ100度|
 |DWAの候補速度の刻み    |set_resolutionの引数|acc*dt/5|
 
 ## Shared_DWA.cpp

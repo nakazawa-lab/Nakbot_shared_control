@@ -3,6 +3,9 @@
   <arg name="house"	default="false"/>
   <arg name="sparse_house" default="false"/>
   <arg name="empty" default="false"/>
+  <arg name="X" default="0"/>
+  <arg name="Y" default="0"/>
+  <arg name="yaw" default="0"/>
 
 
   <arg name="model" default="$(find my_robo_description)/urdf/my_robo.xacro"/> 
@@ -37,6 +40,6 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
 
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-    args="-urdf -model my_robo -param robot_description"/>
+    args="-urdf -model my_robo -param robot_description -x $(arg X) -y $(arg Y) -Y $(arg yaw)"/>
 
 </launch>

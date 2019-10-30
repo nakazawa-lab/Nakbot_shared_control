@@ -206,7 +206,7 @@ void MyDWA::kd_tree(){
                 ang = abs(PredictTraj_r[candId][traj_id][2] / (CandVel[candId][1] * thres_ang_time));
                 cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
                 cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id][1] << " " << PredictTraj_r[candId][traj_id][2] <<endl;
-                cout << "sensor: " << sensor.latest_scan.ranges[tmp_scan_id] << endl;
+                //cout << "sensor: " << sensor.latest_scan.ranges[tmp_scan_id] << endl;
                 cout << "lin:" <<lin << " ang:" <<ang <<endl;
                 cout << "traj_id:" <<traj_id << " scan_id:" <<tmp_scan_id <<endl;
                 cout <<endl;

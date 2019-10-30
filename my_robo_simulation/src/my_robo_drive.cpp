@@ -298,7 +298,7 @@ void MyDWA::DWAloop()
 
             say_time("check joy", loop_start_time);
 
-            sensor.cal_obs(sensor.latest_scan, 4, 80, sensor.odom.pose);
+            sensor.cal_obs(sensor.latest_scan, 4, 100, sensor.odom.pose);
 
             visualization_msgs::MarkerArray obsmarkers = sensor.make_obs_markers();
             pub_marker_array(obsmarkers);
