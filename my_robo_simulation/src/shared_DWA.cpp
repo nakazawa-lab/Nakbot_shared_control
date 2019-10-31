@@ -270,7 +270,6 @@ void my_robo::cal_Dist2()
     double d_lin, d_ang; // sharedDWAの論文における定義
     double d, th;        // レーザセンサに対応した距離と角度
     double d_U;
-    double threshold = 0.3;
 
     // 軌道に対する繰り返し
     for (int i = 0; i < CandVel.size(); i++)
@@ -289,7 +288,7 @@ void my_robo::cal_Dist2()
                 double dist_temp = cal_euclid(PredictTraj[i][j][1], PredictTraj[i][j][2], sensor.obs[k][0], sensor.obs[k][1]);
 
                 // 衝突したら、そのときの距離と時刻を保存しておく
-                if (dist_temp < threshold)
+                if (dist_temp < spec.ROBOT_RAD)
                 {
                     dist.push_back(dist_temp);
                     coltime.push_back(PredictTraj[i][j][0]);

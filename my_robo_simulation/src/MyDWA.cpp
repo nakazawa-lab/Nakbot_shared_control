@@ -72,11 +72,8 @@ void MyDWA::cal_opt(){
         //head_h_cost_tmp = cal_head_cost_pro(i);
         vel_h_cost_tmp = cal_vel_cost(i);
 
-        double linsafe = dist_lin_ang[i][0]*dist_lin_ang[i][0]*dist_lin_ang[i][0];
-        double angsafe = dist_lin_ang[i][1]*dist_lin_ang[i][1]*dist_lin_ang[i][1];
-        //double linsafe = dist_lin_ang[i][0];
-        //double angsafe = dist_lin_ang[i][1];
-
+        double linsafe = pow(dist_lin_ang[i][0], LINSAFE_MULTIPLIER);
+        double angsafe = pow(dist_lin_ang[i][1], ANGSAFE_MULTIPLIER);
         double linadm = 1 - linsafe;
         double angadm = 1 - angsafe;
 
@@ -199,7 +196,7 @@ void MyDWA::kd_tree(){
             // }
             // tmp_dist = cal_lincost_sep_(candId, traj_id);
             // nearest_points.push_back(tmp_dist);
-            if (cal_coll_thres(sensor.latest_scan.ranges[tmp_scan_id], sensor.index_to_rad(tmp_scan_id), PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]) < spec.robot_rad)
+            if (cal_coll_thres(sensor.latest_scan.ranges[tmp_scan_id], sensor.index_to_rad(tmp_scan_id), PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]) < spec.ROBOT_RAD)
             {
                 isCollision.push_back(true);
                 lin = abs(PredictTraj_r[candId][traj_id][1] / (CandVel[candId][0] * thres_vel_time));
@@ -231,7 +228,7 @@ void MyDWA::kd_tree(){
 
 void MyDWA::Proposed(){
     kd_tree();
-    say_time("after kd_tree",loop_start_time);
+    say_time("kd_tree",loop_start_time);
     cal_opt();
 }
 

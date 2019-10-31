@@ -26,9 +26,9 @@ public:
     double z_min_acc;
 
     // ロボットの縦と横の長さ これにより衝突半径を計算する
-    float robot_width = 0.4;
-    float robot_length = 0.3;
-    float robot_rad;        // ロボットの衝突判定となる円.コンストラクタに記述
+    const float ROBOT_WIDTH = 0.4;
+    const float ROBOT_LENGTH = 0.3;
+    const float ROBOT_RAD = sqrt((ROBOT_WIDTH * ROBOT_WIDTH)/4 + (ROBOT_LENGTH* ROBOT_LENGTH)/4);        // ロボットの衝突判定となる円
 
     // ロボット自身の大きさを保持するもの
     std::vector<std::vector<float>> RobotSize;
@@ -59,22 +59,13 @@ public:
         ang_res = Wres;
     }
 
-    // コンストラクタ
-    // my_robo_spec(ros::NodeHandle n,float Vres,float Wres ){
-    //     get_spec_param(n,);
-    //     set_resolution(Vres,Wres);
-    // }
-
 public:
     my_robo_spec(){
-        robot_rad = sqrt((robot_width * robot_width)/4 + (robot_length * robot_length)/4);
-        std::cout << "robot size" <<robot_rad <<std::endl;
-
         // RobotSize[index][d,theta] thetaは1度ずつ、dはロボットの半径。1度ずつ全周にわたる点群を作成する
         // d-thetaでのロボットサイズの描画に用いている
         for(int i=0;i<360;i++){
             RobotSize.push_back(std::vector<float>());
-            RobotSize[i].push_back(robot_rad);
+            RobotSize[i].push_back(ROBOT_RAD);
             RobotSize[i].push_back((i-180)*DEG2RAD);
         }
     }
