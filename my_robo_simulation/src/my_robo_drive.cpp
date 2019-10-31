@@ -105,7 +105,7 @@ my_robo::my_robo()
     sensor.joy_cmd_vel[0] = 0;
     sensor.joy_cmd_vel[1] = 0;
 
-    spec.set_resolution(spec.x_max_acc * dt / 3, spec.z_max_acc * dt / 3);
+    spec.set_resolution(spec.x_max_acc * dt / DWA_RESOLUTION_DIV, spec.z_max_acc * dt / DWA_RESOLUTION_DIV);
 }
 
 // スペック上の最大加速度と今の速度からDynamicWindowを求める vector<vector<float>>型のCanVelに格納される
@@ -166,9 +166,10 @@ void my_robo::cal_DWA()
                 CandVel.push_back(std::vector<double>());
                 CandVel[i].push_back(f); //[i][0]に速度要素
                 CandVel[i].push_back(g); //[i][1]に角速度要素
+                //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
                 i++;
             }
-            //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
+            
 
             g += spec.ang_res;
             if (g > max_dwa_ang)
@@ -296,19 +297,19 @@ void MyDWA::DWAloop()
 
             trans_inf(sensor.latest_scan);
 
-            say_time("check joy", loop_start_time);
+            //say_time("check joy", loop_start_time);
 
-            sensor.cal_obs(sensor.latest_scan, 4, 100, sensor.odom.pose);
+            sensor.cal_obs(sensor.latest_scan, POINT_INTERVAL, sensor.odom.pose);
 
             visualization_msgs::MarkerArray obsmarkers = sensor.make_obs_markers();
             pub_marker_array(obsmarkers);
 
             cal_DWA();
             //LOG.push_back(CandVel.size());
-            say_time("cal DWA", loop_start_time);
+            //say_time("cal DWA", loop_start_time);
 
             cal_predict_position();
-            say_time("predict position", loop_start_time);
+            //say_time("predict position", loop_start_time);
 
 #ifdef PABLODWA
             IsProposed = false;
@@ -368,7 +369,7 @@ void MyDWA::DWAloop()
                 // <gnuplot> //
                 plot_gnuplot(gp);
                 say_time("plot", loop_start_time);
-            }            
+            }
         }
 
         pub_cmd.publish(vel);
@@ -376,7 +377,7 @@ void MyDWA::DWAloop()
         say_time("clear vector", loop_start_time);
 
         rate.sleep();
-        say_time("after waiting", loop_start_time);
+        say_time("waiting", loop_start_time);
 
         // なにかのキーが押されていることの判定
         if (kbhit())

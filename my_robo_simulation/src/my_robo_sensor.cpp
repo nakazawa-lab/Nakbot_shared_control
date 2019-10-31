@@ -241,28 +241,22 @@ position my_robo_sensor::index_to_pos(int scanId){
 
 // scanを受け取ってthごと、左右wthまでの点の座標を計算し、そのマーカーの位置を計算する関数を呼び出して返す
 // 計算される障害物の座標は絶対座標
-visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, double th, double wth, geometry_msgs::PoseWithCovariance &pose)
+visualization_msgs::MarkerArray my_robo_sensor::cal_obs(sensor_msgs::LaserScan &scan, int point_interval, geometry_msgs::PoseWithCovariance &pose)
 {
     obs.clear();
-    // th 度相当の点の数degpを求める
-    int thp = (int)((th * DEG2RAD) / latest_scan.angle_increment);
-    // ROS_INFO("degp:%d",thp);
-    // 10度ずつ70度までなら7倍
-    int deg_inc = (int)(wth / th);
 
     double roll, yaw, pitch;
     // 今のrpyを求める
     geometry_quat_to_rpy(roll, pitch, yaw, pose.pose.orientation);
 
-    //ROS_INFO("deg_inc:%d",deg_inc);
-    for (int i = -deg_inc; i < deg_inc; i++)
-    {
-        if (scan.ranges[center + thp * i] < scan.range_max && scan.ranges[center + thp * i] > scan.range_min)
+
+    for (int point_num=0; point_num < latest_scan.ranges.size(); point_num += point_interval){
+        if (scan.ranges[point_num] < scan.range_max && scan.ranges[point_num] > scan.range_min)
         {
             obs.push_back(std::vector<double>());
             // ロボット座標から見たときの座標xs,ys 絶対座標xo,yo
-            double xs = scan.ranges[center + thp * i] * cos(th * DEG2RAD * i);
-            double ys = scan.ranges[center + thp * i] * sin(th * DEG2RAD * i);
+            double xs = scan.ranges[point_num] * cos(index_to_rad(point_num));
+            double ys = scan.ranges[point_num] * sin(index_to_rad(point_num));
             double xo = pose.pose.position.x + cos(yaw) * xs - sin(yaw) * ys;
             double yo = pose.pose.position.y + sin(yaw) * xs + cos(yaw) * ys;
 
