@@ -146,12 +146,12 @@ def plot_start_goal():
 def main():
     ############-settings-##############
     log_path = "../log"
-    pro_filename = "mylog_10301132_shared.csv"
+    pro_filename = "mylog_10311121_free.csv"
     pro_filename_noext = (pro_filename.split("."))[0]
     pro_csv_path = os.path.join(log_path, pro_filename)
     mylog = read_mylog(pro_csv_path)
 
-    pablo_filename = "log_10301131_shared.csv"
+    pablo_filename = "log_10311133_NoShared2.csv"
     pablo_filename_noext = (pablo_filename.split("."))[0]
     pablo_csv_path = os.path.join(log_path, pablo_filename)
     log = read_log(pablo_csv_path)
@@ -171,7 +171,7 @@ def main():
     elif args.method == "pablo":
         LOG = log
         filename_noext = pablo_filename_noext
-    """
+    
     #########-3D cost graph-###############
     costfig = plt.figure()
     ax = Axes3D(costfig)
@@ -181,7 +181,7 @@ def main():
 
     ax.plot(LOG["pos_x"], LOG["pos_y"], LOG["cost"], marker="o")
     ax.view_init(elev=30., azim=-120)
-    plt.savefig('./figure/cost_figure_{}.png'.format(filename_noext))
+    plt.savefig('./figure/{}_cost_figure.png'.format(filename_noext))
 
     plt.show()
     plt.close()
@@ -197,7 +197,7 @@ def main():
                  LOG["adm"], marker="o", label="danger")
         ax2.view_init(elev=30., azim=-120)
         plt.legend()
-        plt.savefig('./figure/adm_figure_{}.png'.format(filename_noext))
+        plt.savefig('./figure/{}_adm_figure.png'.format(filename_noext))
 
     elif args.method == "pro":
         ax2.plot(LOG["pos_x"], LOG["pos_y"], LOG["linadm"],
@@ -206,7 +206,7 @@ def main():
                  marker="o", label="ang danger")
         ax2.view_init(elev=30., azim=-120)
         plt.legend()
-        plt.savefig('./figure/adm_figure_{}.png'.format(filename_noext))
+        plt.savefig('./figure/{}_adm_figure.png'.format(filename_noext))
     plt.show()
     plt.close()
 
@@ -218,7 +218,7 @@ def main():
     plt.plot(LOG["pos_x"], LOG["pos_y"], label="robot path")
     plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
                borderaxespad=0, fontsize=8)
-    plt.savefig("./figure/path_figure_{}".format(filename_noext))
+    plt.savefig("./figure/{}_path_figure".format(filename_noext))
 
     plt.show()
     plt.close()
@@ -231,7 +231,7 @@ def main():
     plt.plot(LOG["timestep"], LOG["cal_vel_v"],
              label="calculated linear vel")
     plt.legend()
-    plt.savefig("./figure/linvel_figure_{}".format(filename_noext))
+    plt.savefig("./figure/{}_linvel_figure".format(filename_noext))
 
     plt.show()
     plt.close()
@@ -244,7 +244,7 @@ def main():
     plt.plot(LOG["timestep"], LOG["cal_vel_w"],
              label="calculated angular vel")
     plt.legend()
-    plt.savefig("./figure/angnvel_figure_{}".format(filename_noext))
+    plt.savefig("./figure/{}_angnvel_figure".format(filename_noext))
 
     plt.show()
     plt.close()
@@ -255,11 +255,11 @@ def main():
     plt.ylabel("cost")
     plt.plot(LOG["timestep"], LOG["cost"], label="cost")
     plt.legend()
-    plt.savefig("./figure/cost2d_figure_{}".format(filename_noext))
+    plt.savefig("./figure/{}_cost2d_figure".format(filename_noext))
 
     plt.show()
     plt.close()
-    """
+    
     #########-2D lin graph-###############
     linfig = plt.figure()
     plt.xlabel("Time[s]")
@@ -270,7 +270,7 @@ def main():
     plt.plot(LOG["timestep"], LOG["now_v"], label="now v")
     plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
                borderaxespad=0, fontsize=8)
-    plt.savefig("./figure/linfig_figure_{}".format(filename_noext))
+    plt.savefig("./figure/{}_linfig_figure".format(filename_noext))
     plt.show()
     plt.close()
 
@@ -284,7 +284,7 @@ def main():
     plt.plot(LOG["timestep"], LOG["now_w"], label="now w")
     plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
                borderaxespad=0, fontsize=8)
-    plt.savefig("./figure/angfig_figure_{}".format(filename_noext))
+    plt.savefig("./figure/{}_angfig_figure".format(filename_noext))
     plt.show()
     plt.close()
 
