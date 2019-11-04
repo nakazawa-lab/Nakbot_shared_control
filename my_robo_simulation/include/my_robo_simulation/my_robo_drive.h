@@ -96,7 +96,7 @@ public:
     std::vector<double> LOG;
     std::ofstream logfile;
 
-    double cal_head_cost(int);
+    double cal_head_cost(int,double);
 
     double cal_vel_cost(int);
 };

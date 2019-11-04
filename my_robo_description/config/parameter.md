@@ -15,6 +15,7 @@
 |DWAの分解能の分母            |DWA_RESOLUTION_DIV|5|
 |safeがdistの何倍になるか            |LINSAFE_MULTIPLIER|3|
 |                                    |ANGSAFE_MULTIPLIER|3|
+|                                    |PUB_TRAJ_MARKER_PER_LOOP|2|
 
 
 - thres_vel_time,thres_ang_timeはpredictTimeと同じがよいか?
@@ -27,7 +28,7 @@ my_robo:
     type        : "diff_drive_controller/DiffDriveController"
     left_wheel  : 'left_wheel_joint'
     right_wheel : 'right_wheel_joint'
-    publish_rate: 10.0               # default: 50
+    publish_rate: 50.0               # default: 50
     wheel_separation : 0.285
     wheel_radius : 0.075
     pose_covariance_diagonal : [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]

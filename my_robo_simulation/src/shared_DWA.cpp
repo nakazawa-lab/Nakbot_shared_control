@@ -348,14 +348,24 @@ int my_robo::cal_J_sharedDWA(double D)
     double cost = 1000;
     double head_min;
     double vel_min;
+    double arctan2_h;
     int index = 0;
+
+    if (sensor.joy_cmd_vel[1] == 0 && sensor.joy_cmd_vel[0] == 0)
+    {
+        arctan2_h = 0;
+    }
+    else
+    {
+        arctan2_h = atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
+    }
 
     for (int i = 0; i < CandVel.size(); i++)
     {
         double adm = 1 - CandVel[i][2];
         double head, velocity;
 
-        head = cal_head_cost(i);
+        head = cal_head_cost(i,arctan2_h);
         velocity = cal_vel_cost(i);
 
         // 最終的なコストの計算
@@ -417,9 +427,9 @@ int my_robo::cal_J_sharedDWA(double D)
     return index;
 }
 
-double my_robo::cal_head_cost(int candId)
+double my_robo::cal_head_cost(int candId,double arctan2_h)
 {
-    double arctan2_cand, arctan2_h, head;
+    double arctan2_cand,head;
 
     // 候補速度のatan2の計算
     if (CandVel[candId][0] == 0 && CandVel[candId][1] == 0)
@@ -431,14 +441,6 @@ double my_robo::cal_head_cost(int candId)
         arctan2_cand = atan2(CandVel[candId][0], CandVel[candId][1]);
     }
 
-    if (sensor.joy_cmd_vel[1] == 0 && sensor.joy_cmd_vel[0] == 0)
-    {
-        arctan2_h = 0;
-    }
-    else
-    {
-        arctan2_h = atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
-    }
 
     head = abs(arctan2_cand - arctan2_h) / M_PI;
 

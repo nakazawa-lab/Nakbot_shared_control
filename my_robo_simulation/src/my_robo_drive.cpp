@@ -269,6 +269,7 @@ void MyDWA::DWAloop()
     ros::Rate rate(looprate);
     start_time = std::chrono::system_clock::now();
     bool plot_flag = false;
+    int loop_flag = 1;  // n周期に1回trueにする
 
     record_param();
 
@@ -295,14 +296,14 @@ void MyDWA::DWAloop()
         {
             check_joy();
 
-            trans_inf(sensor.latest_scan);
+            //trans_inf(sensor.latest_scan);
 
             //say_time("check joy", loop_start_time);
 
             sensor.cal_obs(sensor.latest_scan, POINT_INTERVAL, sensor.odom.pose);
 
             visualization_msgs::MarkerArray obsmarkers = sensor.make_obs_markers();
-            pub_marker_array(obsmarkers);
+            //pub_marker_array(obsmarkers);
 
             cal_DWA();
             //LOG.push_back(CandVel.size());
@@ -331,13 +332,18 @@ void MyDWA::DWAloop()
             say_time("proposed", loop_start_time);
 #endif
 
-            // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
-
-            visualization_msgs::MarkerArray markers = make_traj_marker_array(opt_index);
             if (sensor.joy_cmd_vel[0] > -0)
             {
+                visualization_msgs::MarkerArray markers;
+                if (++loop_flag == PUB_TRAJ_MARKER_PER_LOOP)
+                {
+                    // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
+                    markers = make_traj_marker_array(opt_index);
+                    loop_flag = 1;
+                }
+
                 pub_marker_array(markers);
-                // std::cout << "finish make traj marker" << std::endl;
+                std::cout << "finish make traj marker" << std::endl;
 
 #ifdef MYDWA
                 // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
@@ -355,7 +361,7 @@ void MyDWA::DWAloop()
 
 #ifdef MYDWA
 
-                std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" << std::endl;
+                //std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" << std::endl;
                 vel.linear.x = CandVel[opt_index][0];
                 vel.angular.z = CandVel[opt_index][1];
 
@@ -412,12 +418,12 @@ int main(int argc, char **argv)
     robot.logfile.open(logfilename);
 #endif
 
-    gp = popen("gnuplot -persist", "w");
-    fprintf(gp, "set multiplot\n");
-    fprintf(gp, "set xrange [-3:3]\n");
-    fprintf(gp, "set yrange [-0.2:7]\n");
-    fprintf(gp, "set xlabel \"theta\"\n");
-    fprintf(gp, "set ylabel \"distance\"\n");
+    // gp = popen("gnuplot -persist", "w");
+    // fprintf(gp, "set multiplot\n");
+    // fprintf(gp, "set xrange [-3:3]\n");
+    // fprintf(gp, "set yrange [-0.2:7]\n");
+    // fprintf(gp, "set xlabel \"theta\"\n");
+    // fprintf(gp, "set ylabel \"distance\"\n");
     robot.DWAloop();
 
     robot.logfile.close();

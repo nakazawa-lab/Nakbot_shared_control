@@ -108,16 +108,17 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
   std::cout << "max dist lin ang:" << max_lin << " " << max_ang << std::endl;
 
   // 候補の数ループ
-  for (int i = 0; i < PredictTraj.size(); i += 1)
+  for (int i = 0; i < PredictTraj.size(); i += 2)
   {
+    
     //ROS_INFO("start put marker.");
     if (i == index)
       adopt_flag = true;
     else
       adopt_flag = false;
-
+    //if((i == 0) || adopt_flag){
     //予測時刻の数だけループ
-    for (int j = 0; j < PredictTraj[i].size(); j += 4)
+    for (int j = 0; j < PredictTraj[i].size(); j += 8)
     {
       //ROS_INFO("start loop.");
       marker_array.markers[k].header.frame_id = "/odom";
@@ -175,6 +176,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
       }
       k++;
     }
+ // }
   }
   // joyの予測軌道を緑色で入れる
   //予測時刻の数だけループ
