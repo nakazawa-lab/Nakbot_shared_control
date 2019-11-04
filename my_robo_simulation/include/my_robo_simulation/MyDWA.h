@@ -63,6 +63,10 @@ private:
 
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> loop_start_time;
 
+    std::vector<float> thinout_scan_range;
+
+    std::vector<float> thinout_scan_ang;
+
     // DWA_var DWA;
 
     // treeidxのツリーのidx番目の点と、queryの点の距離(を求める。

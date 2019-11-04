@@ -146,12 +146,12 @@ def plot_start_goal():
 def main():
     ############-settings-##############
     log_path = "../log"
-    pro_filename = "mylog_10311121_free.csv"
+    pro_filename = "mylog_114137_free2.csv"
     pro_filename_noext = (pro_filename.split("."))[0]
     pro_csv_path = os.path.join(log_path, pro_filename)
     mylog = read_mylog(pro_csv_path)
 
-    pablo_filename = "log_10311133_NoShared2.csv"
+    pablo_filename = "log_114138_free2.csv"
     pablo_filename_noext = (pablo_filename.split("."))[0]
     pablo_csv_path = os.path.join(log_path, pablo_filename)
     log = read_log(pablo_csv_path)
