@@ -138,7 +138,7 @@ double my_robo::cal_vel_sat()
 //                 if (w == 0.0)
 //                 {
 //                     //ROS_INFO("w=0.0");
-//                     d_lin = abs(v * time);
+//                     d_lin = fabs(v * time);
 //                     d_ang = 0;
 
 //                     d = d_lin;
@@ -146,7 +146,7 @@ double my_robo::cal_vel_sat()
 //                 }
 //                 else
 //                 {
-//                     d_lin = abs(v * time);
+//                     d_lin = fabs(v * time);
 //                     d_ang = w * time;
 
 //                     d = sqrt(2 * r * r * (1 - cos(d_ang))); // 余弦定理
@@ -169,7 +169,7 @@ double my_robo::cal_vel_sat()
 //                 // angle_max = 2.09444 ,angle_min = -2.0944を示す = 120deg
 //                 double th_l = sensor.latest_scan.angle_max + th;
 
-//                 while (abs(index_th - th_l) > sensor.latest_scan.angle_increment)
+//                 while (fabs(index_th - th_l) > sensor.latest_scan.angle_increment)
 //                 {
 //                     //ROS_INFO("index:%d.",index);
 //                     index++;
@@ -199,8 +199,8 @@ double my_robo::cal_vel_sat()
 //                     {
 //                         //ROS_INFO("spec x_min_acc z_min_acc:%f,%f",spec.x_min_acc,spec.z_min_acc);
 //                         // 4-a-2 v_inevとw_inevを求める
-//                         double v_inev = sqrt(abs(2 * spec.x_min_acc * d_lin));
-//                         double w_inev = sqrt(abs(2 * spec.z_min_acc * d_ang));
+//                         double v_inev = sqrt(fabs(2 * spec.x_min_acc * d_lin));
+//                         double w_inev = sqrt(fabs(2 * spec.z_min_acc * d_ang));
 
 //                         // ROS_INFO("i=%d colision",i);
 //                         // ROS_INFO("index:%d",index);
@@ -222,9 +222,9 @@ double my_robo::cal_vel_sat()
 //                         }
 //                         else
 //                         {
-//                             d_U = std::min(abs((v_inev - v) / v_inev), abs((w_inev - w) / w_inev));
+//                             d_U = std::min(fabs((v_inev - v) / v_inev), fabs((w_inev - w) / w_inev));
 //                             // ROS_INFO("d_U=%f",d_U);
-//                             // ROS_INFO("i=%d, abs(v_inev- v / v_inev)%f. abs(w_inev- w / w_inev)%f\n",i, abs((v_inev - v) / v_inev),abs((w_inev- w) / w_inev));
+//                             // ROS_INFO("i=%d, fabs(v_inev- v / v_inev)%f. fabs(w_inev- w / w_inev)%f\n",i, fabs((v_inev - v) / v_inev),fabs((w_inev- w) / w_inev));
 
 //                             //ROS_INFO("i=%d, d_U=%f",i, d_U);ROS_INFO("d:%f.",d);
 //                             //ROS_INFO("d:%f.", d);
@@ -232,7 +232,7 @@ double my_robo::cal_vel_sat()
 //                         }
 //                         CandVel[i].push_back(d_U);
 
-//                         //ROS_INFO("abs( w_inev - w / w_inev)%f",abs( (w_inev - w) / w_inev));
+//                         //ROS_INFO("fabs( w_inev - w / w_inev)%f",fabs( (w_inev - w) / w_inev));
 //                         //ROS_INFO("i=%d d_U%f", i,d_U);
 
 //                         // Dの計算に使うので、もし予測時刻内の衝突であればフラグを立てる
@@ -317,8 +317,8 @@ void my_robo::cal_Dist2()
             d_lin = CandVel[i][0] * coltime[mindistIndex];
             d_ang = CandVel[i][1] * coltime[mindistIndex];
 
-            double v_inev = sqrt(abs(2 * spec.x_min_acc * d_lin));
-            double w_inev = sqrt(abs(2 * spec.z_min_acc * d_ang));
+            double v_inev = sqrt(fabs(2 * spec.x_min_acc * d_lin));
+            double w_inev = sqrt(fabs(2 * spec.z_min_acc * d_ang));
 
             if (CandVel[i][0] >= v_inev || CandVel[i][1] >= w_inev)
             {
@@ -326,7 +326,7 @@ void my_robo::cal_Dist2()
             }
             else
             {
-                d_U = std::min(abs((v_inev - CandVel[i][0]) / v_inev), abs((w_inev - CandVel[i][1]) / w_inev));
+                d_U = std::min(fabs((v_inev - CandVel[i][0]) / v_inev), fabs((w_inev - CandVel[i][1]) / w_inev));
             }
 
             isCollision.push_back(true);
@@ -442,30 +442,30 @@ double my_robo::cal_head_cost(int candId,double arctan2_h)
     }
 
 
-    head = abs(arctan2_cand - arctan2_h) / M_PI;
+    head = fabs(arctan2_cand - arctan2_h) / M_PI;
 
     // //　joyの速度指令に応じて, コストを求める
     // // 2 速度指令が共に０のとき
     // if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
     // {
     //     //ROS_INFO("both 0");
-    //     head = abs(CandVel[candId][1]) / M_PI;
+    //     head = fabs(CandVel[candId][1]) / M_PI;
     // }
     // // 1 角速度指令が0、速度指令値が0ではないとき
     // else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
     // {
     //     //          ROS_INFO("only w 0");
     //     if(CandVel[candId][0]==0 && CandVel[candId][1]==0) head = M_PI;
-    //     else head = abs(M_PI/2 - arctan2) / M_PI;
+    //     else head = fabs(M_PI/2 - arctan2) / M_PI;
     // }
     // // 3 角速度指令が0ではなく、速度指令が0のとき
     // else if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0)
     // {
-    //     head = abs((CandVel[candId][1] - sensor.joy_cmd_vel[1])) / M_PI;
+    //     head = fabs((CandVel[candId][1] - sensor.joy_cmd_vel[1])) / M_PI;
     // }
     // else
     // {
-    //     head = abs(arctan2 - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
+    //     head = fabs(arctan2 - atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1])) / M_PI;
     // }
 
     return head;
@@ -473,7 +473,7 @@ double my_robo::cal_head_cost(int candId,double arctan2_h)
 
 double my_robo::cal_vel_cost(int trajidx)
 {
-    double cost = abs(CandVel[trajidx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel;
+    double cost = fabs(CandVel[trajidx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel;
     if (isnan(cost))
     {
         std::cout << "isnan vel h cost" << std::endl;

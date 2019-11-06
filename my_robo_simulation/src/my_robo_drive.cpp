@@ -183,6 +183,29 @@ void my_robo::cal_DWA()
     //ROS_INFO("candSize:%d.",CandVel.size());
 }
 
+const void my_robo::push_back_traj(const int i, const double time, const position np, const double d, double theta)
+{
+    // timeとpをPredictTrajに格納する処理
+    PredictTraj.back().push_back(std::vector<double>());
+    PredictTraj.back().back().push_back(time);
+    PredictTraj.back().back().push_back(np.x);
+    PredictTraj.back().back().push_back(np.y);
+    PredictTraj.back().back().push_back(np.sin_th);
+    PredictTraj.back().back().push_back(np.cos_th);
+
+    PredictTraj_r.back().push_back(std::vector<double>());
+
+    if (CandVel[i][1] < 0)
+        theta -= M_PI;
+
+    PredictTraj_r.back().back().push_back(time);
+    PredictTraj_r.back().back().push_back(d);
+    PredictTraj_r.back().back().push_back(theta);
+
+    std::cout << "candVel " << CandVel[i][0] << " " << CandVel[i][1] << std::endl;
+    std::cout << "PredictTraj r:(" << theta << ", " << d << ")" << std::endl;
+}
+
 // 予測軌道を計算する関数 内部でmy_robo.robot_modelを呼びだす
 void my_robo::cal_predict_position()
 {
@@ -191,10 +214,7 @@ void my_robo::cal_predict_position()
     // すべての候補に対して
     for (int i = 0; i < CandVel.size(); i++)
     {
-        //ROS_INFO("loop %d / %d", i, CandVel.size());
-        //初期化
         time = dt_traj;
-        radius = abs(CandVel[i][0] / CandVel[i][1]);
 
         position p = cal_nowp(sensor.odom);
         //ROS_INFO("x=%f,y=%f,cos_h=%f,sin_th=%f",p.x,p.y,p.cos_th,p.sin_th);
@@ -203,38 +223,41 @@ void my_robo::cal_predict_position()
         PredictTraj.push_back(std::vector<std::vector<double>>());
         PredictTraj_r.push_back(std::vector<std::vector<double>>());
 
-        while (time <= PredictTime)
+        position np;
+
+        if (CandVel[i][1] == 0)
         {
-            // 位置の更新 npは絶対座標系を示す。
-            // no_rは相対座標
-            position np;
-            np = robot_model(p, CandVel[i][0], CandVel[i][1], dt_traj);
+            while (time <= PredictTime)
+            {
 
-            // timeとpをPredictTrajに格納する処理
-            PredictTraj.back().push_back(std::vector<double>());
-            PredictTraj.back().back().push_back(time);
-            PredictTraj.back().back().push_back(np.x);
-            PredictTraj.back().back().push_back(np.y);
-            PredictTraj.back().back().push_back(np.sin_th);
-            PredictTraj.back().back().push_back(np.cos_th);
+                np = robot_model(p, CandVel[i][0], CandVel[i][1], dt_traj);
 
-            // pabloではPredictTraj_rは不要
-            PredictTraj_r.back().push_back(std::vector<double>());
+                radius = 0;
+                d = CandVel[i][0] * time;
+                theta = 0;
 
-            d = sqrt(2 * (1 - cos(CandVel[i][1] * time))) * radius;
+                push_back_traj(i, time, np, d, theta);
 
-            double temp = radius * sin(CandVel[i][1] * time) / d;
-            theta = acos(temp); // acosは-1から1までの値を受け取り0からpiまでの値を返す
+                p = np;
+                time += dt_traj;
+            }
+        }
+        else
+        {
+            while (time <= PredictTime)
+            {
+                np = robot_model(p, CandVel[i][0], CandVel[i][1], dt_traj);
 
-            if (CandVel[i][1] < 0)
-                theta -= M_PI;
+                radius = fabs(CandVel[i][0] / CandVel[i][1]);
+                d = sqrt(2 * (1 - cos(CandVel[i][1] * time))) * radius;
+                double temp = radius * sin(CandVel[i][1] * time) / d;
+                theta = acos(temp); // acosは-1から1までの値を受け取り0からpiまでの値を返す
 
-            PredictTraj_r.back().back().push_back(time);
-            PredictTraj_r.back().back().push_back(d);
-            PredictTraj_r.back().back().push_back(theta);
+                push_back_traj(i, time, np, d, theta);
 
-            p = np;
-            time += dt_traj;
+                p = np;
+                time += dt_traj;
+            }
         }
     }
 

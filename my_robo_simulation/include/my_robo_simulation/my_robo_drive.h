@@ -99,6 +99,8 @@ public:
     double cal_head_cost(int,double);
 
     double cal_vel_cost(int);
+
+    const void push_back_traj(const int, const double, const position, const double, const double);
 };
 
 #endif

@@ -19,7 +19,7 @@ double cal_coll_thres(double r0, double th0, double r, double th)
 
 double MyDWA::cal_head_cost_pro(int candIdx)
 {
-    double cost = abs(CandVel[candIdx][1] - sensor.joy_cmd_vel[1]) / (spec.z_max_ang);
+    double cost = fabs(CandVel[candIdx][1] - sensor.joy_cmd_vel[1]) / (spec.z_max_ang);
 
     // cost = sqrt(1 - (1 - cost) * (1 - cost));
 
@@ -34,7 +34,7 @@ double MyDWA::cal_head_cost_pro(int candIdx)
 
 double MyDWA::cal_vel_cost_pro(int candIdx)
 {
-    double cost = abs(CandVel[candIdx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel;
+    double cost = fabs(CandVel[candIdx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel;
 
     // cost = sqrt(1 - (1 - cost) * (1 - cost));
 
@@ -197,22 +197,23 @@ void MyDWA::kd_tree()
         {
             dist_lin_ang.push_back(vector<double>());
             int traj_size = PredictTraj_r[candId].size();
-            cout << "2" <<endl;
+           
 
             for (int traj_id = 0; traj_id < traj_size; traj_id++)
             {
                 query[0] = PredictTraj_r[candId][traj_id][2];
                 query[1] = PredictTraj_r[candId][traj_id][1];
-
+                
                 tmp_scan_id = LRFkdtree.nnSearch(query);
-
+                // cout << "query:(" << query[0]  << ", " << query[1] << ")" <<endl;
+                // cout << "scan id:" << tmp_scan_id << endl;
+                // cout << "thinout_range:" << thinout_scan_range[tmp_scan_id] << " ang:" << thinout_scan_ang[tmp_scan_id] << endl;
                 tmp_dist = cal_coll_thres(thinout_scan_range[tmp_scan_id], thinout_scan_ang[tmp_scan_id], PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]);
-                //cout << "3" <<endl;
                 if (tmp_dist < spec.ROBOT_RAD)
                 {
                     isCollision.push_back(true);
-                    lin = abs(PredictTraj_r[candId][traj_id][1] / (CandVel[candId][0] * thres_vel_time));
-                    ang = abs(PredictTraj_r[candId][traj_id][2] / (CandVel[candId][1] * thres_ang_time));
+                    lin = fabs(PredictTraj_r[candId][traj_id][1] / (CandVel[candId][0] * thres_vel_time));
+                    ang = fabs(PredictTraj_r[candId][traj_id][2] / (CandVel[candId][1] * thres_ang_time));
                     cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
                     cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id][1] << " " << PredictTraj_r[candId][traj_id][2] <<endl;
                     //cout << "sensor: " << thinout_scan_range[tmp_scan_id] << endl;
