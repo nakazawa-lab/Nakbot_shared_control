@@ -22,9 +22,9 @@ public:
     // DWA設定の刻み.ループレイトと同じが望ましい
     const double dt = 0.15;
     // 軌道計算の刻み
-    const double dt_traj = 0.05;
+    const double dt_traj = 0.1;
     // 軌道予測時刻
-    const double PredictTime = 3;
+    const double PredictTime = 2;
     //const double looprate = 2;          // Hz
     const double looprate = 1 / dt;
 
