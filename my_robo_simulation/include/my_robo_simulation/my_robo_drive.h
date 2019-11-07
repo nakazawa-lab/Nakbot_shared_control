@@ -20,6 +20,25 @@
 class my_robo : public DWA_var
 {
 public:
+    struct selected_vel_info
+    {
+    public:
+        double linadm;
+        double linsafe;
+        double angadm;
+        double angsafe;
+
+        double vel, ang;
+        double vel_h_cost;
+        double head_h_cost;
+        double cost;
+
+        double lindist,angdist;
+
+        double dist, adm;
+    };
+    selected_vel_info selected;
+
     ros::Subscriber sub_odom;
     ros::Subscriber sub_lrf;
     ros::Subscriber sub_joy;
@@ -33,6 +52,9 @@ public:
     // joyからの速度指令を保存する
     double x_vel_joy;
     double z_ang_joy;
+
+    // 最終的に採用する軌道のインデックス
+    int opt_index;
 
     //　最終的にパブリッシュする速度司令
     geometry_msgs::Twist pub_vel;
@@ -65,7 +87,7 @@ public:
     void cal_Dist2();
 
     // 評価関数を計算する Dはsat係数.あらかじめ計算しておく
-    int cal_J_sharedDWA(double D);
+    void cal_J_sharedDWA(double D);
 
     // 速度コストのsaturation係数を求める
     double cal_vel_sat();

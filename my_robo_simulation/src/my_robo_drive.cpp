@@ -202,8 +202,8 @@ const void my_robo::push_back_traj(const int i, const double time, const positio
     PredictTraj_r.back().back().push_back(d);
     PredictTraj_r.back().back().push_back(theta);
 
-    std::cout << "candVel " << CandVel[i][0] << " " << CandVel[i][1] << std::endl;
-    std::cout << "PredictTraj r:(" << theta << ", " << d << ")" << std::endl;
+    //std::cout << "PredictTraj r:(" << theta << ", " << d << ")" << std::endl;
+    //std::cout << "candVel " << CandVel[i][0] << " " << CandVel[i][1] << std::endl;
 }
 
 // 予測軌道を計算する関数 内部でmy_robo.robot_modelを呼びだす
@@ -251,7 +251,19 @@ void my_robo::cal_predict_position()
                 radius = fabs(CandVel[i][0] / CandVel[i][1]);
                 d = sqrt(2 * (1 - cos(CandVel[i][1] * time))) * radius;
                 double temp = radius * sin(CandVel[i][1] * time) / d;
+                if(temp < -1){
+                    //std::cout << "tmep is lower -1" << std::endl;
+                    temp =-1;
+                }
+                else if(temp >1){
+                    //std::cout << "temp is upper 1" <<std::endl;
+                    temp = 1;
+                }
                 theta = acos(temp); // acosは-1から1までの値を受け取り0からpiまでの値を返す
+
+                if (isnan(theta)){
+                    std::cout << "theta is nan:" << d << "," << radius << "," << temp <<", " << CandVel[i][1] * time << std::endl << std::endl;;
+                } 
 
                 push_back_traj(i, time, np, d, theta);
 
@@ -303,12 +315,6 @@ void MyDWA::DWAloop()
         ROS_INFO("get DWA loop.");
 
         loop_start_time = std::chrono::system_clock::now();
-        auto dur = loop_start_time - start_time;
-        auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
-        LOG.push_back((double)msec / 1000);
-
-        LOG.push_back(sensor.odom.pose.pose.position.x);
-        LOG.push_back(sensor.odom.pose.pose.position.y);
 
         if (sensor.latest_scan.ranges.size() == 0)
         {
@@ -336,7 +342,6 @@ void MyDWA::DWAloop()
             //say_time("predict position", loop_start_time);
 
 #ifdef PABLODWA
-            IsProposed = false;
             //cal_Dist();
             cal_Dist2();
             say_time("cal dist", loop_start_time);
@@ -346,13 +351,16 @@ void MyDWA::DWAloop()
             // double D = cal_vel_sat();
             double D = 1;
 
-            int opt_index = cal_J_sharedDWA(D);
-            say_time("cal J", loop_start_time);
+            cal_J_sharedDWA(D);
+            cal_end_time = std::chrono::system_clock::now();
+            //say_time("cal J", loop_start_time);
 #endif
 #ifdef MYDWA
-            IsProposed = true;
             Proposed();
-            say_time("proposed", loop_start_time);
+            cal_end_time = std::chrono::system_clock::now();
+
+            record_loop_info();
+            //say_time("proposed", loop_start_time);
 #endif
 
             if (sensor.joy_cmd_vel[0] > -0)
@@ -426,6 +434,48 @@ void MyDWA::DWAloop()
     }
 }
 
+void MyDWA::record_loop_info(){
+#ifdef MYDWA
+    auto now = std::chrono::system_clock::now();
+    auto timestanp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - start_time).count();
+
+    auto loop_cal_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(cal_end_time - loop_start_time).count();
+
+    mylogfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm
+              << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << ","
+              << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang
+              << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << selected.lindist << "," << selected.angdist
+              << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << std::endl;
+#endif
+
+#ifdef PABLODWA
+    LOG.push_back((double)timestanp_ms / 1000);
+
+    LOG.push_back(sensor.odom.pose.pose.position.x);
+    LOG.push_back(sensor.odom.pose.pose.position.y);
+    LOG.push_back(selected.adm);
+    LOG.push_back(1 - selected.adm);
+    LOG.push_back(selected.vel_h_cost);
+    LOG.push_back(selected.head_h_cost);
+    LOG.push_back(selected.cost);
+    LOG.push_back(CandVel[opt_index][0]);
+    LOG.push_back(CandVel[opt_index][1]);
+    LOG.push_back(sensor.joy_cmd_vel[0]);
+    LOG.push_back(sensor.joy_cmd_vel[1]);
+    LOG.push_back(sensor.odom.twist.twist.linear.x);
+    LOG.push_back(sensor.odom.twist.twist.angular.z);
+    LOG.push_back(loop_cal_time_ms);
+
+    logfile << LOG[0];
+    for (int i = 1; i < LOG.size(); i++)
+    {
+        logfile << "," << LOG[i];
+    }
+    logfile << std::endl;
+
+#endif
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
@@ -433,10 +483,12 @@ int main(int argc, char **argv)
     std::string date = get_current_time();
 
 #ifdef MYDWA
+    robot.IsProposed = false;
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
     robot.mylogfile.open(mylogfilename);
 #endif
 #ifdef PABLODWA
+    robot.IsProposed = false;
     std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
     robot.logfile.open(logfilename);
 #endif

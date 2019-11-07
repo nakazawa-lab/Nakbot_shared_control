@@ -17,7 +17,7 @@
   </group>
 
   <group if="$(arg sparse_house)">
-	<arg name="world" value="$(find my_robo_description)/worlds/sparse_house.world"/>
+	<arg name="world" value="$(find my_robo_description)/worlds/sparse_house_V2.world"/>
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(arg world)"/> 
     <arg name="paused" value="false"/>

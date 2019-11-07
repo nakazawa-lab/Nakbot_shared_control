@@ -342,7 +342,7 @@ void my_robo::cal_Dist2()
 
 // 評価関数を計算する Dはsat係数.あらかじめ計算しておく
 // 最小の評価関数の添字を返す
-int my_robo::cal_J_sharedDWA(double D)
+void my_robo::cal_J_sharedDWA(double D)
 {
     double adm_min;
     double cost = 1000;
@@ -405,26 +405,30 @@ int my_robo::cal_J_sharedDWA(double D)
     // ROS_INFO("head:%lf", h);
     // ROS_INFO("velocity:%lf", v);
     // ROS_INFO("cost:%f\n", cost);
-    LOG.push_back(adm_min);
-    LOG.push_back(1 - adm_min);
-    LOG.push_back(vel_min);
-    LOG.push_back(head_min);
-    LOG.push_back(cost);
-    LOG.push_back(CandVel[index][0]);
-    LOG.push_back(CandVel[index][1]);
-    LOG.push_back(sensor.joy_cmd_vel[0]);
-    LOG.push_back(sensor.joy_cmd_vel[1]);
-    LOG.push_back(sensor.odom.twist.twist.linear.x);
-    LOG.push_back(sensor.odom.twist.twist.angular.z);
+    selected.adm = adm_min;
+    selected.vel_h_cost = vel_min;
+    selected.head_h_cost = head_min;
+    selected.cost = cost;
+    opt_index = index;
 
-    logfile << LOG[0];
-    for (int i = 1; i < LOG.size(); i++)
-    {
-        logfile << "," << LOG[i];
-    }
-    logfile << std::endl;
+    // LOG.push_back(adm_min);
+    // LOG.push_back(1 - adm_min);
+    // LOG.push_back(vel_min);
+    // LOG.push_back(head_min);
+    // LOG.push_back(cost);
+    // LOG.push_back(CandVel[index][0]);
+    // LOG.push_back(CandVel[index][1]);
+    // LOG.push_back(sensor.joy_cmd_vel[0]);
+    // LOG.push_back(sensor.joy_cmd_vel[1]);
+    // LOG.push_back(sensor.odom.twist.twist.linear.x);
+    // LOG.push_back(sensor.odom.twist.twist.angular.z);
 
-    return index;
+    // logfile << LOG[0];
+    // for (int i = 1; i < LOG.size(); i++)
+    // {
+    //     logfile << "," << LOG[i];
+    // }
+    // logfile << std::endl;
 }
 
 double my_robo::cal_head_cost(int candId,double arctan2_h)
