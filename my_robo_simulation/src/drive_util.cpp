@@ -118,7 +118,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
       adopt_flag = false;
     //if((i == 0) || adopt_flag){
     //予測時刻の数だけループ
-    for (int j = 0; j < PredictTraj[i].size(); j += 8)
+    for (int j = 0; j < PredictTraj[i].size(); j += 4)
     {
       //ROS_INFO("start loop.");
       marker_array.markers[k].header.frame_id = "/odom";

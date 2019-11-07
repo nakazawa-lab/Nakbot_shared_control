@@ -25,7 +25,6 @@ double MyDWA::cal_head_cost_pro(int candIdx)
 
     if (isnan(cost))
     {
-        std::cout << "isnan ang h cost" << std::endl;
         cost = 0;
     }
     //cout << "head_cost: " << cost <<endl;
@@ -40,7 +39,6 @@ double MyDWA::cal_vel_cost_pro(int candIdx)
 
     if (isnan(cost))
     {
-        std::cout << "isnan vel h cost" << std::endl;
         cost = 0;
     }
     //cout << "vel_h_cost: " << cost <<endl;
@@ -158,14 +156,14 @@ void MyDWA::cal_opt()
     // cout << "opt idx is" << opt_index << endl
     //     << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
 
-    auto now = std::chrono::system_clock::now();
-    auto dur = now - start_time;
-    auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
-    mylogfile << (double)(msec / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm
-              << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << ","
-              << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang
-              << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << selected.lindist << "," << selected.angdist
-              << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << endl;
+    // auto now = std::chrono::system_clock::now();
+    // auto dur = now - start_time;
+    // auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+    // mylogfile << (double)(msec / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm
+    //           << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << ","
+    //           << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang
+    //           << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << selected.lindist << "," << selected.angdist
+    //           << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << endl;
 }
 
 void MyDWA::kd_tree()
@@ -214,12 +212,12 @@ void MyDWA::kd_tree()
                     isCollision.push_back(true);
                     lin = fabs(PredictTraj_r[candId][traj_id][1] / (CandVel[candId][0] * thres_vel_time));
                     ang = fabs(PredictTraj_r[candId][traj_id][2] / (CandVel[candId][1] * thres_ang_time));
-                    cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
-                    cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id][1] << " " << PredictTraj_r[candId][traj_id][2] <<endl;
-                    //cout << "sensor: " << thinout_scan_range[tmp_scan_id] << endl;
-                    cout << "lin:" <<lin << " ang:" <<ang <<endl;
-                    cout << "traj_id:" <<traj_id << " scan_id:" <<tmp_scan_id <<endl;
-                    cout <<endl;
+                    // cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
+                    // cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id][1] << " " << PredictTraj_r[candId][traj_id][2] <<endl;
+                    // //cout << "sensor: " << thinout_scan_range[tmp_scan_id] << endl;
+                    // cout << "lin:" <<lin << " ang:" <<ang <<endl;
+                    // cout << "traj_id:" <<traj_id << " scan_id:" <<tmp_scan_id <<endl;
+                    // cout <<endl;
                     dist_lin_ang[candId].push_back(lin);
                     dist_lin_ang[candId].push_back(ang);
                     dist_lin_ang[candId].push_back(tmp_scan_id);
@@ -250,13 +248,12 @@ void MyDWA::kd_tree()
     }
     assert(isCollision.size() == CandVel.size());
     assert(dist_lin_ang.size() == CandVel.size());
-    cout << "finish cal dist" <<endl;
 }
 
 void MyDWA::Proposed()
 {
     kd_tree();
-    say_time("kd_tree", loop_start_time);
+    //say_time("kd_tree", loop_start_time);
     cal_opt();
 }
 
@@ -339,7 +336,7 @@ void MyDWA::record_param()
     // std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
     // logfile << logRowName << std::endl;
 
-    std::string logRowName = "timestep,pos.x,pos.y,adm,safe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,now_v,now_w";
+    std::string logRowName = "timestep[s],pos.x,pos.y,adm,safe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,now_v,now_w,cal_time[ms]";
     logfile << logRowName << std::endl;
 
     mylogfile << property << std::endl;
@@ -350,7 +347,7 @@ void MyDWA::record_param()
     // std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost";
     // mylogfile << mylogRowName << std::endl;
 
-    std::string mylogRowName = "timestep,pos.x,pos.y,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,lindist,angdist,now_v,now_w";
+    std::string mylogRowName = "timestep[s],pos.x,pos.y,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,lindist,angdist,now_v,now_w,cal_time[ms]";
     mylogfile << mylogRowName << std::endl;
 }
 

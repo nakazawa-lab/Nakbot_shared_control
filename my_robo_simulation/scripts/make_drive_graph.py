@@ -19,7 +19,7 @@ def make_box(center_x, center_y):
 
 def read_log(csv_path):
     csv_file = pd.read_csv(csv_path, header=2)
-    timestep = csv_file["timestep"]
+    timestep = csv_file["timestep[s]"]
     pos_x = csv_file["pos.x"]
     pos_y = csv_file["pos.y"]
     adm = csv_file["adm"]
@@ -33,6 +33,7 @@ def read_log(csv_path):
     joy_w = csv_file["joy_w"]
     now_v = csv_file["now_v"]
     now_w = csv_file["now_w"]
+    cal_time = csv_file["cal_time[ms]"]
 
     log = {"timestep": timestep,
            "pos_x": pos_x,
@@ -47,14 +48,15 @@ def read_log(csv_path):
            "joy_v": joy_v,
            "joy_w": joy_w,
            "now_v": now_v,
-           "now_w": now_w
+           "now_w": now_w,
+           "cal_time":cal_time
            }
     return log
 
 
 def read_mylog(csv_path):
     csv_file = pd.read_csv(csv_path, header=2)
-    timestep = csv_file["timestep"]
+    timestep = csv_file["timestep[s]"]
     pos_x = csv_file["pos.x"]
     pos_y = csv_file["pos.y"]
     linadm = csv_file["linadm"]
@@ -72,6 +74,7 @@ def read_mylog(csv_path):
     angdist = csv_file["angdist"]
     now_v = csv_file["now_v"]
     now_w = csv_file["now_w"]
+    cal_time = csv_file["cal_time[ms]"]
 
     mylog = {"timestep": timestep,
              "pos_x": pos_x,
@@ -90,7 +93,8 @@ def read_mylog(csv_path):
              "lindist": lindist,
              "angdist": angdist,
              "now_v": now_v,
-             "now_w": now_w
+             "now_w": now_w,
+             "cal_time":cal_time
              }
     return mylog
 

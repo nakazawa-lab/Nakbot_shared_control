@@ -25,8 +25,6 @@ void my_robo_sensor::cb_lrf(const sensor_msgs::LaserScan::ConstPtr &msg)
         ROS_INFO("center:%d.", center);
         count++;
     }
-
-    std::cout << "lrf callback: " << std::endl;
 }
 
 void my_robo_sensor::cb_joy(const sensor_msgs::Joy::ConstPtr &joy_msg)

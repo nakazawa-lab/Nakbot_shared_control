@@ -30,28 +30,6 @@ private:
     //const double point_scale_d = 1;
     //const double point_scale_th = 1;        // maxang/maxvel * 2 = 3.75
 
-    // 最終的に採用する軌道のインデックス
-    int opt_index;
-
-    bool IsProposed;
-
-    struct selected_vel_info
-    {
-    public:
-        double linadm;
-        double linsafe;
-        double angadm;
-        double angsafe;
-
-        double vel, ang;
-        double vel_h_cost;
-        double head_h_cost;
-        double cost;
-
-        double lindist,angdist;
-    };
-    selected_vel_info selected;
-
     // LRFのkd木
     kdt::KDTree<MyPoint> LRFkdtree;
 
@@ -62,6 +40,8 @@ private:
     std::vector<std::vector<double>> dist_lin_ang;
 
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> loop_start_time;
+
+    std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> cal_end_time;
 
     std::vector<float> thinout_scan_range;
 
@@ -94,6 +74,8 @@ private:
 
     visualization_msgs::Marker make_nearest_LRF_marker(int optId);
 
+    void record_loop_info();
+
 public:
     MyDWA(){};
 
@@ -103,6 +85,7 @@ public:
     
     std::ofstream mylogfile;
 
+    bool IsProposed;
 
 };
 
