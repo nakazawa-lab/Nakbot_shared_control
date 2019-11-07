@@ -68,6 +68,8 @@ private:
 
     visualization_msgs::MarkerArray make_traj_marker_array(int);
 
+    visualization_msgs::MarkerArray make_joy_traj_marker_array();
+
     void plot_gnuplot(FILE *gp);
 
     void Proposed();

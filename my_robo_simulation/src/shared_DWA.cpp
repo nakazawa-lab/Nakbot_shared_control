@@ -310,7 +310,7 @@ void my_robo::cal_Dist2()
             std::cout << "d_U:" << d_U << std::endl
                       << std::endl;
         }
-        //　衝突あり 複数ある場合は最大となるときのｄ＿U を求める
+        //　衝突あり
         else
         {
             int mindistIndex = std::min_element(dist.begin(), dist.end()) - dist.begin();
