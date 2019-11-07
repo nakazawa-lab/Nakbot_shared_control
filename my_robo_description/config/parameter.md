@@ -4,7 +4,7 @@
 |項目                   |変数名         |値     |
 |---                    |---            |---    |
 |DWA計算のステップ時刻  |DWA.dt         |0.15   |
-|軌道計算の刻み         |dt_traj        |0.1    |
+|軌道計算の刻み         |dt_traj        |0.05    |
 |軌道予測時刻           |DWA.PredictTime|3      |
 |計算周期               |looprate       |1/dt   |
 |                       |k_head         |1      |
@@ -15,7 +15,7 @@
 |DWAの分解能の分母            |DWA_RESOLUTION_DIV|5|
 |safeがdistの何倍になるか            |LINSAFE_MULTIPLIER|3|
 |                                    |ANGSAFE_MULTIPLIER|3|
-|                                    |PUB_TRAJ_MARKER_PER_LOOP|2|
+|                                    |PUB_TRAJ_MARKER_PER_LOOP|5|
 
 
 - thres_vel_time,thres_ang_timeはpredictTimeと同じがよいか?

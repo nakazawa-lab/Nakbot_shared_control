@@ -15,9 +15,10 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-//#define PABLODWA
-#define MYDWA
+#define PABLODWA
+//#define MYDWA
 #define ISSHARED
+//#define PUB_MARKER
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -342,6 +343,7 @@ void MyDWA::DWAloop()
             //say_time("predict position", loop_start_time);
 
 #ifdef PABLODWA
+if(!IsProposed){
             //cal_Dist();
             cal_Dist2();
             say_time("cal dist", loop_start_time);
@@ -354,27 +356,30 @@ void MyDWA::DWAloop()
             cal_J_sharedDWA(D);
             cal_end_time = std::chrono::system_clock::now();
             //say_time("cal J", loop_start_time);
+}
 #endif
 #ifdef MYDWA
             Proposed();
             cal_end_time = std::chrono::system_clock::now();
-
-            record_loop_info();
             //say_time("proposed", loop_start_time);
 #endif
+            record_loop_info();
 
             if (sensor.joy_cmd_vel[0] > -0)
             {
+# ifdef PUB_MARKER
                 visualization_msgs::MarkerArray markers;
                 if (++loop_flag == PUB_TRAJ_MARKER_PER_LOOP)
                 {
                     // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
                     markers = make_traj_marker_array(opt_index);
+                    pub_marker_array(markers);
+
+                    markers = make_joy_traj_marker_array();
+                    pub_marker_array(markers);
                     loop_flag = 1;
                 }
-
-                pub_marker_array(markers);
-                std::cout << "finish make traj marker" << std::endl;
+#endif
 
 #ifdef MYDWA
                 // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
@@ -396,10 +401,10 @@ void MyDWA::DWAloop()
                 vel.linear.x = CandVel[opt_index][0];
                 vel.angular.z = CandVel[opt_index][1];
 
+                ROS_INFO("opt_idx: %d, pubvel:%f,%f", opt_index, vel.linear.x, vel.angular.z);
 #endif
 #endif
             }
-            ROS_INFO("opt_idx: %d, pubvel:%f,%f", opt_index, vel.linear.x, vel.angular.z);
 
             if (plot_flag)
             {
@@ -435,12 +440,12 @@ void MyDWA::DWAloop()
 }
 
 void MyDWA::record_loop_info(){
-#ifdef MYDWA
+
     auto now = std::chrono::system_clock::now();
     auto timestanp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - start_time).count();
 
     auto loop_cal_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(cal_end_time - loop_start_time).count();
-
+#ifdef MYDWA
     mylogfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm
               << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << ","
               << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang
@@ -483,7 +488,7 @@ int main(int argc, char **argv)
     std::string date = get_current_time();
 
 #ifdef MYDWA
-    robot.IsProposed = false;
+    robot.IsProposed = true;
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
     robot.mylogfile.open(mylogfilename);
 #endif

@@ -5,6 +5,8 @@ import seaborn as sns
 from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 import argparse
+import glob
+import pylab
 
 sns.set_style("darkgrid")
 
@@ -98,6 +100,14 @@ def read_mylog(csv_path):
              }
     return mylog
 
+#- TODO -#
+def make_sparse_house():
+    pass
+
+
+#- TODO -#
+def draw_robot_radius():
+    pass
 
 def make_house():
     house_shape = [[[-0.5, -0.5], [-0.5, 10]], [[-0.5, 15], [10, 10]],
@@ -148,149 +158,165 @@ def plot_start_goal():
 
 
 def main():
-    ############-settings-##############
-    log_path = "../log"
-    pro_filename = "mylog_114137_free2.csv"
-    pro_filename_noext = (pro_filename.split("."))[0]
-    pro_csv_path = os.path.join(log_path, pro_filename)
-    mylog = read_mylog(pro_csv_path)
+    log_path = "../log/graph_src"
 
-    pablo_filename = "log_114138_free2.csv"
-    pablo_filename_noext = (pablo_filename.split("."))[0]
-    pablo_csv_path = os.path.join(log_path, pablo_filename)
-    log = read_log(pablo_csv_path)
+    ############-read logfiles in folders-##############
+    csv_paths = glob.glob(os.path.join(log_path,"*"))
+    filenames = []
+    filenames_noext = []
+    pro_or_pablo = []
+    for logfile in csv_paths:
+        name = os.path.basename(logfile)
+        filenames.append(name)
+        filenames_noext.append(name.split(".")[0])
 
-    ############-argparse-############
-    parser = argparse.ArgumentParser()
+        if name.split("_")[0] == "log":
+            pro_or_pablo.append("pablo")
+        elif name.split("_")[0] == "mylog":
+            pro_or_pablo.append("pro")
 
-    parser.add_argument("method", help="pablo or pro")
 
-    args = parser.parse_args()
+    for i, csv_path in enumerate(csv_paths):
+        if pro_or_pablo[i] == "pablo":
+            LOG = read_log(csv_path)
+        elif pro_or_pablo[i] == "pro":
+            LOG = read_mylog(csv_path)
+        filename_noext = filenames_noext[i]
 
-    LOG = {}
-    filename_noext = ""
-    if args.method == "pro":
-        LOG = mylog
-        filename_noext = pro_filename_noext
-    elif args.method == "pablo":
-        LOG = log
-        filename_noext = pablo_filename_noext
-    
-    #########-3D cost graph-###############
-    costfig = plt.figure()
-    ax = Axes3D(costfig)
-    ax.set_xlabel("X[m]")
-    ax.set_ylabel("Y[m]")
-    ax.set_zlabel("cost")
+        #########-3D cost graph-###############
+        """
+        costfig = plt.figure()
+        ax = Axes3D(costfig)
+        ax.set_xlabel("X[m]")
+        ax.set_ylabel("Y[m]")
+        ax.set_zlabel("cost")
 
-    ax.plot(LOG["pos_x"], LOG["pos_y"], LOG["cost"], marker="o")
-    ax.view_init(elev=30., azim=-120)
-    plt.savefig('./figure/{}_cost_figure.png'.format(filename_noext))
+        ax.plot(LOG["pos_x"], LOG["pos_y"], LOG["cost"], marker="o")
+        ax.view_init(elev=30., azim=-120)
+        plt.savefig('./figure/{}_cost_figure.png'.format(filename_noext))
 
-    plt.show()
-    plt.close()
-    ######-3D adm graph-############
-    admfig = plt.figure()
-    ax2 = Axes3D(admfig)
-    #ax2 = admfig.gca(projection='3d')
-    ax2.set_xlabel("X[m]")
-    ax2.set_ylabel("Y[m]")
-    ax2.set_zlabel("danger")
-    if args.method == "pablo":
-        ax2.plot(LOG["pos_x"], LOG["pos_y"],
-                 LOG["adm"], marker="o", label="danger")
-        ax2.view_init(elev=30., azim=-120)
+        #plt.show()
+        plt.close()
+        
+        ######-3D adm graph-############
+        admfig = plt.figure()
+        ax2 = Axes3D(admfig)
+        #ax2 = admfig.gca(projection='3d')
+        ax2.set_xlabel("X[m]")
+        ax2.set_ylabel("Y[m]")
+        ax2.set_zlabel("danger cost")
+        if pro_or_pablo[i] == "pablo":
+            ax2.plot(LOG["pos_x"], LOG["pos_y"],
+                    LOG["adm"], marker="o", label="danger cost")
+            ax2.view_init(elev=30., azim=-120)
+            plt.legend()
+            plt.savefig('./figure/{}_adm_figure.png'.format(filename_noext))
+
+        if pro_or_pablo[i] == "pro":
+            ax2.plot(LOG["pos_x"], LOG["pos_y"], LOG["linadm"],
+                    marker="o", label="linear danger cost")
+            ax2.plot(LOG["pos_x"], LOG["pos_y"], LOG["angadm"],
+                    marker="o", label="angular danger cost")
+            ax2.view_init(elev=30., azim=-120)
+            plt.legend()
+            plt.savefig('./figure/{}_adm_figure.png'.format(filename_noext))
+        #plt.show()
+        plt.close()
+
+        #########-2D path graph-###############
+        pathfig = plt.figure()
+        plt.xlabel("X[m]")
+        plt.ylabel("Y[m]")
+        #make_house()
+        plt.plot(LOG["pos_x"], LOG["pos_y"], label="robot path")
+        plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
+                borderaxespad=0, fontsize=8)
+        plt.savefig("./figure/{}_path_figure".format(filename_noext))
+
+        #plt.show()
+        plt.close()
+        """
+        #########-2D linvel graph-###############
+        linvelfig = plt.figure()
+        plt.xlabel("Time[s]")
+        plt.ylabel("linear velocity[m/s]")
+        plt.plot(LOG["timestep"], LOG["joy_v"], label="joy linear vel")
+        plt.plot(LOG["timestep"], LOG["cal_vel_v"],
+                label="calculated linear vel")
+        plt.legend(bbox_to_anchor=(1, 1), loc='lower right',
+                borderaxespad=0, fontsize=8)
+        plt.savefig("./figure/{}_linvel_figure".format(filename_noext))
+
+        #plt.show()
+        plt.close()
+
+        #########-2D angvel graph-###############
+        angvelfig = plt.figure()
+        plt.xlabel("Time[s]")
+        plt.ylabel("angular velocity[rad/s]")
+        plt.plot(LOG["timestep"], LOG["joy_w"], label="joy angular vel")
+        plt.plot(LOG["timestep"], LOG["cal_vel_w"],
+                label="calculated angular velocity")
         plt.legend()
-        plt.savefig('./figure/{}_adm_figure.png'.format(filename_noext))
+        plt.savefig("./figure/{}_angnvel_figure".format(filename_noext))
 
-    elif args.method == "pro":
-        ax2.plot(LOG["pos_x"], LOG["pos_y"], LOG["linadm"],
-                 marker="o", label="lin danger")
-        ax2.plot(LOG["pos_x"], LOG["pos_y"], LOG["angadm"],
-                 marker="o", label="ang danger")
-        ax2.view_init(elev=30., azim=-120)
+        #plt.show()
+        plt.close()
+        """
+        #########-2D cost graph-###############
+        costfig = plt.figure()
+        plt.xlabel("Time[s]")
+        plt.ylabel("cost")
+        plt.plot(LOG["timestep"], LOG["cost"], label="cost")
         plt.legend()
-        plt.savefig('./figure/{}_adm_figure.png'.format(filename_noext))
-    plt.show()
-    plt.close()
+        plt.savefig("./figure/{}_cost2d_figure".format(filename_noext))
 
-    #########-2D path graph-###############
-    pathfig = plt.figure()
-    plt.xlabel("X[m]")
-    plt.ylabel("Y[m]")
-    make_house()
-    plt.plot(LOG["pos_x"], LOG["pos_y"], label="robot path")
-    plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
-               borderaxespad=0, fontsize=8)
-    plt.savefig("./figure/{}_path_figure".format(filename_noext))
+        #plt.show()
+        plt.close()
+        """
+        #########-2D lin graph-###############
+        linfig = plt.figure(figsize=(10,4.8))       # default figsize = (6.4, 4.8)
+        ax1 = linfig.add_subplot(111)
+        #ax1.grid(False)
+        ax1.plot(LOG["timestep"], LOG["joy_v"], label="joy vel")
+        ax1.plot(LOG["timestep"], LOG["cal_vel_v"], label="calculated linear velocity")
+        ax1.plot(LOG["timestep"], LOG["now_v"], label="current v")
+        ax1.set_xlabel("Time[s]")
+        ax1.set_ylabel("linear velocity[m/s]")
+        ax1.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
+        ax1.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
 
-    plt.show()
-    plt.close()
+        ax2 = ax1.twinx()
+        ax2.grid(False)
+        ax2.plot(LOG["timestep"], LOG["vel_h_cost"], color = "crimson", label="vel difference cost")
+        
+        h1, l1 = ax1.get_legend_handles_labels()
+        h2, l2 = ax2.get_legend_handles_labels()
+        
+        #ax1.legend(h1+h2, l1+l2, bbox_to_anchor=(1, 1), loc='upper right',
+        #        borderaxespad=0, fontsize=8)
+        ax2.set_ylabel("cost")
+        ax1.legend(h1+h2, l1+l2,bbox_to_anchor=(1.05, 1), loc='upper left',
+                borderaxespad=0, fontsize=8)
 
-    #########-2D linvel graph-###############
-    linvelfig = plt.figure()
-    plt.xlabel("Time[s]")
-    plt.ylabel("linear velocity[m/s]")
-    plt.plot(LOG["timestep"], LOG["joy_v"], label="joy linear vel")
-    plt.plot(LOG["timestep"], LOG["cal_vel_v"],
-             label="calculated linear vel")
-    plt.legend()
-    plt.savefig("./figure/{}_linvel_figure".format(filename_noext))
+        pylab.subplots_adjust(right=0.8)
+        plt.savefig("./figure/{}_linfig_figure".format(filename_noext))
+        #plt.show()
+        plt.close()
 
-    plt.show()
-    plt.close()
-
-    #########-2D angvel graph-###############
-    angvelfig = plt.figure()
-    plt.xlabel("Time[s]")
-    plt.ylabel("angular velocity[rad/s]")
-    plt.plot(LOG["timestep"], LOG["joy_w"], label="joy angular vel")
-    plt.plot(LOG["timestep"], LOG["cal_vel_w"],
-             label="calculated angular vel")
-    plt.legend()
-    plt.savefig("./figure/{}_angnvel_figure".format(filename_noext))
-
-    plt.show()
-    plt.close()
-
-    #########-2D cost graph-###############
-    costfig = plt.figure()
-    plt.xlabel("Time[s]")
-    plt.ylabel("cost")
-    plt.plot(LOG["timestep"], LOG["cost"], label="cost")
-    plt.legend()
-    plt.savefig("./figure/{}_cost2d_figure".format(filename_noext))
-
-    plt.show()
-    plt.close()
-    
-    #########-2D lin graph-###############
-    linfig = plt.figure()
-    plt.xlabel("Time[s]")
-    plt.ylabel("lin")
-    plt.plot(LOG["timestep"], LOG["joy_v"], label="joy vel")
-    plt.plot(LOG["timestep"], LOG["vel_h_cost"], label="vel humen cost")
-    plt.plot(LOG["timestep"], LOG["cal_vel_v"], label="cal lin vel")
-    plt.plot(LOG["timestep"], LOG["now_v"], label="now v")
-    plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
-               borderaxespad=0, fontsize=8)
-    plt.savefig("./figure/{}_linfig_figure".format(filename_noext))
-    plt.show()
-    plt.close()
-
-    #########-2D head graph-###############
-    angfig = plt.figure()
-    plt.xlabel("Time[s]")
-    plt.ylabel("ang")
-    plt.plot(LOG["timestep"], LOG["joy_w"], label="joy ang")
-    plt.plot(LOG["timestep"], LOG["ang_h_cost"], label="ang humen cost")
-    plt.plot(LOG["timestep"], LOG["cal_vel_w"], label="cal ang vel")
-    plt.plot(LOG["timestep"], LOG["now_w"], label="now w")
-    plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
-               borderaxespad=0, fontsize=8)
-    plt.savefig("./figure/{}_angfig_figure".format(filename_noext))
-    plt.show()
-    plt.close()
+        #########-2D head graph-###############
+        angfig = plt.figure()
+        plt.xlabel("Time[s]")
+        plt.ylabel("ang")
+        plt.plot(LOG["timestep"], LOG["joy_w"], label="joy ang")
+        plt.plot(LOG["timestep"], LOG["ang_h_cost"], label="angular difference cost")
+        plt.plot(LOG["timestep"], LOG["cal_vel_w"], label="calculated angular velocity")
+        plt.plot(LOG["timestep"], LOG["now_w"], label="current w")
+        plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
+                borderaxespad=0, fontsize=8)
+        plt.savefig("./figure/{}_angfig_figure".format(filename_noext))
+        #plt.show()
+        plt.close()
 
 
 if __name__ == '__main__':
