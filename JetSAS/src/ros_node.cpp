@@ -3,12 +3,12 @@
 
 #include "JetSAS/ros_node.h"
 
-void JetSAS_Node::pub_lrf(){
-    lrf_pub.publish(*scan);
-    delete[] scan;
-}
+// void JetSAS_Node::pub_lrf(){
+//     lrf_pub.publish(*scan);
+//     delete[] scan;
+// }
 
-void JetSAS_Node::make_sensor_msgs(long* urg_data){
+void JetSAS_Node::make_scan_msgs(long* urg_data){
     std::cout << "urg_data num is" << sizeof(urg_data)/sizeof(*urg_data) <<std::endl;
 
     const int scan_num = sizeof(urg_data)/sizeof(*urg_data);
