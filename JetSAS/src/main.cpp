@@ -49,6 +49,14 @@ long *urg_data;
 ///extern int open_urg_sensor(urg_t *urg, int argc, char *argv[]);
 // #define SAMPLE
 
+/*************************usage serial.cpp jetsas(int,int,int)*************************
+ * jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
+ * jetsas('m',0000,0000);  // コマンド(m,0001,0000) でmortor_on = 0
+ * jetsas('v',5010,5010);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
+ * jetsas('L',5100,5100);  // コマンドLで速度制限地設定指令 v_max=10 2つの引数が一致しなければ変更しない
+ * jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
+/*************************usage serial.cpp jetsas(int,int,int))*************************
+
 /******************************************************** JetsonTK1_init ***/
 int JetsonXavier_init()
 {
@@ -111,10 +119,10 @@ int main(int argc, char *argv[])
 
     printf("jt time0 %d[sec] %d[nsec]\n",jt.get_sec(),jt.get_nsec());
 
-    jetsas('m',0001,0000);
+    jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
     usleep(1000000);         // on for 200ms
 
-    jetsas('v',5010,5010);
+    jetsas('v',5010,5010);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
 ///while(1);
 #ifdef SAMPLE
     for(i=0; i<2; i++)
@@ -175,7 +183,7 @@ int main(int argc, char *argv[])
     {
 ///        jetsas(1,2,3);
 ///        jetsas('v',5100,4900);
-        jetsas('e',0001,0001);
+        jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
 ///    jetsas('v',5100,5100);
 
         /**       sensor(S11059,g); ///        sensor(MPU6050,g);
@@ -218,10 +226,9 @@ int main(int argc, char *argv[])
         /************/
 
         /// ros
-        node.make_sensor_msgs(urg_data);
+        node.make_scan_msgs(urg_data);
         node.pub_lrf();
         ///end ros
-
 
         value=gpio_sw(SW1);
     }

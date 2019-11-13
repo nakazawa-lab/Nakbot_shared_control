@@ -149,7 +149,7 @@ add_executable(${PROJECT_NAME}_node
     src/serial.cpp
     #src/spi.cpp
     src/timer.cpp
-    src/pub_lrf.cpp
+    src/ros_node.cpp
     )
 
 ## Rename C++ executable without prefix
