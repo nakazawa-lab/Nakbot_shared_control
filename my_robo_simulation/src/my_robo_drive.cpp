@@ -498,12 +498,12 @@ int main(int argc, char **argv)
     robot.logfile.open(logfilename);
 #endif
 
-    // gp = popen("gnuplot -persist", "w");
-    // fprintf(gp, "set multiplot\n");
-    // fprintf(gp, "set xrange [-3:3]\n");
-    // fprintf(gp, "set yrange [-0.2:7]\n");
-    // fprintf(gp, "set xlabel \"theta\"\n");
-    // fprintf(gp, "set ylabel \"distance\"\n");
+    gp = popen("gnuplot -persist", "w");
+    fprintf(gp, "set multiplot\n");
+    fprintf(gp, "set xrange [-3:3]\n");
+    fprintf(gp, "set yrange [-0.2:7]\n");
+    fprintf(gp, "set xlabel \"theta\"\n");
+    fprintf(gp, "set ylabel \"distance\"\n");
     robot.DWAloop();
 
     robot.logfile.close();

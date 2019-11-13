@@ -1,3 +1,4 @@
+#include <math.h>
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
@@ -12,7 +13,7 @@ private:
     ros::Publisher odom_pub;
     ros::Publisher joy_pub;
 
-    sensor_msgs::LaserScan *scan;
+    sensor_msgs::LaserScan scan;
     sensor_msgs::Joy joy;
     nav_msgs::Odometry odom;
 
@@ -24,16 +25,21 @@ private:
 
     double old_time, this_loop_time;
 
+    const int urg_data_num =682;        // 実機で得られる点の数
+    const float urg_angle_increment = (2*M_PI)/1024.0;
+
 public:
     JetSAS_Node(){
+        scan.ranges.resize(urg_data_num);
+        scan.angle_increment = urg_angle_increment;
+
         lrf_pub = nh.advertise<sensor_msgs::LaserScan>("/scan",1);
         odom_pub = nh.advertise<nav_msgs::Odometry>("/odom",1);
         joy_pub = nh.advertise<sensor_msgs::Joy>("/joy",1);
     }
 
     void pub_lrf(){
-        lrf_pub.publish(*scan);
-        delete[] scan;
+        lrf_pub.publish(scan);
     };
 
     void pub_odom(){
@@ -44,7 +50,7 @@ public:
         joy_pub.publish(joy);
     };
     
-    void make_scan_msgs(long*);
+    void make_scan_msgs(long*,const int);
 
     void make_joy_msgs();
 

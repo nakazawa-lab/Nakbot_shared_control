@@ -8,19 +8,19 @@
 //     delete[] scan;
 // }
 
-void JetSAS_Node::make_scan_msgs(long* urg_data){
-    std::cout << "urg_data num is" << sizeof(urg_data)/sizeof(*urg_data) <<std::endl;
+void JetSAS_Node::make_scan_msgs(long* urg_data,const int scan_num){
+    //std::cout << "in make scan msgs, urg_data num is " << scan_num <<std::endl;
 
-    const int scan_num = sizeof(urg_data)/sizeof(*urg_data);
-    scan = new sensor_msgs::LaserScan[scan_num];
+    //std::cout << "urg_data[0] " << urg_data[0]/100.0 <<" " << urg_angle_increment <<" "<< scan.angle_increment<<std::endl;
 
     if (scan_num ==0){
         std::cout << "no scan msgs" <<std::endl;
     }
     else{
         for(int i=0; i<scan_num;i++){
-            (*scan).ranges[i] = urg_data[i];
+            //std::cout << "urg data[" << i <<"] is " << urg_data[i] << " " << scan.angle_increment <<std::endl;
+            scan.ranges[i] = urg_data[scan_num-i-1]/100.0;
         }
-        std::cout << "finish make sensor msgs" <<std::endl;
+        //std::cout << "finish make sensor msgs" <<std::endl;
     }
 }
