@@ -47,14 +47,16 @@ int count1=0;///
 urg_t urg;  ///for URG sensor
 long *urg_data;
 ///extern int open_urg_sensor(urg_t *urg, int argc, char *argv[]);
-// #define SAMPLE
+#define SAMPLE
 
 /*************************usage serial.cpp jetsas(int,int,int)*************************
  * jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
  * jetsas('m',0000,0000);  // コマンド(m,0001,0000) でmortor_on = 0
- * jetsas('v',5010,5010);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
+ * jetsas('v',5010,5010);  // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
  * jetsas('L',5100,5100);  // コマンドLで速度制限地設定指令 v_max=10 2つの引数が一致しなければ変更しない
- * jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
+ * jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順←この1年で仕様が変わったかも?
+ * received from nakbot a  b c d 順番に右の速度指令値, 左の速度指令値, 右の実行開始からの進行距離, 左の実行開始からの進行距離　前進方向がエンコーダの値が大きくなる向き
+ * jetsas('r',0001,0001);  // コマンドrでラジコンからの値を取得して表示する　左から回転量(時計回りが正), 並進量(後退方向が正), チャンネルのスイッチ(小さいと入力を受け付けて車輪を動かす), アンテナ右のスイッチの回転量
 /*************************usage serial.cpp jetsas(int,int,int))*************************
 
 /******************************************************** JetsonTK1_init ***/
@@ -122,7 +124,7 @@ int main(int argc, char *argv[])
     jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
     usleep(1000000);         // on for 200ms
 
-    jetsas('v',5050,5050);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
+    jetsas('v',5100,5100);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
 ///while(1);
 #ifdef SAMPLE
     for(i=0; i<2; i++)
@@ -173,18 +175,21 @@ int main(int argc, char *argv[])
     };
         usleep(1000000);         // on for 200ms
 
+#endif  /// #define SAMPLE
+
     // Wait for the push button to be pressed
     cout << "Please press the button!" << endl;
-#endif  /// #define SAMPLE
+
 
     unsigned int value = LOW;
     int j=0;
     do
     {
 ///        jetsas(1,2,3);
-///        jetsas('v',5100,4900);
-        jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
-///    jetsas('v',5100,5100);
+        jetsas('v',5600,4500);
+///        jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
+///        jetsas('v',5100,5100);
+///        jetsas('r',0001,0001);
 
         /**       sensor(S11059,g); ///        sensor(MPU6050,g);
                LCD_printf(0,0,"%6.1f %6.1f ",g[0],g[1]);
