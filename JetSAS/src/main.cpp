@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     int n;
 
     /// ros
-    ros::init(argc, argv, "JetSAS node");
+    ros::init(argc, argv, "JetSAS_node");
     JetSAS_Node node;
     /// end ros
 
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
     usleep(1000000);         // on for 200ms
 
-    jetsas('v',5010,5010);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
+    jetsas('v',5050,5050);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
 ///while(1);
 #ifdef SAMPLE
     for(i=0; i<2; i++)
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
         /************/
 
         /// ros
-        node.make_scan_msgs(urg_data);
+        node.make_scan_msgs(urg_data,n);
         node.pub_lrf();
         ///end ros
 
