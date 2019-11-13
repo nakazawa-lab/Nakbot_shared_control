@@ -75,7 +75,7 @@ int jetsas(char cmd,int prm1, int prm2)
     char dt1[20];
 
 //    char dat[]= "m,0001,0000";//{'m',',','0','0','0','1',',','0','0','0','0',0x0d};
-///    printf("jetsas cmd=%c prm1=%d prm2=%d\n",cmd,prm1,prm2);
+    printf("jetsas cmd=%c prm1=%d prm2=%d\n",cmd,prm1,prm2);
     sprintf(dt1,"%c,%4d,%4d%c",cmd,prm1,prm2,0x0d);
 ///    printf("dt1=%s\n",dt1) ;
 
@@ -97,7 +97,7 @@ int send(char dat[], int n)
 ///        printf("%d \n",i);
 ///        ret=write(tty_fd0,&dat[i],1);
         ret=write(tty_fd0,&dat[i],1);
-///        printf("ret=%d",ret);
+///     printf("ret=%d",ret);
         usleep(5);
     }
     return 0;
