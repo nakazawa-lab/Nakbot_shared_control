@@ -80,7 +80,7 @@ int jetsas(char cmd,int prm1, int prm2)
     char dt1[20];
 
 //    char dat[]= "m,0001,0000";//{'m',',','0','0','0','1',',','0','0','0','0',0x0d};
-    printf("jetsas cmd=%c prm1=%d prm2=%d\n",cmd,prm1,prm2);
+//    printf("jetsas cmd=%c prm1=%d prm2=%d\n",cmd,prm1,prm2);
     sprintf(dt1,"%c,%4d,%4d%c",cmd,prm1,prm2,0x0d);
 ///    printf("dt1=%s\n",dt1) ;
 
@@ -150,7 +150,7 @@ void* th_receive(void* pParam)
     {
         while(read(tty_fd0,&r,1)>0)
         {
-///            printf("received from NakBot %x %c\n",r,r);
+            //printf("received from NakBot %x %c\n",r,r);
             gpio_led(LED_RED,LED_ON);
 
             dat[num]=r;
@@ -158,7 +158,7 @@ void* th_receive(void* pParam)
             if(r=='\r')
             {
                 dat[num]=0;
-                printf("received from NakBot %s \n",dat);
+                //printf("received from NakBot %s \n",dat);
 
                 RS_cmd=dat[0];
 
@@ -182,8 +182,8 @@ void* th_receive(void* pParam)
                   +deci(dat[b+2])*10000+deci(dat[b+3])*1000
                   +deci(dat[b+4])*100+deci(dat[b+5])*10+deci(dat[b+6]);
 
-                 printf("Decoded data %c %8d %8d %8d %8d\n",
-                        RS_cmd,RS_prm[0],RS_prm[1],RS_prm[2],RS_prm[3]);
+                 //printf("Decoded data %c %8d %8d %8d %8d\n",
+                 //       RS_cmd,RS_prm[0],RS_prm[1],RS_prm[2],RS_prm[3]);
 
                 save_serial(RS_cmd, RS_prm);        /// added by kitajima 
                 num=0;

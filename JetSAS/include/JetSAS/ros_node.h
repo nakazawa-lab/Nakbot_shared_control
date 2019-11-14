@@ -78,6 +78,8 @@ private:
 public:
     Joy()
     {
+        std::cout << "joy constructor" <<std::endl;
+        joy.axes.resize(2);
     }
 
     void set_publisher(ros::NodeHandle &nh)
@@ -92,7 +94,7 @@ public:
 
     // ラジコンの値を人間の指令の(v,w)に変換...はしなくてよい
     // 並進方向の大きさをjoy_axes1に, 回転方向の大きさをjoy_axes0に, 最大最小が+-1になるように入れてあげてpubすれば良い
-    void make_joy_msgs(int, int);
+    void make_joy_msgs();
 };
 
 class Odom
@@ -104,6 +106,7 @@ private:
     int encoder_right, encoder_left;
     int old_encoder_right, old_encoder_left;
 
+    // 5000000が基本
     const double encoder_multiplier_vel = 0.1;
 
     double v, w;
@@ -159,6 +162,7 @@ private:
 
     int encoder_prm_r, encoder_prm_l;
 
+    // 5000を基準にしている
     const double cmd_multipler_vel = 0.1;
     const double cmd_multiplier_rot = 0.1;
 
@@ -185,6 +189,7 @@ public:
 
 class RC{
 private:
+    // 1100くらいに基準がある
     const double rc_multiplier_vel= 0.1;
     const double rc_multiplier_rot= 0.1;
     double v_h,w_h;
@@ -228,7 +233,7 @@ public:
 
     JetSAS::RC rc;
 
-    void controlloop(JET_TIMER);
+    void controlloop(JET_TIMER&);
 };
 
 extern JetSAS::Serial_sh ros_serial;

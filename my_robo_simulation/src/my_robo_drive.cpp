@@ -324,6 +324,7 @@ void MyDWA::DWAloop()
         }
         else
         {
+
             check_joy();
 
             //trans_inf(sensor.latest_scan);
@@ -412,6 +413,7 @@ if(!IsProposed){
                 plot_gnuplot(gp);
                 say_time("plot", loop_start_time);
             }
+
         }
 
         pub_cmd.publish(vel);
