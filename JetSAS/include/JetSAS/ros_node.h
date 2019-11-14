@@ -6,14 +6,32 @@
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/Joy.h"
 
+#ifndef ROS_NODE
+#define ROS_NODE
+
 namespace JetSAS
 {
+/// ==TODO== ///
+const double robot_width = 0.3;
+
 struct position
 {
     double x = 0;
     double y = 0;
     double sin_th = 0;
     double cos_th = 1;
+};
+
+struct Serial_sh{
+    struct Rc{
+        int rot, lin, chan3, chan4;
+    };
+    struct Encoder{
+        int r_ref,l_ref,r_sum,l_sum;
+    };
+
+    Rc rc;
+    Encoder encoder;
 };
 
 class Lrf
@@ -86,19 +104,22 @@ private:
     int encoder_right, encoder_left;
     int old_encoder_right, old_encoder_left;
 
-    double encoder_multiplier_vel;
+    const double encoder_multiplier_vel = 0.1;
 
     double v, w;
+
+    double right_v_from_enc, left_v_from_enc;
+    double v_from_enc, w_from_enc;
 
     double right_v, left_v;
 
     position now_p, old_p;
 
-    /// ==TODO== ///
-    const double robot_width = 0.3;
-
-    void set_encoder(int e_right, int e_left)
+    void set_encoder(const int e_right, const int e_left)
     {
+        old_encoder_right = encoder_right;
+        old_encoder_left = encoder_left;
+
         encoder_right = e_right;
         encoder_left = e_left;
     };
@@ -122,7 +143,7 @@ public:
         odom_pub.publish(odom);
     };
 
-    void make_odom_msgs(int, int, double);
+    void make_odom_msgs(const int, const int, const double);
 
     // エンコーダの値から今のv,wを求める
     // 昔のx,yの情報と, 今のv,wとこの1ループの時間から新しい位置x,y を求める
@@ -134,26 +155,44 @@ class Cmd_vel
 {
 private:
     ros::Subscriber sub_vel;
-    geometry_msgs::Twist cmd_vel;
+    geometry_msgs::Twist vel;
+
+    int encoder_prm_r, encoder_prm_l;
+
+    const double cmd_multipler_vel = 0.1;
+    const double cmd_multiplier_rot = 0.1;
+
 
 public:
     Cmd_vel()
     {
-        cmd_vel.linear.x = 0.0;
-        cmd_vel.angular.z = 0.0;
+        vel.linear.x = 0.0;
+        vel.angular.z = 0.0;
     }
 
     void set_subscriber(ros::NodeHandle &nh)
     {
-        sub_vel = nh.subscribe("/cmd_vel", 10, &cb_vel, this);
+        sub_vel = nh.subscribe("/cmd_vel", 10, &Cmd_vel::cb_vel, this);
     }
 
     void cb_vel(const geometry_msgs::Twist::ConstPtr &msgs)
     {
-        cmd_vel = *msgs;
+        vel = *msgs;
     }
 
     void cmd_vel_to_encoder();
+};
+
+class RC{
+private:
+    const double rc_multiplier_vel= 0.1;
+    const double rc_multiplier_rot= 0.1;
+    double v_h,w_h;
+public:
+    RC(){
+
+    }
+    void rc_to_vel();
 };
 } // namespace JetSAS
 
@@ -161,7 +200,8 @@ class JetSAS_Node
 {
 private:
     ros::NodeHandle nh;
-    double old_time, this_loop_time;
+    double old_time=0.0;
+    double this_loop_time;
 
     void pub_sensor()
     {
@@ -186,5 +226,11 @@ public:
 
     JetSAS::Cmd_vel cmd_vel;
 
-    void controlloop();
+    JetSAS::RC rc;
+
+    void controlloop(JET_TIMER);
 };
+
+extern JetSAS::Serial_sh ros_serial;
+
+#endif /// ROS_NODE

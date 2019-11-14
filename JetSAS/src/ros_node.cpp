@@ -1,7 +1,18 @@
+#include <urg_c/urg_sensor.h>
+#include <urg_c/urg_utils.h>
+
+#include "JetSAS/SimpleGPIO.h"
+#include "JetSAS/jetsas.h"
+#include "JetSAS/open_urg_sensor.h"
+
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 
 #include "JetSAS/ros_node.h"
+
+extern long *urg_data;
+extern urg_t urg;
+extern int jetsas(char, int, int);
 
 // void JetSAS_Node::pub_lrf(){
 //     lrf_pub.publish(*scan);
@@ -19,6 +30,30 @@ double add_theorem_cos(double sin_a, double sin_b, double cos_a, double cos_b)
 {
   double a = (cos_a * cos_b - sin_a * sin_b);
   return a;
+}
+
+void save_serial(char &RS_cmd, int (&RS_prm)[4])
+{
+    if (RS_cmd == 'r')
+    {
+        std::cout << "RS_cmd r" << std::endl;
+        ros_serial.rc.rot = RS_prm[0];
+        ros_serial.rc.lin = RS_prm[1];
+        ros_serial.rc.chan3 = RS_prm[2];
+        ros_serial.rc.chan4 = RS_prm[3];
+    }
+    else if (RS_cmd == 'e')
+    {
+        std::cout << "RS_cmd e" << std::endl;
+        ros_serial.encoder.r_ref = RS_prm[0];
+        ros_serial.encoder.l_ref = RS_prm[1];
+        ros_serial.encoder.r_sum = RS_prm[2];
+        ros_serial.encoder.l_sum = RS_prm[3];
+    }
+    else
+    {
+        std::cout << "RS_cmd except r or e" << std::endl;
+    }
 }
 
 void JetSAS::Lrf::make_scan_msgs(long* urg_data,const int scan_num){
@@ -45,8 +80,18 @@ void JetSAS::Odom::cal_now_vel(const double this_loop_time){
     left_v = (encoder_left - old_encoder_left) / this_loop_time * encoder_multiplier_vel;
 
     // ここの符号は実験の結果変わるかもしれない
-    v = (right_v + left_v) / 2;
-    w = (right_v - left_v) / robot_width; 
+    v = (right_v + left_v) / 2.0;
+    w = (right_v - left_v) / robot_width;
+
+    std::cout << "from position encoder, (v,w) is " << v  << ", " << w << std::endl;
+
+    right_v_from_enc = (ros_serial.encoder.r_ref - 5000) * encoder_multiplier_vel;
+    left_v_from_enc = (ros_serial.encoder.l_ref - 5000) * encoder_multiplier_vel;
+
+    v_from_enc = (right_v_from_enc + left_v_from_enc) / 2.0;
+    w_from_enc = (right_v_from_enc - left_v_from_enc) / robot_width;
+
+    std::cout << "from vel encoder, (v,w) is " << v_from_enc  << ", " << w_from_enc << std::endl;
 
     old_encoder_right =  encoder_right;
     old_encoder_left = encoder_left;
@@ -66,7 +111,7 @@ void JetSAS::Odom::cal_pose(double dt){
     old_p = now_p;
 }
 
-void JetSAS::Odom::make_odom_msgs(int e_right, int e_left, double this_loop_time){
+void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const double this_loop_time){
     set_encoder(e_right,e_left);
     cal_now_vel(this_loop_time);
     cal_pose(this_loop_time);
@@ -89,20 +134,59 @@ void JetSAS::Odom::make_odom_msgs(int e_right, int e_left, double this_loop_time
 
     odom.twist.twist.linear.x = v;
     odom.twist.twist.angular.z = w;
+
+    std::cout << "(x, y, sin_th, cos_th) " << now_p.x << ", " << now_p.y << ", "<< now_p.sin_th << ", "<< now_p.cos_th <<std::endl;
 }
 
-void JetSAS_Node::controlloop(){
+void JetSAS::Cmd_vel::cmd_vel_to_encoder(){
+    //     geometry_msgs::Twist vel;        を
+    //     int encoder_prm1, encoder_prm2;　に変換する
+    double tmp = vel.angular.z * robot_width / 2.0;
+    encoder_prm_r = vel.linear.x + tmp;
+    encoder_prm_l = vel.linear.x - tmp;
+
+    std::cout << "in cmd_vel encoder_prm_r and encoder_prm_l " << encoder_prm_r << " " << encoder_prm_l << std::endl; 
+}
+
+void JetSAS::RC::rc_to_vel(){
+    v_h = (ros_serial.rc.lin - 5000.0) * rc_multiplier_vel;
+    w_h = (ros_serial.rc.rot - 5000.0) * rc_multiplier_rot;
+}
+
+void JetSAS_Node::controlloop(JET_TIMER jt){
+    int n;
+    long time_stamp;
+
     // urgの値をとってくる　get_urg
+    urg_start_measurement(&urg, URG_DISTANCE, 1, 0);
+    n = urg_get_distance(&urg, urg_data, &time_stamp);
+    if (n < 0)
+    {
+        printf("urg_get_distance: %s\n", urg_error(&urg));
+        urg_close(&urg);
+    }
+    lrf.make_scan_msgs(urg_data,n);
 
     // エンコーダの値をサンプルプログラムからとってくる jetstas e
+    //jetsas('e',0001,0001);
+
+    // エンコーダの値をもとに現在の位置と速度を計算する
+    this_loop_time = (double)(jt.get_nsec() / 1000000000.0) - old_time;
+    std::cout <<"this loop time " << this_loop_time;
+    odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,this_loop_time);
 
     // RCの値をサンプルプログラムからとってくる jetsas r
+    //jetsas('r',0001,0001);
+
+    // RCの値をもとに現在の人間からの速度指令値を計算する
+
 
     // odom, lrf, joyをpublish
     pub_sensor();
 
-    // subscribeした情報をshが理解できる値に変換する
+    // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
     cmd_vel.cmd_vel_to_encoder();
 
     // SHに送信する jetsas v
+    // jetsas('v',hoge,fuga);
 }

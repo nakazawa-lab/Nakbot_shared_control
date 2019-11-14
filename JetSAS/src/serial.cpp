@@ -21,7 +21,12 @@
 
 #include "JetSAS/jetsas.h"
 
+#include "JetSAS/ros_node.h"       // addded by kitajima
+
 int tty_fd0, tty_fd1 ;
+
+JetSAS::Serial_sh ros_serial;       // added by kitajima
+extern void save_serial(char &RS_cmd, int (&RS_prm)[4]);
 
 /*************************************************************** UART_init ***/
 int UART_init(void)
@@ -180,6 +185,7 @@ void* th_receive(void* pParam)
                  printf("Decoded data %c %8d %8d %8d %8d\n",
                         RS_cmd,RS_prm[0],RS_prm[1],RS_prm[2],RS_prm[3]);
 
+                save_serial(RS_cmd, RS_prm);        /// added by kitajima 
                 num=0;
             }
             gpio_led(LED_RED,LED_OFF);
