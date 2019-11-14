@@ -152,6 +152,7 @@ add_executable(${PROJECT_NAME}_node
     #src/spi.cpp
     src/timer.cpp
     src/ros_node.cpp
+    src/util.cpp
     )
 
 ## Rename C++ executable without prefix

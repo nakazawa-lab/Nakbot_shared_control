@@ -32,7 +32,7 @@ double add_theorem_cos(double sin_a, double sin_b, double cos_a, double cos_b)
   return a;
 }
 
-void save_serial(char &RS_cmd, int (&RS_prm)[4])
+void save_serial(const char &RS_cmd, const int (&RS_prm)[4])
 {
     if (RS_cmd == 'r')
     {
@@ -214,6 +214,31 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
     //cmd_vel.cmd_vel_to_encoder();
 
     // SHに送信する jetsas v
-    // jetsas('v',hoge,fuga);
+    // jetsas('v',encoder_prm_r,encoder_prm_l);
     std::cout << std::endl;
+
+    write_log();
+}
+
+void JetSAS_Node::make_log_col(){
+    // パラメータを入れる拡張あり
+
+    // 列を入れる
+    std::string col_name = "e1_right_vel.e2_left_vel,e3_right_sum,e4_left_sum,r1_rot,r2_lin,r3_chan3,r4_chan4";
+    logfile << col_name << std::endl;
+}
+
+void JetSAS_Node::write_log(){
+    logfile << ros_serial.encoder.r_ref << "," << ros_serial.encoder.l_ref << "," << ros_serial.encoder.r_sum << "," << 
+ros_serial.encoder.l_sum << "," << ros_serial.rc.rot << "," << ros_serial.rc.lin << "," << ros_serial.rc.chan3 << "," << 
+ros_serial.rc.chan4 <<std::endl;
+    // if(!LOG.empty()){
+    //     logfile << LOG[0];
+    //     for (int i = 1; i < LOG.size(); i++)
+    //     {
+    //         logfile << "," << LOG[i];
+    //     }
+    //     logfile << std::endl;
+    // }
+    // clear_vector();
 }

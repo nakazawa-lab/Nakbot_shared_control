@@ -1,5 +1,7 @@
 #include <math.h>
 #include <cassert>
+#include <fstream>
+#include <string>
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
@@ -8,6 +10,8 @@
 
 #ifndef ROS_NODE
 #define ROS_NODE
+
+extern std::string get_current_time();
 
 namespace JetSAS
 {
@@ -208,6 +212,9 @@ private:
     double old_time=0.0;
     double this_loop_time;
 
+    std::ofstream logfile;
+    //std::vector<double> LOG;
+
     void pub_sensor()
     {
         lrf.pub_lrf();
@@ -215,13 +222,28 @@ private:
         joy.pub_joy();
     };
 
+    void make_log_col();
+
+    void write_log();
+
+    // void clear_vector(){
+    //     std::vector<double>().swap(LOG);
+    // };
+
 public:
     JetSAS_Node()
     {
         lrf.set_publisher(nh);
         odom.set_publisher(nh);
         joy.set_publisher(nh);
-    }
+        logfile.open("./"+get_current_time());
+        std::cout << "finish JetSAS_Node constructor" << std::endl;
+    };
+
+    ~JetSAS_Node(){
+        std::cout << "JetSAS destructor" <<std::endl;
+        logfile.close();
+    };
 
     JetSAS::Lrf lrf;
 
@@ -234,8 +256,8 @@ public:
     JetSAS::RC rc;
 
     void controlloop(JET_TIMER&);
+
 };
 
 extern JetSAS::Serial_sh ros_serial;
-
 #endif /// ROS_NODE
