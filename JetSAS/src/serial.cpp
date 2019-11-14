@@ -26,7 +26,7 @@
 int tty_fd0, tty_fd1 ;
 
 JetSAS::Serial_sh ros_serial;       // added by kitajima
-extern void save_serial(char &RS_cmd, int (&RS_prm)[4]);
+extern void save_serial(const char &RS_cmd, const int (&RS_prm)[4]);
 
 /*************************************************************** UART_init ***/
 int UART_init(void)
