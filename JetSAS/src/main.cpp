@@ -47,7 +47,7 @@ int count1=0;///
 urg_t urg;  ///for URG sensor
 long *urg_data;
 ///extern int open_urg_sensor(urg_t *urg, int argc, char *argv[]);
-#define SAMPLE
+// #define SAMPLE
 
 /*************************usage serial.cpp jetsas(int,int,int)*************************
  * jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "JetSAS_node");
     JetSAS_Node node;
     /// end ros
-
+#ifdef SAMPLE
     cv::Mat img = cv::Mat::zeros(500, 680, CV_8UC3);
     cv::namedWindow("URG data", CV_WINDOW_AUTOSIZE|CV_WINDOW_FREERATIO);
     cv::imshow("URG data", img);
-
+#endif
     pthread_t tid1, tid2, tid3;
     pthread_mutex_init(&mutex, NULL);
 
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
     usleep(1000000);         // on for 200ms
 
-    jetsas('v',5100,5100);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
+//    jetsas('v',5100,5100);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
 ///while(1);
 #ifdef SAMPLE
     for(i=0; i<2; i++)
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
     do
     {
 ///        jetsas(1,2,3);
-        jetsas('v',5600,4500);
+///        jetsas('v',5600,4500);
 ///        jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
 ///        jetsas('v',5100,5100);
 ///        jetsas('r',0001,0001);
@@ -231,8 +231,9 @@ int main(int argc, char *argv[])
         /************/
 
         /// ros
-        node.lrf.make_scan_msgs(urg_data,n);
-        node.lrf.pub_lrf();
+        //node.lrf.make_scan_msgs(urg_data,n);
+        //node.lrf.pub_lrf();
+        node.controlloop(jt);
         ///end ros
 
         value=gpio_sw(SW1);
