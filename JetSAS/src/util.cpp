@@ -23,3 +23,5 @@ std::string get_current_time()
 
     return std::to_string(month) + std::to_string(day) + std::to_string(hour) + std::to_string(minute);
 }
+
+

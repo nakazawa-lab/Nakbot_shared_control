@@ -183,11 +183,13 @@ int main(int argc, char *argv[])
 
     unsigned int value = LOW;
     int j=0;
+    int vel_i =0;
     do
     {
 ///        jetsas(1,2,3);
 ///        jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
-        jetsas('v',node.temp,node.temp);
+///        jetsas('v',node.temp,node.temp);
+           jetsas('v',5070,4970);
 ///        jetsas('r',0001,0001);
 
         /**       sensor(S11059,g); ///        sensor(MPU6050,g);
