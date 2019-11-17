@@ -79,28 +79,25 @@ void JetSAS::Lrf::make_scan_msgs(long* urg_data,const int scan_num){
 void JetSAS::Odom::cal_now_vel(const double this_loop_time){
     assert(this_loop_time != 0);
 
-    right_v = (encoder_right - old_encoder_right) / this_loop_time * encoder_multiplier_vel;
-    left_v = (encoder_left - old_encoder_left) / this_loop_time * encoder_multiplier_vel;
+    //right_v = (encoder_right - old_encoder_right) / this_loop_time * encoder_multiplier_vel;
+    //left_v = (encoder_left - old_encoder_left) / this_loop_time * encoder_multiplier_vel;
 
     //std::cout << "in cal now vel " << encoder_right << " " << old_encoder_right <<std::endl;
     // ここの符号は実験の結果変わるかもしれない
-    v = (right_v + left_v) / 2.0;
-    w = (right_v - left_v) / robot_width;
+    //v = (right_v + left_v) / 2.0;
+    //w = (right_v - left_v) / robot_width;
 
     //std::cout << "from position encoder, (v,w) is " << v  << ", " << w << std::endl;
     //std::cout << "right v left v " <<right_v << " " << left_v  <<std::endl;
 
-    right_v_from_enc = (ros_serial.encoder.r_ref - 5000) * encoder_multiplier_vel;
-    left_v_from_enc = (ros_serial.encoder.l_ref - 5000) * encoder_multiplier_vel;
+    right_v = (ros_serial.encoder.r_ref - INTERCEPT_ENCODER) * encoder_multiplier;
+    left_v = (ros_serial.encoder.l_ref - INTERCEPT_ENCODER) * encoder_multiplier;
     
-    //std::cout << "right v from enc " << right_v_from_enc << " " << left_v_from_enc << std::endl; 
-    v_from_enc = (right_v_from_enc + left_v_from_enc) / 2.0;
-    w_from_enc = (right_v_from_enc - left_v_from_enc) / robot_width;
+    std::cout << "right v from enc " << right_v << " " << left_v << std::endl; 
+    v = (right_v + left_v) / 2.0;
+    w = (right_v - left_v) / robot_width;
 
-    //std::cout << "from vel encoder, (v,w) is " << v_from_enc  << ", " << w_from_enc << std::endl;
-
-    old_encoder_right =  encoder_right;
-    old_encoder_left = encoder_left;
+    std::cout << "from vel encoder, (v,w) is " << v  << ", " << w << std::endl;
 }
 
 void JetSAS::Odom::cal_pose(double dt){
@@ -149,16 +146,17 @@ void JetSAS::Cmd_vel::cmd_vel_to_encoder(){
     //     geometry_msgs::Twist vel;        を
     //     int encoder_prm1, encoder_prm2;　に変換する
     double tmp = vel.angular.z * robot_width / 2.0;
-    encoder_prm_r = vel.linear.x + tmp;
-    encoder_prm_l = vel.linear.x - tmp;
+    encoder_cmd_r = (vel.linear.x + tmp) * cmd_multiplier_to_enc + INTERCEPT_ENCODER;
+    encoder_cmd_l = (vel.linear.x - tmp) * cmd_multiplier_to_enc + INTERCEPT_ENCODER;
 
-    std::cout << "in cmd_vel encoder_prm_r and encoder_prm_l " << encoder_prm_r << " " << encoder_prm_l << std::endl; 
+    std::cout << "in cmd_vel encoder_prm_r and encoder_prm_l " << encoder_cmd_r << " " << encoder_cmd_l << std::endl; 
 }
 
-void JetSAS::RC::rc_to_vel(){
-    // この基準1000の値を検討する必要がある
-    v_h = (ros_serial.rc.lin - 1000.0) * rc_multiplier_vel;
-    w_h = (ros_serial.rc.rot - 1000.0) * rc_multiplier_rot;
+void JetSAS::RC::rc_to_encoder(){
+    v_right_enc = (ros_serial.rc.lin *rc_multiplier_vel_r + ros_serial.rc.rot * rc_multiplier_rot_r) + INTERCEPT_ENCODER;
+    v_left_enc = (ros_serial.rc.lin *rc_multiplier_vel_l + ros_serial.rc.rot * rc_multiplier_rot_l) + INTERCEPT_ENCODER;
+
+    std::cout << "rc to encoder" << v_right_enc << " " << v_left_enc <<std::endl;
 }
 
 void JetSAS::Joy::make_joy_msgs(){
@@ -174,7 +172,6 @@ void JetSAS::Joy::make_joy_msgs(){
     joy.axes[0] = joy_axes0;
     joy.axes[1] = joy_axes1;
 }
-
 
 
 void JetSAS_Node::controlloop(JET_TIMER &jt){
@@ -212,7 +209,7 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
     pub_sensor();
 
     // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
-    //cmd_vel.cmd_vel_to_encoder();
+    cmd_vel.cmd_vel_to_encoder();
 
     // SHに送信する jetsas v
     // jetsas('v',encoder_prm_r,encoder_prm_l);
@@ -238,13 +235,4 @@ void JetSAS_Node::write_log(){
 ros_serial.encoder.r_sum << "," << 
 ros_serial.encoder.l_sum << "," << ros_serial.rc.rot << "," << ros_serial.rc.lin << "," << ros_serial.rc.chan3 << "," << 
 ros_serial.rc.chan4 <<std::endl;
-    // if(!LOG.empty()){
-    //     logfile << LOG[0];
-    //     for (int i = 1; i < LOG.size(); i++)
-    //     {
-    //         logfile << "," << LOG[i];
-    //     }
-    //     logfile << std::endl;
-    // }
-    // clear_vector();
 }
