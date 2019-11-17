@@ -186,9 +186,8 @@ int main(int argc, char *argv[])
     do
     {
 ///        jetsas(1,2,3);
-///        jetsas('v',5600,4500);
 ///        jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
-///        jetsas('v',5100,5100);
+        jetsas('v',node.temp,node.temp);
 ///        jetsas('r',0001,0001);
 
         /**       sensor(S11059,g); ///        sensor(MPU6050,g);
