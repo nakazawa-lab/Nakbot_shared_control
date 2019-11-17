@@ -183,13 +183,12 @@ int main(int argc, char *argv[])
 
     unsigned int value = LOW;
     int j=0;
-    int vel_i =0;
     do
     {
 ///        jetsas(1,2,3);
 ///        jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
 ///        jetsas('v',node.temp,node.temp);
-           jetsas('v',5070,4970);
+///        jetsas('v',5070,4970);
 ///        jetsas('r',0001,0001);
 
         /**       sensor(S11059,g); ///        sensor(MPU6050,g);
@@ -202,6 +201,7 @@ int main(int argc, char *argv[])
         **/
 
         /*****/
+#ifdef SAMPLE
         urg_start_measurement(&urg, URG_DISTANCE, 1, 0); /// URG sample
         n = urg_get_distance(&urg, urg_data, &time_stamp);
         if (n < 0)
@@ -212,15 +212,12 @@ int main(int argc, char *argv[])
         }
         for (i = 0; i < n; ++i)     //nはデータの個数(683とか?) urg_dataの配列orベクトルの添え字で距離が得られる
         {
-            #ifdef SAMPLE
             /// printf("i=%d d=%d \n",i,data[i]);
             cv::Point f=cv::Point(i, 0);
             cv::line(img, cv::Point(i, 0), cv::Point(i, 500), cv::Scalar(0,0,0), 1, 4);
             cv::line(img, cv::Point(i, 500), cv::Point(i, 500-urg_data[i]/5), cv::Scalar(200,0,0), 1, 4);
-            #endif
         }
         // 図に基準となる横線を引く
-        #ifdef SAMPLE
         cv::line(img, cv::Point(0, 100), cv::Point(680, 100), cv::Scalar(0,0,200), 1, 4);
         cv::line(img, cv::Point(0, 200), cv::Point(680, 200), cv::Scalar(0,0,200), 1, 4);
         cv::line(img, cv::Point(0, 300), cv::Point(680, 300), cv::Scalar(0,0,200), 1, 4);
@@ -228,14 +225,14 @@ int main(int argc, char *argv[])
         cv::imshow("URG data", img);
         cv::waitKey(1);
         usleep(1000);      // sleep for one millisecond
-        #endif
+#endif
         /************/
 
-        /// ros
+        /// ros addedby kitajima
         //node.lrf.make_scan_msgs(urg_data,n);
         //node.lrf.pub_lrf();
         node.controlloop(jt);
-        ///end ros
+        ///end ros added by kitajima
 
         value=gpio_sw(SW1);
     }
