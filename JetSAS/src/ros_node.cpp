@@ -181,6 +181,7 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
     int n;
     long time_stamp;
     std::cout << "start control function" << std::endl;
+    loop_start_time = std::chrono::system_clock::now();
 
     // urgの値をとってくる　get_urg
     urg_start_measurement(&urg, URG_DISTANCE, 1, 0);
@@ -223,13 +224,18 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
 void JetSAS_Node::make_log_col(){
     // パラメータを入れる拡張あり
 
+    logfile << std::endl; 
     // 列を入れる
-    std::string col_name = "e1_right_vel.e2_left_vel,e3_right_sum,e4_left_sum,r1_rot,r2_lin,r3_chan3,r4_chan4";
+    std::string col_name = "time,e1_right_vel,e2_left_vel,e3_right_sum,e4_left_sum,r1_rot,r2_lin,r3_chan3,r4_chan4";
     logfile << col_name << std::endl;
 }
 
 void JetSAS_Node::write_log(){
-    logfile << ros_serial.encoder.r_ref << "," << ros_serial.encoder.l_ref << "," << ros_serial.encoder.r_sum << "," << 
+  auto dur = std::chrono::system_clock::now() - start_time;
+  auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+
+    logfile << (double)(msec/1000.0) << "," << ros_serial.encoder.r_ref << "," << ros_serial.encoder.l_ref << "," << 
+ros_serial.encoder.r_sum << "," << 
 ros_serial.encoder.l_sum << "," << ros_serial.rc.rot << "," << ros_serial.rc.lin << "," << ros_serial.rc.chan3 << "," << 
 ros_serial.rc.chan4 <<std::endl;
     // if(!LOG.empty()){

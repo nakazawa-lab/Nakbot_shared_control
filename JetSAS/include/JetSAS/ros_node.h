@@ -2,6 +2,7 @@
 #include <cassert>
 #include <fstream>
 #include <string>
+#include <chrono>
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
@@ -211,6 +212,8 @@ private:
     ros::NodeHandle nh;
     double old_time=0.0;
     double this_loop_time;
+    std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
+    std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> loop_start_time;
 
     std::ofstream logfile;
     //std::vector<double> LOG;
@@ -236,7 +239,9 @@ public:
         lrf.set_publisher(nh);
         odom.set_publisher(nh);
         joy.set_publisher(nh);
-        logfile.open("./"+get_current_time());
+        logfile.open("./log_JetSAS/20191117jetsasV/"+std::to_string(temp) +"/log_"+get_current_time()+".csv");
+        make_log_col();
+        start_time = std::chrono::system_clock::now();
         std::cout << "finish JetSAS_Node constructor" << std::endl;
     };
 
@@ -256,6 +261,8 @@ public:
     JetSAS::RC rc;
 
     void controlloop(JET_TIMER&);
+
+    int temp = 5999;
 
 };
 
