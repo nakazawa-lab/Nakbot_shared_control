@@ -142,7 +142,7 @@ void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const doub
     odom.twist.twist.linear.x = v;
     odom.twist.twist.angular.z = w;
 
-    std::cout << "(x, y, sin_th, cos_th) " << now_p.x << ", " << now_p.y << ", "<< now_p.sin_th << ", "<< now_p.cos_th <<std::endl;
+    //std::cout << "(x, y, sin_th, cos_th) " << now_p.x << ", " << now_p.y << ", "<< now_p.sin_th << ", "<< now_p.cos_th <<std::endl;
 }
 
 void JetSAS::Cmd_vel::cmd_vel_to_encoder(){
@@ -169,7 +169,7 @@ void JetSAS::Joy::make_joy_msgs(){
 
     joy_axes1 = (ros_serial.rc.lin - center_lin) / (max_rc_lin - min_rc_lin);
     joy_axes0 = (ros_serial.rc.rot - center_rot) / (max_rc_rot - min_rc_rot);
-    std::cout << "in make joy msgs " << joy_axes1 << " " << joy_axes0 << std::endl;
+    //std::cout << "in make joy msgs " << joy_axes1 << " " << joy_axes0 << std::endl;
 
     joy.axes[0] = joy_axes0;
     joy.axes[1] = joy_axes1;
@@ -180,7 +180,7 @@ void JetSAS::Joy::make_joy_msgs(){
 void JetSAS_Node::controlloop(JET_TIMER &jt){
     int n;
     long time_stamp;
-    std::cout << "start control function" << std::endl;
+    //std::cout << "start control function" << std::endl;
     loop_start_time = std::chrono::system_clock::now();
 
     // urgの値をとってくる　get_urg

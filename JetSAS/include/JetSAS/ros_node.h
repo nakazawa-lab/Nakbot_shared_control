@@ -203,6 +203,8 @@ public:
 
     }
     void rc_to_vel();
+
+    void rc_to_encoder();
 };
 } // namespace JetSAS
 
@@ -239,7 +241,7 @@ public:
         lrf.set_publisher(nh);
         odom.set_publisher(nh);
         joy.set_publisher(nh);
-        logfile.open("./log_JetSAS/20191117jetsasV/"+std::to_string(temp) +"/log_"+get_current_time()+".csv");
+        logfile.open("./log_JetSAS/log_"+get_current_time()+".csv");
         make_log_col();
         start_time = std::chrono::system_clock::now();
         std::cout << "finish JetSAS_Node constructor" << std::endl;
@@ -262,7 +264,7 @@ public:
 
     void controlloop(JET_TIMER&);
 
-    int temp = 5999;
+    //int temp = 5999;
 
 };
 
