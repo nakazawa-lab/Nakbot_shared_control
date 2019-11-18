@@ -182,6 +182,7 @@ def main():
         elif pro_or_pablo[i] == "pro":
             LOG = read_mylog(csv_path)
         filename_noext = filenames_noext[i]
+        os.makedirs("./figure/"+filename_noext,exist_ok=True)
 
         #########-3D cost graph-###############
         """
@@ -193,7 +194,7 @@ def main():
 
         ax.plot(LOG["pos_x"], LOG["pos_y"], LOG["cost"], marker="o")
         ax.view_init(elev=30., azim=-120)
-        plt.savefig('./figure/{}_cost_figure.png'.format(filename_noext))
+        plt.savefig('./figure/{}/{}_cost_figure.png'.format(filename_noext,filename_noext))
 
         #plt.show()
         plt.close()
@@ -210,7 +211,7 @@ def main():
                     LOG["adm"], marker="o", label="danger cost")
             ax2.view_init(elev=30., azim=-120)
             plt.legend()
-            plt.savefig('./figure/{}_adm_figure.png'.format(filename_noext))
+            plt.savefig('./figure/{}/{}_adm_figure.png'.format(filename_noext,filename_noext))
 
         if pro_or_pablo[i] == "pro":
             ax2.plot(LOG["pos_x"], LOG["pos_y"], LOG["linadm"],
@@ -219,7 +220,7 @@ def main():
                     marker="o", label="angular danger cost")
             ax2.view_init(elev=30., azim=-120)
             plt.legend()
-            plt.savefig('./figure/{}_adm_figure.png'.format(filename_noext))
+            plt.savefig('./figure/{}/{}_adm_figure.png'.format(filename_noext,filename_noext))
         #plt.show()
         plt.close()
 
@@ -231,7 +232,7 @@ def main():
         plt.plot(LOG["pos_x"], LOG["pos_y"], label="robot path")
         plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
                 borderaxespad=0, fontsize=8)
-        plt.savefig("./figure/{}_path_figure".format(filename_noext))
+        plt.savefig("./figure/{}/{}_path_figure".format(filename_noext,filename_noext))
 
         #plt.show()
         plt.close()
@@ -243,13 +244,14 @@ def main():
         ax.plot(LOG["timestep"], LOG["cal_vel_v"], label="calculated linear vel")
         ax.set_xlabel("Time[s]")
         ax.set_ylabel("linear velocity[m/s]")
+        ax.set_xlim([0,30])
         ax.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax.legend()
         plt.legend(bbox_to_anchor=(1.07, 1), loc='upper left',
                 borderaxespad=0, fontsize=8)
         pylab.subplots_adjust(right=0.75)
-        plt.savefig("./figure/{}_linvel_figure".format(filename_noext))
+        plt.savefig("./figure/{}/{}_linvel_figure".format(filename_noext,filename_noext))
 
         #plt.show()
         plt.close()
@@ -261,13 +263,14 @@ def main():
         ax.plot(LOG["timestep"], LOG["cal_vel_w"], label="calculated angular velocity")
         ax.set_xlabel("Time[s]")
         ax.set_ylabel("angular velocity[rad/s]")
+        ax.set_xlim([0,30])
         ax.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax.legend()
         plt.legend(bbox_to_anchor=(1.07, 1), loc='upper left',
                 borderaxespad=0, fontsize=8)
         pylab.subplots_adjust(right=0.75)
-        plt.savefig("./figure/{}_angnvel_figure".format(filename_noext))
+        plt.savefig("./figure/{}/{}_angnvel_figure".format(filename_noext,filename_noext))
 
         #plt.show()
         plt.close()
@@ -284,7 +287,7 @@ def main():
         plt.legend(bbox_to_anchor=(1.07, 1), loc='upper left',
                 borderaxespad=0, fontsize=8)
         pylab.subplots_adjust(right=0.75)
-        plt.savefig("./figure/{}_cost2d_figure".format(filename_noext))
+        plt.savefig("./figure/{}/{}_cost2d_figure".format(filename_noext,filename_noext))
 
         #plt.show()
         plt.close()
@@ -297,6 +300,7 @@ def main():
         ax1.plot(LOG["timestep"], LOG["now_v"], label="current v")
         ax1.set_xlabel("Time[s]")
         ax1.set_ylabel("linear velocity[m/s]")
+        ax.set_xlim([0,30])
         ax1.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax1.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
 
@@ -312,7 +316,7 @@ def main():
                 borderaxespad=0, fontsize=8)
 
         pylab.subplots_adjust(right=0.75)
-        plt.savefig("./figure/{}_linfig_figure".format(filename_noext))
+        plt.savefig("./figure/{}/{}_linfig_figure".format(filename_noext,filename_noext))
         #plt.show()
         plt.close()
 
@@ -325,6 +329,7 @@ def main():
         ax1.plot(LOG["timestep"], LOG["now_w"], label="current w")
         ax1.set_xlabel("Time[s]")
         ax1.set_ylabel("angular velocity[rad/s]")
+        ax.set_xlim([0,30])
         ax1.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax1.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
 
@@ -340,7 +345,7 @@ def main():
                 borderaxespad=0, fontsize=8)
 
         pylab.subplots_adjust(right=0.75)
-        plt.savefig("./figure/{}_angfig_figure".format(filename_noext))
+        plt.savefig("./figure/{}/{}_angfig_figure".format(filename_noext,filename_noext))
         #plt.show()
         plt.close()
 

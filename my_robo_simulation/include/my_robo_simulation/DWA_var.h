@@ -20,9 +20,9 @@ class DWA_var
 {
 public:
     // DWA設定の刻み.ループレイトと同じが望ましい
-    const double dt = 0.3;
+    const double dt = 0.2;
     // 軌道計算の刻み
-    const double dt_traj = 0.05;
+    const double dt_traj = 0.1;
     // 軌道予測時刻
     const double PredictTime = 3;
     const double looprate = 1 / dt;
@@ -34,13 +34,15 @@ public:
     const float thres_vel_time = 2.5;
     const float thres_ang_time = 2.5;
 
-    const int POINT_INTERVAL = 10;
+    const int POINT_INTERVAL = 2;
 
     const double DWA_RESOLUTION_DIV = 5;
 
     const int LINSAFE_MULTIPLIER = 3;
     const int ANGSAFE_MULTIPLIER = 3;
     const int PUB_TRAJ_MARKER_PER_LOOP = 5;
+
+    const bool IsREAL = false;
 
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
 
