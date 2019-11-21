@@ -18,7 +18,7 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 //#define PABLODWA
 #define MYDWA
 #define ISSHARED
-//#define PUB_MARKER
+#define PUB_MARKER
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -211,7 +211,7 @@ const void my_robo::push_back_traj(const int i, const double time, const positio
 void my_robo::cal_predict_position()
 {
     double time, d, theta, radius;
-    //ROS_INFO("candidate size is %d", CandVel.size());
+    ROS_INFO("candidate size is %d", CandVel.size());
     // すべての候補に対して
     for (int i = 0; i < CandVel.size(); i++)
     {
@@ -447,12 +447,17 @@ void MyDWA::record_loop_info(){
     auto timestanp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - start_time).count();
 
     auto loop_cal_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(cal_end_time - loop_start_time).count();
+
+    std::vector<float>::iterator minIt = std::min_element(sensor.latest_scan.ranges.begin(),sensor.latest_scan.ranges.end());
+    int minScanIdx = std::distance(sensor.latest_scan.ranges.begin(),minIt);
 #ifdef MYDWA
     mylogfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm
               << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << ","
               << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang
               << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << selected.lindist << "," << selected.angdist
-              << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << std::endl;
+              << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << "," 
+              <<  *std::min_element(sensor.latest_scan.ranges.begin(),sensor.latest_scan.ranges.end()) << ","
+              << sensor.index_to_rad(minScanIdx)*RAD2DEG << std::endl;
 #endif
 
 #ifdef PABLODWA
@@ -472,6 +477,7 @@ void MyDWA::record_loop_info(){
     LOG.push_back(sensor.odom.twist.twist.linear.x);
     LOG.push_back(sensor.odom.twist.twist.angular.z);
     LOG.push_back(loop_cal_time_ms);
+    LOG.push_back( *std::min_element(sensor.latest_scan.ranges.begin(),sensor.latest_scan.ranges.end()));
 
     logfile << LOG[0];
     for (int i = 1; i < LOG.size(); i++)
