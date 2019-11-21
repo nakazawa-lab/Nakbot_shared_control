@@ -15,8 +15,8 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-//#define PABLODWA
-#define MYDWA
+#define PABLODWA
+//#define MYDWA
 #define ISSHARED
 #define PUB_MARKER
 
@@ -170,7 +170,6 @@ void my_robo::cal_DWA()
                 //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
                 i++;
             }
-            
 
             g += spec.ang_res;
             if (g > max_dwa_ang)
@@ -252,19 +251,24 @@ void my_robo::cal_predict_position()
                 radius = fabs(CandVel[i][0] / CandVel[i][1]);
                 d = sqrt(2 * (1 - cos(CandVel[i][1] * time))) * radius;
                 double temp = radius * sin(CandVel[i][1] * time) / d;
-                if(temp < -1){
+                if (temp < -1)
+                {
                     //std::cout << "tmep is lower -1" << std::endl;
-                    temp =-1;
+                    temp = -1;
                 }
-                else if(temp >1){
+                else if (temp > 1)
+                {
                     //std::cout << "temp is upper 1" <<std::endl;
                     temp = 1;
                 }
                 theta = acos(temp); // acosは-1から1までの値を受け取り0からpiまでの値を返す
 
-                if (isnan(theta)){
-                    std::cout << "theta is nan:" << d << "," << radius << "," << temp <<", " << CandVel[i][1] * time << std::endl << std::endl;;
-                } 
+                if (isnan(theta))
+                {
+                    std::cout << "theta is nan:" << d << "," << radius << "," << temp << ", " << CandVel[i][1] * time << std::endl
+                              << std::endl;
+                    ;
+                }
 
                 push_back_traj(i, time, np, d, theta);
 
@@ -305,7 +309,8 @@ void MyDWA::DWAloop()
     ros::Rate rate(looprate);
     start_time = std::chrono::system_clock::now();
     bool plot_flag = false;
-    int loop_flag = 1;  // n周期に1回trueにする
+    int marker_loop_flag = 1; // n周期に1回trueにする
+    int control_loop_flag = 0;
 
     record_param();
 
@@ -321,104 +326,111 @@ void MyDWA::DWAloop()
         {
             ROS_INFO("no LRF data.waiting...");
             usleep(1000);
-        }
+                    }
         else
         {
-
             check_joy();
 
             //trans_inf(sensor.latest_scan);
 
             //say_time("check joy", loop_start_time);
+            std::cout << ((dt == (control_loop_flag/looprate)) || (control_loop_flag == 0)) << std::endl;
+            if ((dt == (control_loop_flag/looprate)) || (control_loop_flag == 0))
+            {
+                ROS_INFO("ISCONTROL");
+                clear_vector();
+                control_loop_flag = 1;
 
-            sensor.cal_obs(sensor.latest_scan, POINT_INTERVAL, sensor.odom.pose);
+                sensor.cal_obs(sensor.latest_scan, POINT_INTERVAL, sensor.odom.pose);
 
-            visualization_msgs::MarkerArray obsmarkers = sensor.make_obs_markers();
-            //pub_marker_array(obsmarkers);
+                visualization_msgs::MarkerArray obsmarkers = sensor.make_obs_markers();
+                //pub_marker_array(obsmarkers);
 
-            cal_DWA();
-            //LOG.push_back(CandVel.size());
-            //say_time("cal DWA", loop_start_time);
+                cal_DWA();
+                //LOG.push_back(CandVel.size());
+                //say_time("cal DWA", loop_start_time);
 
-            cal_predict_position();
-            //say_time("predict position", loop_start_time);
+                cal_predict_position();
+                //say_time("predict position", loop_start_time);
 
 #ifdef PABLODWA
-if(!IsProposed){
-            //cal_Dist();
-            cal_Dist2();
-            say_time("cal dist", loop_start_time);
-
-            // LOG.push_back(cal_average_d_U(CandVel));
-
-            // double D = cal_vel_sat();
-            double D = 1;
-
-            cal_J_sharedDWA(D);
-            cal_end_time = std::chrono::system_clock::now();
-            //say_time("cal J", loop_start_time);
-}
-#endif
-#ifdef MYDWA
-            Proposed();
-            cal_end_time = std::chrono::system_clock::now();
-            //say_time("proposed", loop_start_time);
-#endif
-            record_loop_info();
-
-            if (sensor.joy_cmd_vel[0] > -0)
-            {
-# ifdef PUB_MARKER
-                visualization_msgs::MarkerArray markers;
-                if (++loop_flag == PUB_TRAJ_MARKER_PER_LOOP)
+                if (!IsProposed)
                 {
-                    // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
-                    markers = make_traj_marker_array(opt_index);
-                    pub_marker_array(markers);
+                    //cal_Dist();
+                    cal_Dist2();
+                    say_time("cal dist", loop_start_time);
 
-                    markers = make_joy_traj_marker_array();
-                    pub_marker_array(markers);
-                    loop_flag = 1;
+                    // LOG.push_back(cal_average_d_U(CandVel));
+
+                    // double D = cal_vel_sat();
+                    double D = 1;
+
+                    cal_J_sharedDWA(D);
+                    cal_end_time = std::chrono::system_clock::now();
+                    //say_time("cal J", loop_start_time);
                 }
 #endif
+#ifdef MYDWA
+                Proposed();
+                cal_end_time = std::chrono::system_clock::now();
+                //say_time("proposed", loop_start_time);
+#endif
+
+                if (sensor.joy_cmd_vel[0] > -0)
+                {
+#ifdef PUB_MARKER
+                    visualization_msgs::MarkerArray markers;
+                    if (++marker_loop_flag == PUB_TRAJ_MARKER_PER_LOOP)
+                    {
+                        // 最終的に選択した軌道のマーカ、joyのマーカーと、予測軌道のマーカを作成、表示する
+                        markers = make_traj_marker_array(opt_index);
+                        pub_marker_array(markers);
+
+                        markers = make_joy_traj_marker_array();
+                        pub_marker_array(markers);
+                        marker_loop_flag = 1;
+                    }
+#endif
 
 #ifdef MYDWA
-                // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
-                // pub_marker(marker);
+                    // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
+                    // pub_marker(marker);
 #endif
-                say_time("pub marker", loop_start_time);
+                    say_time("pub marker", loop_start_time);
 
 #ifdef ISSHARED
 
 #ifdef PABLODWA
-                vel.linear.x = CandVel[opt_index][0];
-                vel.angular.z = CandVel[opt_index][1];
+                    vel.linear.x = CandVel[opt_index][0];
+                    vel.angular.z = CandVel[opt_index][1];
 
 #endif
 
 #ifdef MYDWA
 
-                //std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" << std::endl;
-                vel.linear.x = CandVel[opt_index][0];
-                vel.angular.z = CandVel[opt_index][1];
+                    //std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" << std::endl;
+                    vel.linear.x = CandVel[opt_index][0];
+                    vel.angular.z = CandVel[opt_index][1];
 
-                ROS_INFO("opt_idx: %d, pubvel:%f,%f", opt_index, vel.linear.x, vel.angular.z);
+                    ROS_INFO("opt_idx: %d, pubvel:%f,%f", opt_index, vel.linear.x, vel.angular.z);
 #endif
 #endif
+                }
+
+                if (plot_flag)
+                {
+                    // <gnuplot> //
+                    plot_gnuplot(gp);
+                    say_time("plot", loop_start_time);
+                }
             }
 
-            if (plot_flag)
-            {
-                // <gnuplot> //
-                plot_gnuplot(gp);
-                say_time("plot", loop_start_time);
-            }
-
+            pub_cmd.publish(vel);
+            record_loop_info();
+            control_loop_flag++;
         }
-
-        pub_cmd.publish(vel);
-        clear_vector();
-        say_time("clear vector", loop_start_time);
+        
+        //say_time("clear vector", loop_start_time);
 
         rate.sleep();
         say_time("waiting", loop_start_time);
@@ -437,55 +449,64 @@ if(!IsProposed){
             else if (c == 'q')
                 plot_flag = false;
         }
+
         ROS_INFO("\n");
     }
 }
 
-void MyDWA::record_loop_info(){
+void MyDWA::record_loop_info()
+{
 
     auto now = std::chrono::system_clock::now();
     auto timestanp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - start_time).count();
 
     auto loop_cal_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(cal_end_time - loop_start_time).count();
 
-    std::vector<float>::iterator minIt = std::min_element(sensor.latest_scan.ranges.begin(),sensor.latest_scan.ranges.end());
-    int minScanIdx = std::distance(sensor.latest_scan.ranges.begin(),minIt);
+    std::vector<float>::iterator minIt = std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end());
+    int minScanIdx = std::distance(sensor.latest_scan.ranges.begin(), minIt);
 #ifdef MYDWA
     mylogfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm
               << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << ","
               << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang
               << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << selected.lindist << "," << selected.angdist
-              << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << "," 
-              <<  *std::min_element(sensor.latest_scan.ranges.begin(),sensor.latest_scan.ranges.end()) << ","
-              << sensor.index_to_rad(minScanIdx)*RAD2DEG << std::endl;
+              << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << ","
+              << *std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()) << ","
+              << sensor.index_to_rad(minScanIdx) * RAD2DEG << std::endl;
 #endif
 
 #ifdef PABLODWA
-    LOG.push_back((double)timestanp_ms / 1000);
+    // LOG.push_back((double)timestanp_ms / 1000);
 
-    LOG.push_back(sensor.odom.pose.pose.position.x);
-    LOG.push_back(sensor.odom.pose.pose.position.y);
-    LOG.push_back(selected.adm);
-    LOG.push_back(1 - selected.adm);
-    LOG.push_back(selected.vel_h_cost);
-    LOG.push_back(selected.head_h_cost);
-    LOG.push_back(selected.cost);
-    LOG.push_back(CandVel[opt_index][0]);
-    LOG.push_back(CandVel[opt_index][1]);
-    LOG.push_back(sensor.joy_cmd_vel[0]);
-    LOG.push_back(sensor.joy_cmd_vel[1]);
-    LOG.push_back(sensor.odom.twist.twist.linear.x);
-    LOG.push_back(sensor.odom.twist.twist.angular.z);
-    LOG.push_back(loop_cal_time_ms);
-    LOG.push_back( *std::min_element(sensor.latest_scan.ranges.begin(),sensor.latest_scan.ranges.end()));
+    // LOG.push_back(sensor.odom.pose.pose.position.x);
+    // LOG.push_back(sensor.odom.pose.pose.position.y);
+    // LOG.push_back(selected.adm);
+    // LOG.push_back(1 - selected.adm);
+    // LOG.push_back(selected.vel_h_cost);
+    // LOG.push_back(selected.head_h_cost);
+    // LOG.push_back(selected.cost);
+    // LOG.push_back(CandVel[opt_index][0]);
+    // LOG.push_back(CandVel[opt_index][1]);
+    // LOG.push_back(sensor.joy_cmd_vel[0]);
+    // LOG.push_back(sensor.joy_cmd_vel[1]);
+    // LOG.push_back(sensor.odom.twist.twist.linear.x);
+    // LOG.push_back(sensor.odom.twist.twist.angular.z);
+    // LOG.push_back(loop_cal_time_ms);
+    // LOG.push_back(*std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()));
 
-    logfile << LOG[0];
-    for (int i = 1; i < LOG.size(); i++)
-    {
-        logfile << "," << LOG[i];
-    }
-    logfile << std::endl;
+    // logfile << LOG[0];
+    // for (int i = 1; i < LOG.size(); i++)
+    // {
+    //     logfile << "," << LOG[i];
+    // }
+    // logfile << std::endl;
 
+    logfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.adm
+            << "," << 1 - selected.adm << "," << selected.vel_h_cost << ","
+            << selected.head_h_cost << "," << selected.cost << "," << CandVel[opt_index][0] << "," << CandVel[opt_index][1]
+            << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1]
+            << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << ","
+            << *std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()) << ","
+            << sensor.index_to_rad(minScanIdx) * RAD2DEG << std::endl;
 #endif
 }
 

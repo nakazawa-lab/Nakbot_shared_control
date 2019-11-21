@@ -25,7 +25,7 @@ public:
     const double dt_traj = 0.1;
     // 軌道予測時刻
     const double PredictTime = 3;
-    const double looprate = 1 / dt;
+    const double looprate = 10.0;
 
     const double k_heading = 1.0;
     const double k_velocity = 1.0;
