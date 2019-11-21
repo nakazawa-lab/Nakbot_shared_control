@@ -31,8 +31,8 @@ public:
     const double k_velocity = 1.0;
 
     // この秒数後の衝突に対して衝突危険正規化距離を１未満にする。これ以上の場合は1で安全
-    const float thres_vel_time = 1.3;
-    const float thres_ang_time = 1.3;
+    const float thres_vel_time = 3.0;
+    const float thres_ang_time = 3.0;
 
     const int POINT_INTERVAL = 2;
 
@@ -40,7 +40,7 @@ public:
 
     const int LINSAFE_MULTIPLIER = 3;
     const int ANGSAFE_MULTIPLIER = 3;
-    const int PUB_TRAJ_MARKER_PER_LOOP = 2;
+    const int PUB_TRAJ_MARKER_PER_LOOP = 5;
 
     const bool IsREAL = false;
 

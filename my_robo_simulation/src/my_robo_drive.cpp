@@ -15,8 +15,8 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-#define PABLODWA
-//#define MYDWA
+//#define PABLODWA
+#define MYDWA
 #define ISSHARED
 #define PUB_MARKER
 
@@ -326,20 +326,23 @@ void MyDWA::DWAloop()
         {
             ROS_INFO("no LRF data.waiting...");
             usleep(1000);
-                    }
+        }
         else
         {
-            check_joy();
 
             //trans_inf(sensor.latest_scan);
 
             //say_time("check joy", loop_start_time);
-            std::cout << ((dt == (control_loop_flag/looprate)) || (control_loop_flag == 0)) << std::endl;
-            if ((dt == (control_loop_flag/looprate)) || (control_loop_flag == 0))
+            // std::cout <<  (control_loop_flag/looprate) << std::endl;
+            // std::cout << control_loop_flag <<std::endl;
+            // std::cout << (dt == (control_loop_flag/looprate)) << std::endl;
+            // std::cout << ((dt == (control_loop_flag/looprate)) || (control_loop_flag == 0)) << std::endl;
+            if ((dt == (control_loop_flag / looprate)) || (control_loop_flag == 0))
             {
+                check_joy();
                 ROS_INFO("ISCONTROL");
                 clear_vector();
-                control_loop_flag = 1;
+                control_loop_flag = 0;
 
                 sensor.cal_obs(sensor.latest_scan, POINT_INTERVAL, sensor.odom.pose);
 
@@ -429,7 +432,7 @@ void MyDWA::DWAloop()
             record_loop_info();
             control_loop_flag++;
         }
-        
+
         //say_time("clear vector", loop_start_time);
 
         rate.sleep();
