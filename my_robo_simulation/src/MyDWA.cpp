@@ -132,7 +132,7 @@ void MyDWA::cal_opt()
     opt_index = idx_temp;
 
     // あまりにきけんなときは停止する
-    if (cost > 0.999)
+    if (cost > 1)
     {
         CandVel.push_back(vector<double>());
         dist_lin_ang.push_back(vector<double>());
