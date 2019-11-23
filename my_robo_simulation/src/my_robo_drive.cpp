@@ -18,7 +18,7 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 //#define PABLODWA
 #define MYDWA
 #define ISSHARED
-#define PUB_MARKER
+//#define PUB_MARKER
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -309,7 +309,7 @@ void MyDWA::DWAloop()
     ros::Rate rate(looprate);
     start_time = std::chrono::system_clock::now();
     bool plot_flag = false;
-    int marker_loop_flag = 1; // n周期に1回trueにする
+    int marker_loop_flag = 0; // n周期に1回trueにする
     int control_loop_flag = 0;
 
     record_param();
@@ -369,13 +369,11 @@ void MyDWA::DWAloop()
                     double D = 1;
 
                     cal_J_sharedDWA(D);
-                    cal_end_time = std::chrono::system_clock::now();
                     //say_time("cal J", loop_start_time);
                 }
 #endif
 #ifdef MYDWA
                 Proposed();
-                cal_end_time = std::chrono::system_clock::now();
                 //say_time("proposed", loop_start_time);
 #endif
 
@@ -391,7 +389,7 @@ void MyDWA::DWAloop()
 
                         markers = make_joy_traj_marker_array();
                         pub_marker_array(markers);
-                        marker_loop_flag = 1;
+                        marker_loop_flag = 0;
                     }
 #endif
 
@@ -429,6 +427,7 @@ void MyDWA::DWAloop()
             }
 
             pub_cmd.publish(vel);
+            cal_end_time = std::chrono::system_clock::now();
             record_loop_info();
             control_loop_flag++;
         }

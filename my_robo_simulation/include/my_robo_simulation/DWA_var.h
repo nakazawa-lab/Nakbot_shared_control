@@ -36,11 +36,12 @@ public:
 
     const int POINT_INTERVAL = 2;
 
-    const double DWA_RESOLUTION_DIV = 5;    //(0.8,0)のとき67候補点, (0.8,1.5)のとき31候補点くらい
+    //const double DWA_RESOLUTION_DIV = 5;    //(0.8,0)のとき67候補点, (0.8,1.5)のとき31候補点くらい
+    const double DWA_RESOLUTION_DIV = 10;
 
     const int LINSAFE_MULTIPLIER = 3;
     const int ANGSAFE_MULTIPLIER = 3;
-    const int PUB_TRAJ_MARKER_PER_LOOP = 5;
+    const int PUB_TRAJ_MARKER_PER_LOOP =3;
 
     const bool IsREAL = false;
 
