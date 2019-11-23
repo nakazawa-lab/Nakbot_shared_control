@@ -24,7 +24,7 @@ public:
     // 軌道計算の刻み
     const double dt_traj = 0.1;
     // 軌道予測時刻
-    const double PredictTime = 3;
+    const double PredictTime = 3.0;
     const double looprate = 10.0;
 
     const double k_heading = 1.0;
@@ -39,8 +39,8 @@ public:
     //const double DWA_RESOLUTION_DIV = 5;    //(0.8,0)のとき67候補点, (0.8,1.5)のとき31候補点くらい
     const double DWA_RESOLUTION_DIV = 10;
 
-    const int LINSAFE_MULTIPLIER = 3;
-    const int ANGSAFE_MULTIPLIER = 3;
+    const int LINSAFE_MULTIPLIER = 2;
+    const int ANGSAFE_MULTIPLIER = 2;
     const int PUB_TRAJ_MARKER_PER_LOOP =3;
 
     const bool IsREAL = false;
