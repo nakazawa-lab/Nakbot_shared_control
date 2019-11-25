@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.patches as patches
 import pandas as pd
 import argparse
 import glob
@@ -102,12 +103,33 @@ def read_mylog(csv_path):
 
 #- TODO -#
 def make_sparse_house():
+    sparse_house_shape = [[[-0.5, -0.5], [-0.5, 10]], [[-0.5, 15], [10, 10]],
+                   [[15, 15],    [10, -0.5]], [[15, -0.5], [-0.5, -0.5]],
+                   [[-0.5, 5.5], [6.5, 6.5]], [[5.5, 5.5], [6.5, 10]],
+                   [[6.5,6.5], [6.5, 9.0]], [[6.5,12], [9.0,9.0]],
+                   [[5.0,5.0], [-0.5, 4.0]], [[5.0,10], [4.0,4.0]],
+                   [[10,10],[4,-0.5]],
+                   ]
+
+    fill_list_1_x = [-0.5, 5.5, 5.5, -0.5]
+    fill_list_1_y = [6.5, 6.5, 10, 10]
+    fill_list_2_x = [5, 5, 10, 10]
+    fill_list_2_y = [-0.5, 4, 4, -0.5]
+
+    for i in range(len(sparse_house_shape)):
+        plt.plot(sparse_house_shape[i][0], sparse_house_shape[i][1], 'k-', lw=4)
+
+    plt.fill(fill_list_1_x, fill_list_1_y, color="gray")
+    plt.fill(fill_list_2_x, fill_list_2_y, color="gray")
     pass
 
 
 #- TODO -#
-def draw_robot_radius():
-    pass
+def draw_robot_radius(ax,r,x,y):
+    for i in range(0,len(x),4):
+        c = patches.Circle(xy=(x[i], y[i]), radius=r,fill=False,ec="blue")
+        ax.add_patch(c)
+
 
 def make_house():
     house_shape = [[[-0.5, -0.5], [-0.5, 10]], [[-0.5, 15], [10, 10]],
@@ -185,8 +207,8 @@ def main():
         os.makedirs("./figure/"+filename_noext,exist_ok=True)
 
         #########-3D cost graph-###############
-        """
-        costfig = plt.figure(figsize=(10, 4.8)
+        
+        costfig = plt.figure(figsize=(10, 4.8))
         ax = Axes3D(costfig)
         ax.set_xlabel("X[m]")
         ax.set_ylabel("Y[m]")
@@ -200,7 +222,7 @@ def main():
         plt.close()
         
         ######-3D adm graph-############
-        admfig = plt.figure(figsize=(10, 4.8)
+        admfig = plt.figure(figsize=(10, 4.8))
         ax2 = Axes3D(admfig)
         #ax2 = admfig.gca(projection='3d')
         ax2.set_xlabel("X[m]")
@@ -225,18 +247,21 @@ def main():
         plt.close()
 
         #########-2D path graph-###############
-        pathfig = plt.figure(figsize=(10, 4.8)
-        plt.xlabel("X[m]")
-        plt.ylabel("Y[m]")
-        #make_house()
-        plt.plot(LOG["pos_x"], LOG["pos_y"], label="robot path")
+        pathfig = plt.figure(figsize=(10, 4.8))
+        ax = pathfig.add_subplot(111)
+
+        ax.set_xlabel("X[m]")
+        ax.set_ylabel("Y[m]")
+        make_sparse_house()
+        draw_robot_radius(ax,0.23,LOG["pos_x"],LOG["pos_y"])
+        ax.plot(LOG["pos_x"], LOG["pos_y"], label="robot path")
         plt.legend(bbox_to_anchor=(1, 1), loc='upper right',
                 borderaxespad=0, fontsize=8)
         plt.savefig("./figure/{}/{}_path_figure".format(filename_noext,filename_noext))
 
         #plt.show()
         plt.close()
-        """
+        
         #########-2D linvel graph-###############
         linvelfig = plt.figure(figsize=(10, 4.8))
         ax = linvelfig.add_subplot(111)
