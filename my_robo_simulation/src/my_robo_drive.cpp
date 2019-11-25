@@ -15,10 +15,10 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-//#define PABLODWA
-#define MYDWA
+#define PABLODWA
+//#define MYDWA
 #define ISSHARED
-//#define PUB_MARKER
+#define PUB_MARKER
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -387,8 +387,8 @@ void MyDWA::DWAloop()
                         markers = make_traj_marker_array(opt_index);
                         pub_marker_array(markers);
 
-                        markers = make_joy_traj_marker_array();
-                        pub_marker_array(markers);
+                        //markers = make_joy_traj_marker_array();
+                        //pub_marker_array(markers);
                         marker_loop_flag = 0;
                     }
 #endif

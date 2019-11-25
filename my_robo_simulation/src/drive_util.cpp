@@ -108,7 +108,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
   std::cout << "max dist lin ang:" << max_lin << " " << max_ang << std::endl;
 
   // 候補の数ループ
-  for (int i = 0; i < PredictTraj.size(); i += 2)
+  for (int i = 0; i < PredictTraj.size(); i += 8)
   {
     
     //ROS_INFO("start put marker.");
@@ -116,16 +116,16 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
       adopt_flag = true;
     else
       adopt_flag = false;
-    //if((i == 0) || adopt_flag){
+    // if((i==0) || adopt_flag){
     //予測時刻の数だけループ
-    for (int j = 0; j < PredictTraj[i].size(); j += 4)
+    for (int j = 0; j < PredictTraj[i].size(); j += 5)
     {
       //ROS_INFO("start loop.");
       marker_array.markers[k].header.frame_id = "/odom";
       marker_array.markers[k].header.stamp = ros::Time::now();
       marker_array.markers[k].ns = "cmd_vel_display";
       marker_array.markers[k].id = k;
-      marker_array.markers[k].lifetime = (ros::Duration)( PUB_TRAJ_MARKER_PER_LOOP / looprate) ; //1ループ存在
+      marker_array.markers[k].lifetime = (ros::Duration)( PUB_TRAJ_MARKER_PER_LOOP /looprate) ; //1ループ存在
 
       // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
       marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
@@ -176,7 +176,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
       }
       k++;
     }
- // }
+  //}
   }
   return marker_array;
 }
@@ -187,7 +187,7 @@ visualization_msgs::MarkerArray MyDWA::make_joy_traj_marker_array(){
 
   int k = 0;
 
-  for (int j = 0; j < Joy_PredictTraj.size(); j += 3)
+  for (int j = 0; j < Joy_PredictTraj.size(); j += 4)
   {
     //ROS_INFO("start loop.");
 
@@ -195,7 +195,7 @@ visualization_msgs::MarkerArray MyDWA::make_joy_traj_marker_array(){
     marker_array.markers[k].header.stamp = ros::Time::now();
     marker_array.markers[k].ns = "cmd_vel_display";
     marker_array.markers[k].id = k;
-    marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP / looprate);
+    marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP /looprate);
 
     // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
     marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
