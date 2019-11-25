@@ -136,7 +136,7 @@ void MyDWA::cal_opt()
     {
         CandVel.push_back(vector<double>());
         dist_lin_ang.push_back(vector<double>());
-        cout << "danger. new cand size:" << CandVel.size() << endl;
+        cout << "danger. new cand size:" << CandVel.size() << " cost:" << cost << endl;
         CandVel.back().push_back(0.0);
         CandVel.back().push_back(CandVel[opt_index][1]);
         CandVel.back().push_back(numeric_limits<double>::quiet_NaN());
