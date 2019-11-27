@@ -208,7 +208,8 @@ def main():
 
         #########-3D cost graph-###############
         
-        costfig = plt.figure(figsize=(10, 4.8))
+        #costfig = plt.figure(figsize=(10, 4.8))
+        costfig = plt.figure()
         ax = Axes3D(costfig)
         ax.set_xlabel("X[m]")
         ax.set_ylabel("Y[m]")
@@ -222,7 +223,8 @@ def main():
         plt.close()
         
         ######-3D adm graph-############
-        admfig = plt.figure(figsize=(10, 4.8))
+        #admfig = plt.figure(figsize=(10, 4.8))
+        admfig = plt.figure()
         ax2 = Axes3D(admfig)
         #ax2 = admfig.gca(projection='3d')
         ax2.set_xlabel("X[m]")
@@ -247,7 +249,8 @@ def main():
         plt.close()
 
         #########-2D path graph-###############
-        pathfig = plt.figure(figsize=(10, 4.8))
+        #pathfig = plt.figure(figsize=(10, 4.8))
+        pathfig = plt.figure()
         ax = pathfig.add_subplot(111)
 
         ax.set_xlabel("X[m]")
