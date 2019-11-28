@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     printf("jt time0 %d[sec] %d[nsec]\n",jt.get_sec(),jt.get_nsec());
 
     jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
-    usleep(1000000);         // on for 200ms
+    usleep(1000000);         // on for 1s
 
 //    jetsas('v',5100,5100);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     int vel_i =0;
     
     jetsas('L',5200,5200);
-    jetsas('v',4800,4900);
+    //jetsas('v',4800,4900);
     jetsas('e',0001,0001);
 
     do
