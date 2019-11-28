@@ -127,19 +127,61 @@ int main(int argc, char *argv[])
     jetsas('L',5200,5200);
     jetsas('v',4800,4900);
     jetsas('e',0001,0001);
+
     do
     {
 ///        jetsas('v',node.temp,node.temp);
+
            //jetsas('v',5200,5200);
 ///        jetsas('r',0001,0001);
 
+
+///        jetsas('v',5070,4970);
+///        jetsas('r',0001,0001);
+
+        /**       sensor(S11059,g); ///        sensor(MPU6050,g);
+               LCD_printf(0,0,"%6.1f %6.1f ",g[0],g[1]);
+               LCD_printf(0,1,"%6.1f %6.1f",g[2],g[3]);
+
+               jetsas(1,2,3);
+               send_tocos(j%26);
+               j++;
+        **/
+
+        /*****/
+#ifdef SAMPLE
+        urg_start_measurement(&urg, URG_DISTANCE, 1, 0); /// URG sample
+        n = urg_get_distance(&urg, urg_data, &time_stamp);
+        if (n < 0)
+        {
+            printf("urg_get_distance: %s\n", urg_error(&urg));
+            urg_close(&urg);
+            return 1;
+        }
+        for (i = 0; i < n; ++i)     //nはデータの個数(683とか?) urg_dataの配列orベクトルの添え字で距離が得られる
+        {
+            /// printf("i=%d d=%d \n",i,data[i]);
+            cv::Point f=cv::Point(i, 0);
+            cv::line(img, cv::Point(i, 0), cv::Point(i, 500), cv::Scalar(0,0,0), 1, 4);
+            cv::line(img, cv::Point(i, 500), cv::Point(i, 500-urg_data[i]/5), cv::Scalar(200,0,0), 1, 4);
+        }
+        // 図に基準となる横線を引く
+        cv::line(img, cv::Point(0, 100), cv::Point(680, 100), cv::Scalar(0,0,200), 1, 4);
+        cv::line(img, cv::Point(0, 200), cv::Point(680, 200), cv::Scalar(0,0,200), 1, 4);
+        cv::line(img, cv::Point(0, 300), cv::Point(680, 300), cv::Scalar(0,0,200), 1, 4);
+        cv::line(img, cv::Point(0, 400), cv::Point(680, 400), cv::Scalar(0,0,200), 1, 4);
+        cv::imshow("URG data", img);
+        cv::waitKey(1);
+        usleep(1000);      // sleep for one millisecond
+#endif
+
         /************/
 
-        /// ros
+        /// ros addedby kitajima
         //node.lrf.make_scan_msgs(urg_data,n);
         //node.lrf.pub_lrf();
         node.controlloop(jt);
-        ///end ros
+        ///end ros added by kitajima
 
         value=gpio_sw(SW1);
     }

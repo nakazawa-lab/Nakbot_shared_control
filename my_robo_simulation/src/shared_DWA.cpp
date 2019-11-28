@@ -305,10 +305,10 @@ void my_robo::cal_Dist2()
             CandVel[i].push_back(d_U);
             isCollision.push_back(false);
 
-            std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
-            std::cout << "coltime: nan" << std::endl;
-            std::cout << "d_U:" << d_U << std::endl
-                      << std::endl;
+            // std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
+            // std::cout << "coltime: nan" << std::endl;
+            // std::cout << "d_U:" << d_U << std::endl
+            //           << std::endl;
         }
         //　衝突あり
         else
@@ -332,10 +332,10 @@ void my_robo::cal_Dist2()
             isCollision.push_back(true);
             CandVel[i].push_back(d_U);
 
-            std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
-            std::cout << "coltime:" << coltime[mindistIndex] << std::endl;
-            std::cout << "d_U:" << d_U << std::endl
-                      << std::endl;
+            //std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
+            //std::cout << "coltime:" << coltime[mindistIndex] << std::endl;
+            //std::cout << "d_U:" << d_U << std::endl
+            //          << std::endl;
         }
     }
 }
