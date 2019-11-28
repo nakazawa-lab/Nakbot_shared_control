@@ -16,8 +16,12 @@ extern std::string get_current_time();
 
 namespace JetSAS
 {
+const double INTERCEPT_ENCODER = 5000000.0;
+
 /// ==TODO== ///
 const double robot_width = 0.3;
+const double WHEEL_LENGTH = 0.3;
+const double ENCODER_PER_ROT = 500.0;
 
 struct position
 {
@@ -83,7 +87,6 @@ private:
 public:
     Joy()
     {
-        std::cout << "joy constructor" <<std::endl;
         joy.axes.resize(2);
     }
 
@@ -112,13 +115,9 @@ private:
     int old_encoder_right, old_encoder_left;
 
     // 5000000が基本
-    const double encoder_multiplier_vel = 0.1;
+    const double encoder_multiplier = WHEEL_LENGTH / ENCODER_PER_ROT;
 
     double v, w;
-
-    double right_v_from_enc, left_v_from_enc;
-    double v_from_enc, w_from_enc;
-
     double right_v, left_v;
 
     position now_p, old_p;
@@ -165,11 +164,13 @@ private:
     ros::Subscriber sub_vel;
     geometry_msgs::Twist vel;
 
-    int encoder_prm_r, encoder_prm_l;
+    int encoder_cmd_r, encoder_cmd_l;
 
     // 5000を基準にしている
     const double cmd_multipler_vel = 0.1;
     const double cmd_multiplier_rot = 0.1;
+
+    const double cmd_multiplier_to_enc = ENCODER_PER_ROT / WHEEL_LENGTH;
 
 
 public:
@@ -195,15 +196,16 @@ public:
 class RC{
 private:
     // 1100くらいに基準がある
-    const double rc_multiplier_vel= 0.1;
-    const double rc_multiplier_rot= 0.1;
-    double v_h,w_h;
+    const double rc_multiplier_vel_r= -5.91;
+    const double rc_multiplier_vel_l= -5.89;
+    const double rc_multiplier_rot_r= -5.88;
+    const double rc_multiplier_rot_l= 5.88;
+
+    double v_right_enc,v_left_enc;      // RCの指令値をエンコーダ換算した値
 public:
     RC(){
 
     }
-    void rc_to_vel();
-
     void rc_to_encoder();
 };
 } // namespace JetSAS
