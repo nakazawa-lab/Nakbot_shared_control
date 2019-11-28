@@ -15,6 +15,7 @@ extern urg_t urg;
 extern int jetsas(char, int, int);
 bool IsFirstRes = true;         // 初回受信を確認するフラグ
 
+
 // void JetSAS_Node::pub_lrf(){
 //     lrf_pub.publish(*scan);
 //     delete[] scan;
@@ -94,6 +95,20 @@ void JetSAS_Node::register_vel_param(){
  * /my_robo/diff_drive_controller/wheel_radius: 0.075
  * /my_robo/diff_drive_controller/wheel_separation: 0.285
 */
+}
+
+void JetSAS::Odom::set_encoder(const int e_right, const int e_left)
+{
+    std::cout << "in set encoder " << old_encoder_right << " " << encoder_right << " " << e_right << std::endl;
+
+    old_encoder_right = encoder_right;
+    old_encoder_left = encoder_left;
+
+    encoder_right = e_right;
+    encoder_left = e_left;
+
+    encoder_right_ref = ros_serial.encoder.r_ref;
+    encoder_left_ref = ros_serial.encoder.l_ref;
 }
 
 void JetSAS::Lrf::make_scan_msgs(long* urg_data,const int scan_num){

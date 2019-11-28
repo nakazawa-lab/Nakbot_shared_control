@@ -127,19 +127,7 @@ private:
 
     position now_p, old_p;
 
-    void set_encoder(const int e_right, const int e_left)
-    {
-        std::cout << "in set encoder " << old_encoder_right << " " << encoder_right << " " <<e_right << std::endl;
-
-        old_encoder_right = encoder_right;
-        old_encoder_left = encoder_left;
-
-        encoder_right = e_right;
-        encoder_left = e_left;
-
-        encoder_right_ref = ros_serial.encoder.r_ref;
-        encoder_left_ref = ros_serial.encoder.l_ref;
-    };
+    void set_encoder(const int e_right, const int e_left);
 
     void cal_now_vel(const double this_loop_time);
 
@@ -297,6 +285,5 @@ public:
     //int temp = 5999;
 
 };
-
 extern JetSAS::Serial_sh ros_serial;
 #endif /// ROS_NODE
