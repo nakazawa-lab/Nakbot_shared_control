@@ -46,7 +46,7 @@ pthread_mutex_t mutex; ///
 int count1=0;///
 urg_t urg;  ///for URG sensor
 long *urg_data;
-double JetSAS::robot_width;
+const double JetSAS::robot_width = 0.28;    // 実測値
 ///extern int open_urg_sensor(urg_t *urg, int argc, char *argv[]);
 
 /*************************usage serial.cpp jetsas(int,int,int)*************************
@@ -148,8 +148,8 @@ int main(int argc, char *argv[])
         //node.lrf.make_scan_msgs(urg_data,n);
         //node.lrf.pub_lrf();
         node.controlloop(jt);
-        std::cout << "right" << ros_serial.encoder.r_sum - ros_serial.encoder.r_init  << std::endl;
-        std::cout << "left" << ros_serial.encoder.l_sum - ros_serial.encoder.l_init  << std::endl;
+        //std::cout << "right" << ros_serial.encoder.r_sum - ros_serial.encoder.r_init  << std::endl;
+        //std::cout << "left" << ros_serial.encoder.l_sum - ros_serial.encoder.l_init  << std::endl;
         ///end ros added by kitajima
 
         value=gpio_sw(SW1);
