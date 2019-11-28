@@ -19,13 +19,13 @@ namespace JetSAS
 const double INTERCEPT_ENCODER = 5000000.0;
 const double WHEEL_LENGTH = 0.0254*6.0*M_PI;    // 6インチ径のタイヤの長さ
 const double ENCODER_PER_ROT = 5120.0;
-extern double robot_width;
+extern const double robot_width;
 
 // 予備実験によってだいたいの値を書いておく
-const float max_rc_lin = 1200.0;
-const float max_rc_rot = 1200.0;
-const float min_rc_lin = 1170.0;
-const float min_rc_rot = 1170.0;
+const float max_rc_lin = 1237.0;
+const float max_rc_rot = 1234.0;
+const float min_rc_lin = 1134.0;
+const float min_rc_rot = 1136.0;
 
 struct position
 {
@@ -115,8 +115,8 @@ private:
     ros::Publisher odom_pub;
     nav_msgs::Odometry odom;
 
-    int encoder_right, encoder_left;
-    int old_encoder_right, old_encoder_left;
+    int encoder_right=0, encoder_left=0;
+    int old_encoder_right=0, old_encoder_left=0;
 
     // 5000000が基本
     const double encoder_multiplier = WHEEL_LENGTH / ENCODER_PER_ROT * 10.0;
@@ -128,6 +128,8 @@ private:
 
     void set_encoder(const int e_right, const int e_left)
     {
+        std::cout << "in set encoder " << old_encoder_right << " " << encoder_right << " " <<e_right << std::endl;
+
         old_encoder_right = encoder_right;
         old_encoder_left = encoder_left;
 
@@ -155,6 +157,8 @@ public:
     };
 
     void make_odom_msgs(const int, const int, const double);
+    
+    bool check_new_encoder();
 
     // エンコーダの値から今のv,wを求める
     // 昔のx,yの情報と, 今のv,wとこの1ループの時間から新しい位置x,y を求める
@@ -204,13 +208,21 @@ private:
     const double rc_multiplier_vel_l= -5.89;
     const double rc_multiplier_rot_r= -5.88;
     const double rc_multiplier_rot_l= 5.88;
+    double rc_rot;
 
     double v_right_enc,v_left_enc;      // RCの指令値をエンコーダ換算した値
 public:
     RC(){
 
     }
+
+    void set_rc(const double rc){
+        rc_rot = rc;
+    };
+
     void rc_to_encoder();
+
+    bool check_new_rc();
 };
 } // namespace JetSAS
 
@@ -219,11 +231,13 @@ class JetSAS_Node
 private:
     ros::NodeHandle nh;
     double old_time=0.0;
-    double this_loop_time;
+    //double this_loop_time;
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
-    std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> loop_start_time;
+    std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> last_cal_time;
+    double cal_time;
 
     std::ofstream logfile;
+    int counter;
     //std::vector<double> LOG;
 
     void pub_sensor()
@@ -250,9 +264,7 @@ public:
         logfile.open("./log_JetSAS/log_"+get_current_time()+".csv");
         make_log_col();
         start_time = std::chrono::system_clock::now();
-        std::cout << "finish JetSAS_Node constructor" << std::endl;
-        nh.getParam("/my_robo/diff_drive_controller/wheel_separation",JetSAS::robot_width);
-        std::cout << "in JetSAS_node constructor robot_width:" << JetSAS::robot_width << std::endl;
+        last_cal_time = start_time;
     };
 
     ~JetSAS_Node(){
