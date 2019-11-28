@@ -13,6 +13,7 @@
 extern long *urg_data;
 extern urg_t urg;
 extern int jetsas(char, int, int);
+bool IsFirstRes = true;         // 初回受信を確認するフラグ
 
 // void JetSAS_Node::pub_lrf(){
 //     lrf_pub.publish(*scan);
@@ -49,6 +50,13 @@ void save_serial(const char &RS_cmd, const int (&RS_prm)[4])
         ros_serial.encoder.l_ref = RS_prm[1];
         ros_serial.encoder.r_sum = RS_prm[2];
         ros_serial.encoder.l_sum = RS_prm[3];
+
+        if(IsFirstRes){
+            std::cout << "IsFirstRes" << std::endl;
+            IsFirstRes = false;
+            ros_serial.encoder.r_init = RS_prm[2];
+            ros_serial.encoder.l_init = RS_prm[3];
+        }
     }
     else
     {
@@ -196,20 +204,20 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
     // エンコーダの値をもとに現在の位置と速度を計算する
     this_loop_time = (double)(jt.get_nsec() / 1000000000.0) - old_time;
     //std::cout <<"this loop time " << this_loop_time << std::endl;
-    odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,this_loop_time);
+    //odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,this_loop_time);
 
     // RCの値をサンプルプログラムからとってくる jetsas r
     jetsas('r',0001,0001);
 
     // RCの値をもとに現在の人間からの速度指令値を計算する
     //rc_to_vel();
-    joy.make_joy_msgs();
+    //joy.make_joy_msgs();
 
     // odom, lrf, joyをpublish
-    pub_sensor();
+    //pub_sensor();
 
     // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
-    cmd_vel.cmd_vel_to_encoder();
+    //cmd_vel.cmd_vel_to_encoder();
 
     // SHに送信する jetsas v
     // jetsas('v',encoder_prm_r,encoder_prm_l);
