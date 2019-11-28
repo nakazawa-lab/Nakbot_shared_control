@@ -87,22 +87,22 @@ void JetSAS::Lrf::make_scan_msgs(long* urg_data,const int scan_num){
 void JetSAS::Odom::cal_now_vel(const double this_loop_time){
     assert(this_loop_time != 0);
 
-    right_v = (encoder_right - old_encoder_right) / this_loop_time * encoder_multiplier;
-    left_v = (encoder_left - old_encoder_left) / this_loop_time * encoder_multiplier;
+    // right_v = (encoder_right - old_encoder_right) / this_loop_time * encoder_multiplier;
+    // left_v = (encoder_left - old_encoder_left) / this_loop_time * encoder_multiplier;
 
-    std::cout << "in cal now vel " << encoder_right << " " << old_encoder_right <<std::endl;
-    std::cout << "in cal now vel " << encoder_left << " " << old_encoder_left <<std::endl;
-    std::cout << right_v << " " << left_v << " " <<std::endl;
-    std::cout << "this loop time " <<this_loop_time <<std::endl;
-    // ここの符号は実験の結果変わるかもしれない
-    v = (right_v + left_v) / 2.0;
-    w = (right_v - left_v) / robot_width;
+    // std::cout << "in cal now vel " << encoder_right << " " << old_encoder_right <<std::endl;
+    // std::cout << "in cal now vel " << encoder_left << " " << old_encoder_left <<std::endl;
+    // std::cout << right_v << " " << left_v << " " <<std::endl;
+    // std::cout << "this loop time " <<this_loop_time <<std::endl;
+    // // ここの符号は実験の結果変わるかもしれない
+    // v = (right_v + left_v) / 2.0;
+    // w = (right_v - left_v) / robot_width;
 
-    std::cout << "from position encoder, (v,w) is " << v  << ", " << w << std::endl;
-    std::cout << "right v left v " <<right_v << " " << left_v  <<std::endl;
+    // std::cout << "from position encoder, (v,w) is " << v  << ", " << w << std::endl;
+    // std::cout << "right v left v " <<right_v << " " << left_v  <<std::endl;
 
-    right_v = (ros_serial.encoder.r_ref - INTERCEPT_ENCODER) * encoder_multiplier;
-    left_v = (ros_serial.encoder.l_ref - INTERCEPT_ENCODER) * encoder_multiplier;
+    right_v = (ros_serial.encoder.r_ref - INTERCEPT_ENCODER) * encoder_multiplier / this_loop_time;
+    left_v = (ros_serial.encoder.l_ref - INTERCEPT_ENCODER) * encoder_multiplier / this_loop_time;
     
     std::cout << ros_serial.encoder.r_ref << " " << ros_serial.encoder.r_ref - INTERCEPT_ENCODER << " " << encoder_multiplier << std::endl;
     std::cout << "v[m/s] from enc " << right_v << " " << left_v << std::endl; 
@@ -165,8 +165,8 @@ void JetSAS::Cmd_vel::cmd_vel_to_encoder(){
 }
 
 void JetSAS::RC::rc_to_encoder(){
-    v_right_enc = (ros_serial.rc.lin *rc_multiplier_vel_r + ros_serial.rc.rot * rc_multiplier_rot_r) + INTERCEPT_ENCODER;
-    v_left_enc = (ros_serial.rc.lin *rc_multiplier_vel_l + ros_serial.rc.rot * rc_multiplier_rot_l) + INTERCEPT_ENCODER;
+    v_right_enc = ros_serial.rc.lin *rc_multiplier_vel_r + vel_r_int + ros_serial.rc.rot * rc_multiplier_rot_r + rot_r_int + INTERCEPT_ENCODER;
+    v_left_enc = ros_serial.rc.lin *rc_multiplier_vel_l + vel_l_int + ros_serial.rc.rot * rc_multiplier_rot_l + rot_l_int + INTERCEPT_ENCODER;
 
     std::cout << "rc to encoder" << v_right_enc << " " << v_left_enc <<std::endl;
 }
@@ -184,7 +184,12 @@ void JetSAS::Joy::make_joy_msgs(){
 }
 
 bool JetSAS::Odom::check_new_encoder(){
-    if(ros_serial.encoder.r_sum == encoder_right) return false;
+    bool a = (ros_serial.encoder.r_sum == encoder_right);
+    bool b = (ros_serial.encoder.l_sum == encoder_left);
+    bool c = (ros_serial.encoder.r_ref == encoder_right_ref);
+    bool d = (ros_serial.encoder.l_ref == encoder_right_ref);
+    
+    if(a && b && c && d) return false;
     else return true;
 }
 

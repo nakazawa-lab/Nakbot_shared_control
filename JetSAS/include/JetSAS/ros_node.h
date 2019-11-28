@@ -117,9 +117,10 @@ private:
 
     int encoder_right=0, encoder_left=0;
     int old_encoder_right=0, old_encoder_left=0;
+    int encoder_right_ref=0,encoder_left_ref=0;
 
     // 5000000が基本
-    const double encoder_multiplier = WHEEL_LENGTH / ENCODER_PER_ROT * 10.0;
+    const double encoder_multiplier = WHEEL_LENGTH / ENCODER_PER_ROT ;
 
     double v, w;
     double right_v, left_v;
@@ -135,6 +136,9 @@ private:
 
         encoder_right = e_right;
         encoder_left = e_left;
+
+        encoder_right_ref = ros_serial.encoder.r_ref;
+        encoder_left_ref = ros_serial.encoder.l_ref;
     };
 
     void cal_now_vel(const double this_loop_time);
@@ -204,10 +208,14 @@ public:
 class RC{
 private:
     // 1100くらいに基準がある
-    const double rc_multiplier_vel_r= -5.91;
-    const double rc_multiplier_vel_l= -5.89;
-    const double rc_multiplier_rot_r= -5.88;
-    const double rc_multiplier_rot_l= 5.88;
+    const double rc_multiplier_vel_r= -0.5910;
+    const double vel_r_int = 703.4;
+    const double rc_multiplier_vel_l= -0.5891;
+    const double vel_l_int = 698.1;
+    const double rc_multiplier_rot_r= -0.5876;
+    const double rot_r_int = 702.1;
+    const double rc_multiplier_rot_l= 0.5883;
+    const double rot_l_int = -697.8;
     double rc_rot;
 
     double v_right_enc,v_left_enc;      // RCの指令値をエンコーダ換算した値
