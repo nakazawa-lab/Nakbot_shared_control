@@ -47,7 +47,6 @@ int count1=0;///
 urg_t urg;  ///for URG sensor
 long *urg_data;
 ///extern int open_urg_sensor(urg_t *urg, int argc, char *argv[]);
-// #define SAMPLE
 
 /*************************usage serial.cpp jetsas(int,int,int)*************************
  * jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
@@ -95,13 +94,10 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "JetSAS_node");
     JetSAS_Node node;
     /// end ros
-#ifdef SAMPLE
-    cv::Mat img = cv::Mat::zeros(500, 680, CV_8UC3);
-    cv::namedWindow("URG data", CV_WINDOW_AUTOSIZE|CV_WINDOW_FREERATIO);
-    cv::imshow("URG data", img);
-#endif
+
     pthread_t tid1, tid2, tid3;
     pthread_mutex_init(&mutex, NULL);
+
 
     printf("Start JetSAS on NakBot\n");
 
@@ -110,12 +106,6 @@ int main(int argc, char *argv[])
     LCD_printf(0, 0,"JetSAS-X on NakBot");
     printf("Print LCD\n");
 
-    //AQUES_Talk module
-    //AQUES_Talk("#J"); ///chime
-    //printf("AquesTalk\n");
-
-    //AQUES_Talk("watasiha nakkubottodesu");
-//    AQUES_Talk("mai neimu izu nakkubotto");
     jt.reset();
     pthread_create(&tid1, NULL, th_receive, NULL);
 
@@ -125,57 +115,6 @@ int main(int argc, char *argv[])
     usleep(1000000);         // on for 200ms
 
 //    jetsas('v',5100,5100);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
-///while(1);
-#ifdef SAMPLE
-    for(i=0; i<2; i++)
-    {
-        gpio_led(LED_RED,LED_OFF);
-        gpio_led(LED_BLUE,LED_OFF);
-        gpio_led(LED_GREEN,LED_OFF);
-
-
-        usleep(500000);         // on for 200ms
-        gpio_led(LED_RED,LED_ON);
-        gpio_led(LED_BLUE,LED_ON);
-        gpio_led(LED_GREEN,LED_ON);
-        usleep(500000);         // on for 200ms
-    }
-    gpio_led(LED_RED,LED_OFF);
-    gpio_led(LED_BLUE,LED_OFF);
-    gpio_led(LED_GREEN,LED_OFF);
-
-    printf("jt time1 %d[sec] %d[nsec]\n",jt.get_sec(),jt.get_nsec());
-
-
-    LCD_printf(0, 0,"START");
-
-
-///    sensor(SHT31,g);
-///    sensor(S11059,g);
-    /*****/
-    sensor(LPS25H,g);
-    printf("LPS25H %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f\n",g[0],g[1],g[2],g[3],g[4],g[5]);
-///    while(gpio_sw(SW1));
-    /****/
-
-    usleep(1000000);         // on for 200ms
-
-    i=10;
-    while(i-->0)
-    {
-        sensor(MPU6050,g);
-        printf("MPU6050 %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f\n",g[0],g[1],g[2],g[3],g[4],g[5]);
-
-///        usleep(500000);         // on for 200ms
-        LCD_printf(0,0,"%7.4f %7.4f",g[0],g[1]);
-        LCD_printf(0,1,"%7.4f ",g[2]);
-
-        if (gpio_sw(SW1)==LOW) break;
-
-    };
-        usleep(1000000);         // on for 200ms
-
-#endif  /// #define SAMPLE
 
     // Wait for the push button to be pressed
     cout << "Please press the button!" << endl;
@@ -184,51 +123,16 @@ int main(int argc, char *argv[])
     unsigned int value = LOW;
     int j=0;
     int vel_i =0;
+    
+    jetsas('L',5200,5200);
+    jetsas('v',4800,4900);
+    jetsas('e',0001,0001);
     do
     {
-///        jetsas(1,2,3);
-///        jetsas('e',0001,0001);  // コマンドeで エンコーダの値を100で割って送信, 時間, 左, 右, 時間の順
 ///        jetsas('v',node.temp,node.temp);
-           jetsas('v',5070,4970);
+           //jetsas('v',5200,5200);
 ///        jetsas('r',0001,0001);
 
-        /**       sensor(S11059,g); ///        sensor(MPU6050,g);
-               LCD_printf(0,0,"%6.1f %6.1f ",g[0],g[1]);
-               LCD_printf(0,1,"%6.1f %6.1f",g[2],g[3]);
-
-               jetsas(1,2,3);
-               send_tocos(j%26);
-               j++;
-        **/
-
-        /*****/
-        urg_start_measurement(&urg, URG_DISTANCE, 1, 0); /// URG sample
-        n = urg_get_distance(&urg, urg_data, &time_stamp);
-        if (n < 0)
-        {
-            printf("urg_get_distance: %s\n", urg_error(&urg));
-            urg_close(&urg);
-            return 1;
-        }
-        for (i = 0; i < n; ++i)     //nはデータの個数(683とか?) urg_dataの配列orベクトルの添え字で距離が得られる
-        {
-            #ifdef SAMPLE
-            /// printf("i=%d d=%d \n",i,data[i]);
-            cv::Point f=cv::Point(i, 0);
-            cv::line(img, cv::Point(i, 0), cv::Point(i, 500), cv::Scalar(0,0,0), 1, 4);
-            cv::line(img, cv::Point(i, 500), cv::Point(i, 500-urg_data[i]/5), cv::Scalar(200,0,0), 1, 4);
-            #endif
-        }
-        // 図に基準となる横線を引く
-        #ifdef SAMPLE
-        cv::line(img, cv::Point(0, 100), cv::Point(680, 100), cv::Scalar(0,0,200), 1, 4);
-        cv::line(img, cv::Point(0, 200), cv::Point(680, 200), cv::Scalar(0,0,200), 1, 4);
-        cv::line(img, cv::Point(0, 300), cv::Point(680, 300), cv::Scalar(0,0,200), 1, 4);
-        cv::line(img, cv::Point(0, 400), cv::Point(680, 400), cv::Scalar(0,0,200), 1, 4);
-        cv::imshow("URG data", img);
-        cv::waitKey(1);
-        usleep(1000);      // sleep for one millisecond
-        #endif
         /************/
 
         /// ros
@@ -246,10 +150,8 @@ int main(int argc, char *argv[])
     gpio_close();
 
     printf("time2 %d[sec] %d[nsec]\n",jt.get_sec(),jt.get_nsec());
-//    pthread_join(tid1,NULL);
     pthread_mutex_destroy(&mutex);
-///    spi_close();
-//    urg_close(&urg);
+
 
     return 0;
 }/****************************************************************** END ***/
