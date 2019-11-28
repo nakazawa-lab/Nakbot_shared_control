@@ -67,6 +67,35 @@ void save_serial(const char &RS_cmd, const int (&RS_prm)[4])
     //ros_serial.rc.lin << " " << ros_serial.encoder.l_ref << " "<< std::endl; 
 }
 
+void JetSAS_Node::register_vel_param(){
+    //nh.setParam("/my_robo/diff_drive_controller/angular/z/has_acceleration_limits",true);
+/*
+ * /my_robo/diff_drive_controller/angular/z/has_acceleration_limits: True
+ * /my_robo/diff_drive_controller/angular/z/has_velocity_limits: True
+ * /my_robo/diff_drive_controller/angular/z/max_acceleration: 1.5
+ * /my_robo/diff_drive_controller/angular/z/max_velocity: 1.5
+ * /my_robo/diff_drive_controller/angular/z/min_acceleration: -1.5
+ * /my_robo/diff_drive_controller/angular/z/min_velocity: -1.5
+ * /my_robo/diff_drive_controller/base_frame_id: base_footprint
+ * /my_robo/diff_drive_controller/cmd_vel_timeout: 10.0
+ * /my_robo/diff_drive_controller/left_wheel: left_wheel_joint
+ * /my_robo/diff_drive_controller/linear/x/has_acceleration_limits: True
+ * /my_robo/diff_drive_controller/linear/x/has_velocity_limits: True
+ * /my_robo/diff_drive_controller/linear/x/max_acceleration: 1.0
+ * /my_robo/diff_drive_controller/linear/x/max_velocity: 0.8
+ * /my_robo/diff_drive_controller/linear/x/min_acceleration: -1.0
+ * /my_robo/diff_drive_controller/linear/x/min_velocity: -0.8
+ * /my_robo/diff_drive_controller/odom_frame_id: odom
+ * /my_robo/diff_drive_controller/pose_covariance_diagonal: [0.001, 0.001, 10...
+ * /my_robo/diff_drive_controller/publish_rate: 50.0
+ * /my_robo/diff_drive_controller/right_wheel: right_wheel_joint
+ * /my_robo/diff_drive_controller/twist_covariance_diagonal: [0.001, 0.001, 10...
+ * /my_robo/diff_drive_controller/type: diff_drive_contro...
+ * /my_robo/diff_drive_controller/wheel_radius: 0.075
+ * /my_robo/diff_drive_controller/wheel_separation: 0.285
+*/
+}
+
 void JetSAS::Lrf::make_scan_msgs(long* urg_data,const int scan_num){
     //std::cout << "in make scan msgs, urg_data num is " << scan_num <<std::endl;
 
