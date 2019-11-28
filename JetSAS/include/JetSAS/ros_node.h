@@ -20,7 +20,7 @@ const double INTERCEPT_ENCODER = 5000000.0;
 
 /// ==TODO== ///
 const double robot_width = 0.3;
-const double WHEEL_LENGTH = 0.3;
+const double WHEEL_LENGTH = 0.48;
 const double ENCODER_PER_ROT = 500.0;
 
 struct position
@@ -37,8 +37,8 @@ struct Serial_sh{
     };
     struct Encoder{
         int r_ref,l_ref,r_sum,l_sum;
+        int r_init, l_init;
     };
-
     Rc rc;
     Encoder encoder;
 };
