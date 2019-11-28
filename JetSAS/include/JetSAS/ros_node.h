@@ -259,6 +259,8 @@ private:
 
     void write_log();
 
+    void register_vel_param();
+
     // void clear_vector(){
     //     std::vector<double>().swap(LOG);
     // };
