@@ -17,11 +17,15 @@ extern std::string get_current_time();
 namespace JetSAS
 {
 const double INTERCEPT_ENCODER = 5000000.0;
+const double WHEEL_LENGTH = 0.0254*6.0*M_PI;    // 6インチ径のタイヤの長さ
+const double ENCODER_PER_ROT = 5120.0;
+extern double robot_width;
 
-/// ==TODO== ///
-const double robot_width = 0.3;
-const double WHEEL_LENGTH = 0.48;
-const double ENCODER_PER_ROT = 500.0;
+// 予備実験によってだいたいの値を書いておく
+const float max_rc_lin = 1200.0;
+const float max_rc_rot = 1200.0;
+const float min_rc_lin = 1170.0;
+const float min_rc_rot = 1170.0;
 
 struct position
 {
@@ -115,7 +119,7 @@ private:
     int old_encoder_right, old_encoder_left;
 
     // 5000000が基本
-    const double encoder_multiplier = WHEEL_LENGTH / ENCODER_PER_ROT;
+    const double encoder_multiplier = WHEEL_LENGTH / ENCODER_PER_ROT * 10.0;
 
     double v, w;
     double right_v, left_v;
@@ -170,7 +174,7 @@ private:
     const double cmd_multipler_vel = 0.1;
     const double cmd_multiplier_rot = 0.1;
 
-    const double cmd_multiplier_to_enc = ENCODER_PER_ROT / WHEEL_LENGTH;
+    const double cmd_multiplier_to_enc = ENCODER_PER_ROT / (WHEEL_LENGTH*10);
 
 
 public:
@@ -247,6 +251,8 @@ public:
         make_log_col();
         start_time = std::chrono::system_clock::now();
         std::cout << "finish JetSAS_Node constructor" << std::endl;
+        nh.getParam("/my_robo/diff_drive_controller/wheel_separation",JetSAS::robot_width);
+        std::cout << "in JetSAS_node constructor robot_width:" << JetSAS::robot_width << std::endl;
     };
 
     ~JetSAS_Node(){

@@ -46,6 +46,7 @@ pthread_mutex_t mutex; ///
 int count1=0;///
 urg_t urg;  ///for URG sensor
 long *urg_data;
+double JetSAS::robot_width;
 ///extern int open_urg_sensor(urg_t *urg, int argc, char *argv[]);
 
 /*************************usage serial.cpp jetsas(int,int,int)*************************

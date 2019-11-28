@@ -150,9 +150,9 @@ void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const doub
     //std::cout << "(x, y, sin_th, cos_th) " << now_p.x << ", " << now_p.y << ", "<< now_p.sin_th << ", "<< now_p.cos_th <<std::endl;
 }
 
+//     geometry_msgs::Twist vel;        を
+//     int encoder_prm1, encoder_prm2;　に変換する
 void JetSAS::Cmd_vel::cmd_vel_to_encoder(){
-    //     geometry_msgs::Twist vel;        を
-    //     int encoder_prm1, encoder_prm2;　に変換する
     double tmp = vel.angular.z * robot_width / 2.0;
     encoder_cmd_r = (vel.linear.x + tmp) * cmd_multiplier_to_enc + INTERCEPT_ENCODER;
     encoder_cmd_l = (vel.linear.x - tmp) * cmd_multiplier_to_enc + INTERCEPT_ENCODER;
@@ -168,8 +168,6 @@ void JetSAS::RC::rc_to_encoder(){
 }
 
 void JetSAS::Joy::make_joy_msgs(){
-    // とりあえずここに書くがクラスのメンバ変数にする
-    float max_rc_lin=1200.0, max_rc_rot=1200.0, min_rc_lin=1170.0, min_rc_rot=1170.0;
     float center_lin =  (max_rc_lin + min_rc_lin)/ 2.0;
     float center_rot = (max_rc_rot + min_rc_rot)/ 2.0;
 
@@ -188,7 +186,7 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
     //std::cout << "start control function" << std::endl;
     loop_start_time = std::chrono::system_clock::now();
 
-    // urgの値をとってくる　get_urg
+    // urgの値をとってくる
     urg_start_measurement(&urg, URG_DISTANCE, 1, 0);
     n = urg_get_distance(&urg, urg_data, &time_stamp);
     if (n < 0)
@@ -204,20 +202,19 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
     // エンコーダの値をもとに現在の位置と速度を計算する
     this_loop_time = (double)(jt.get_nsec() / 1000000000.0) - old_time;
     //std::cout <<"this loop time " << this_loop_time << std::endl;
-    //odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,this_loop_time);
+    odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,this_loop_time);
 
     // RCの値をサンプルプログラムからとってくる jetsas r
     jetsas('r',0001,0001);
 
     // RCの値をもとに現在の人間からの速度指令値を計算する
-    //rc_to_vel();
-    //joy.make_joy_msgs();
+    joy.make_joy_msgs();
 
     // odom, lrf, joyをpublish
-    //pub_sensor();
+    pub_sensor();
 
     // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
-    //cmd_vel.cmd_vel_to_encoder();
+    cmd_vel.cmd_vel_to_encoder();
 
     // SHに送信する jetsas v
     // jetsas('v',encoder_prm_r,encoder_prm_l);
