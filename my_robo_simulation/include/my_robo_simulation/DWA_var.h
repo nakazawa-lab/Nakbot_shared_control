@@ -24,15 +24,15 @@ public:
     // 軌道計算の刻み
     const double dt_traj = 0.1;
     // 軌道予測時刻
-    const double PredictTime = 3.0;
+    const double PredictTime = 2.0;
     const double looprate = 10.0;
 
     const double k_heading = 1.0;
     const double k_velocity = 1.0;
 
     // この秒数後の衝突に対して衝突危険正規化距離を１未満にする。これ以上の場合は1で安全
-    const float thres_vel_time = 3.0;
-    const float thres_ang_time = 3.0;
+    const float thres_vel_time = 1.5;
+    const float thres_ang_time = 1.5;
 
     const int POINT_INTERVAL = 2;
 
@@ -41,7 +41,7 @@ public:
 
     const int LINSAFE_MULTIPLIER = 2;
     const int ANGSAFE_MULTIPLIER = 2;
-    const int PUB_TRAJ_MARKER_PER_LOOP =3;
+    const int PUB_TRAJ_MARKER_PER_LOOP =1;
 
     const bool IsREAL = false;
 
