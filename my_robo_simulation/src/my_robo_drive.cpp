@@ -15,8 +15,8 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-#define PABLODWA
-//#define MYDWA
+//#define PABLODWA
+#define MYDWA
 #define ISSHARED
 #define PUB_MARKER
 
@@ -387,24 +387,23 @@ void MyDWA::DWAloop()
                         markers = make_traj_marker_array(opt_index);
                         pub_marker_array(markers);
 
-                        //markers = make_joy_traj_marker_array();
-                        //pub_marker_array(markers);
+                        markers = make_joy_traj_marker_array();
+                        pub_marker_array(markers);
                         marker_loop_flag = 0;
                     }
+                    say_time("pub marker", loop_start_time);
 #endif
 
 #ifdef MYDWA
                     // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
                     // pub_marker(marker);
 #endif
-                    say_time("pub marker", loop_start_time);
 
 #ifdef ISSHARED
 
 #ifdef PABLODWA
                     vel.linear.x = CandVel[opt_index][0];
                     vel.angular.z = CandVel[opt_index][1];
-
 #endif
 
 #ifdef MYDWA

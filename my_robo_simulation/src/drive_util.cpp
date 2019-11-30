@@ -83,16 +83,16 @@ visualization_msgs::Marker my_robo::make_pos_marker(position p)
   return marker;
 }
 
-// k番目の速度候補
-visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
+visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
 {
   visualization_msgs::MarkerArray marker_array;
-  marker_array.markers.resize((PredictTraj[0].size() + 1) * PredictTraj.size());
+  const int CANDVEL_DIVIDER = 8;
+  const int TRAJ_DIVIDER = 2;
+  marker_array.markers.resize((PredictTraj[0].size()/CANDVEL_DIVIDER + 3) * PredictTraj.size()/TRAJ_DIVIDER);
 
   int k = 0;
   float green = 0;
   float red = 0;
-  bool adopt_flag = false; // 採用軌道を示すもの
 
   double max_lin, max_ang, tmp = 0;
   // dist_lin_ang[i][0]と[i][1]の最大値を取得する
@@ -108,24 +108,20 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
   std::cout << "max dist lin ang:" << max_lin << " " << max_ang << std::endl;
 
   // 候補の数ループ
-  for (int i = 0; i < PredictTraj.size(); i += 8)
+  for (int i = 0; i < PredictTraj.size(); i += CANDVEL_DIVIDER)
   {
     
     //ROS_INFO("start put marker.");
-    if (i == index)
-      adopt_flag = true;
-    else
-      adopt_flag = false;
     // if((i==0) || adopt_flag){
     //予測時刻の数だけループ
-    for (int j = 0; j < PredictTraj[i].size(); j += 5)
+    for (int j = 0; j < PredictTraj[i].size(); j += TRAJ_DIVIDER)
     {
       //ROS_INFO("start loop.");
       marker_array.markers[k].header.frame_id = "/odom";
       marker_array.markers[k].header.stamp = ros::Time::now();
       marker_array.markers[k].ns = "cmd_vel_display";
       marker_array.markers[k].id = k;
-      marker_array.markers[k].lifetime = (ros::Duration)( PUB_TRAJ_MARKER_PER_LOOP /looprate) ; //1ループ存在
+      marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP *dt) ; //1ループ存在
 
       // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
       marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
@@ -139,19 +135,6 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
       marker_array.markers[k].pose.orientation.z = 0;
       marker_array.markers[k].pose.orientation.w = 1;
 
-      if (adopt_flag)
-      {
-        marker_array.markers[k].scale.x = 0.1;
-        marker_array.markers[k].scale.y = 0.1;
-        marker_array.markers[k].scale.z = 0.1;
-
-        marker_array.markers[k].color.r = 0.0f;
-        marker_array.markers[k].color.g = 0.0f;
-        marker_array.markers[k].color.b = 1.0f;
-        marker_array.markers[k].color.a = 1.0f;
-      }
-      else
-      {
         double color;
         if(IsProposed){
           color = (dist_lin_ang[i][0] + dist_lin_ang[i][1]) / (max_lin + max_ang);
@@ -159,43 +142,80 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int index)
         else{
           color = CandVel[i][2];
         }
-        double x = 1;
-        if (isCollision[i])
-        {
-          x = 0;
-        }
+        // double x = 1;
+        // if (isCollision[i])
+        // {
+        //   x = 0;
+        // }
 
         marker_array.markers[k].scale.x = 0.05;
         marker_array.markers[k].scale.y = 0.05;
         marker_array.markers[k].scale.z = 0.05;
 
         marker_array.markers[k].color.r = 1.0f;
-        marker_array.markers[k].color.g = x;
-        marker_array.markers[k].color.b = x;
+        marker_array.markers[k].color.g = color;
+        marker_array.markers[k].color.b = color;
         marker_array.markers[k].color.a = 1.0f;
-      }
+      
       k++;
     }
-  //}
+  }
+
+  int marker_num = marker_array.markers.size() - 1;
+  if (opt_index != CandVel.size() - 1)
+  {
+    // 採用軌道のmarkerを作る
+    //予測時刻の数だけループ
+    for (int j = 0; j < PredictTraj[opt_index].size(); j +=TRAJ_DIVIDER)
+    {
+      marker_array.markers[k].header.frame_id = "/odom";
+      marker_array.markers[k].header.stamp = ros::Time::now();
+      marker_array.markers[k].ns = "cmd_vel_display";
+      marker_array.markers[k].id = k;
+      marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP * dt); //1ループ存在
+
+      marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
+      marker_array.markers[k].action = visualization_msgs::Marker::ADD;
+
+      marker_array.markers[k].pose.position.x = PredictTraj[opt_index][j][1];
+      marker_array.markers[k].pose.position.y = PredictTraj[opt_index][j][2];
+      marker_array.markers[k].pose.position.z = 0;
+
+      marker_array.markers[k].pose.orientation.x = 0;
+      marker_array.markers[k].pose.orientation.y = 0;
+      marker_array.markers[k].pose.orientation.z = 0;
+      marker_array.markers[k].pose.orientation.w = 1;
+      marker_array.markers[k].scale.x = 0.1;
+      marker_array.markers[k].scale.y = 0.1;
+      marker_array.markers[k].scale.z = 0.1;
+
+      marker_array.markers[k].color.r = 0.0f;
+      marker_array.markers[k].color.g = 0.0f;
+      marker_array.markers[k].color.b = 1.0f;
+      marker_array.markers[k].color.a = 1.0f;
+      k++;
+    }
   }
   return marker_array;
 }
 
-visualization_msgs::MarkerArray MyDWA::make_joy_traj_marker_array(){
+visualization_msgs::MarkerArray MyDWA::make_joy_traj_marker_array()
+{
   visualization_msgs::MarkerArray marker_array;
-  marker_array.markers.resize((Joy_PredictTraj[0].size() + 1) * Joy_PredictTraj.size());
-
+  const int TRAJ_DIVIDER = 2;
   int k = 0;
 
-  for (int j = 0; j < Joy_PredictTraj.size(); j += 4)
+  marker_array.markers.resize((Joy_PredictTraj.size()/TRAJ_DIVIDER + 1));
+
+  for (int j = 0; j < Joy_PredictTraj.size(); j += TRAJ_DIVIDER)
   {
-    //ROS_INFO("start loop.");
+    //ROS_INFO("start loop.%d",j);
 
     marker_array.markers[k].header.frame_id = "/odom";
     marker_array.markers[k].header.stamp = ros::Time::now();
     marker_array.markers[k].ns = "cmd_vel_display";
     marker_array.markers[k].id = k;
-    marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP /looprate);
+    marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP *dt);
 
     // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
     marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
