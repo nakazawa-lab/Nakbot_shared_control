@@ -87,8 +87,8 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
 {
   visualization_msgs::MarkerArray marker_array;
   const int CANDVEL_DIVIDER = 8;
-  const int TRAJ_DIVIDER = 2;
-  marker_array.markers.resize((PredictTraj[0].size()/CANDVEL_DIVIDER + 3) * PredictTraj.size()/TRAJ_DIVIDER);
+  const int TRAJ_DIVIDER = 1;
+  marker_array.markers.resize(((PredictTime/dt_traj)/TRAJ_DIVIDER + 2) * (CandVel.size()/CANDVEL_DIVIDER+1));
 
   int k = 0;
   float green = 0;
@@ -106,23 +106,24 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
     }
   }
   std::cout << "max dist lin ang:" << max_lin << " " << max_ang << std::endl;
-
+  std::cout << "cand size: "<<CandVel.size() <<std::endl;
+  std::cout << "traj: " <<  PredictTraj[0].size() << std::endl;
+  std::cout << "maeker size " << marker_array.markers.size() << std::endl;
   // 候補の数ループ
-  for (int i = 0; i < PredictTraj.size(); i += CANDVEL_DIVIDER)
-  {
-    
+  for (int i = 0; i < CandVel.size(); i += CANDVEL_DIVIDER)
+  {    
     //ROS_INFO("start put marker.");
     // if((i==0) || adopt_flag){
     //予測時刻の数だけループ
     for (int j = 0; j < PredictTraj[i].size(); j += TRAJ_DIVIDER)
     {
+      std::cout << k <<std::endl;
       //ROS_INFO("start loop.");
       marker_array.markers[k].header.frame_id = "/odom";
       marker_array.markers[k].header.stamp = ros::Time::now();
       marker_array.markers[k].ns = "cmd_vel_display";
       marker_array.markers[k].id = k;
       marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP *dt) ; //1ループ存在
-
       // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
       marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
       marker_array.markers[k].action = visualization_msgs::Marker::ADD;
@@ -142,19 +143,19 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
         else{
           color = CandVel[i][2];
         }
-        // double x = 1;
-        // if (isCollision[i])
-        // {
-        //   x = 0;
-        // }
+        double x = 1;
+        if (isCollision[i])
+        {
+          x = 0;
+        }
 
         marker_array.markers[k].scale.x = 0.05;
         marker_array.markers[k].scale.y = 0.05;
         marker_array.markers[k].scale.z = 0.05;
 
         marker_array.markers[k].color.r = 1.0f;
-        marker_array.markers[k].color.g = color;
-        marker_array.markers[k].color.b = color;
+        marker_array.markers[k].color.g = x;
+        marker_array.markers[k].color.b = x;
         marker_array.markers[k].color.a = 1.0f;
       
       k++;
@@ -166,7 +167,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
   {
     // 採用軌道のmarkerを作る
     //予測時刻の数だけループ
-    for (int j = 0; j < PredictTraj[opt_index].size(); j +=TRAJ_DIVIDER)
+    for (int j = 0; j < PredictTraj[opt_index].size(); j +=2)
     {
       marker_array.markers[k].header.frame_id = "/odom";
       marker_array.markers[k].header.stamp = ros::Time::now();
