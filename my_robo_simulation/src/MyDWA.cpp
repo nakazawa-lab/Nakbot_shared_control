@@ -142,6 +142,18 @@ void MyDWA::cal_opt()
         CandVel.back().push_back(numeric_limits<double>::quiet_NaN());
         opt_index = CandVel.size() - 1;
 
+        double time =0.0;
+        while(time < PredictTime){
+            PredictTraj.push_back(std::vector<std::vector<double>>());
+            // timeとpをPredictTrajに格納する処理
+            PredictTraj.back().push_back(std::vector<double>());
+            PredictTraj.back().back().push_back(time);
+            PredictTraj.back().back().push_back(0);
+            PredictTraj.back().back().push_back(0);
+            // sin とcosは使わないので入れない
+            time += dt_traj;
+        }
+
         dist_lin_ang[opt_index].push_back(numeric_limits<double>::quiet_NaN());
         dist_lin_ang[opt_index].push_back(numeric_limits<double>::quiet_NaN());
         dist_lin_ang[opt_index].push_back(99999999);

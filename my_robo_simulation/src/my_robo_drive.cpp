@@ -15,8 +15,8 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-//#define PABLODWA
-#define MYDWA
+#define PABLODWA
+//#define MYDWA
 #define ISSHARED
 #define PUB_MARKER
 
@@ -143,7 +143,7 @@ void my_robo::cal_DWA()
     CandVel[i].push_back(sensor.odom.twist.twist.angular.z); //[i][1]に角速度要素
     //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
     i++;
-
+    
     //もし速度0がDWAに含まれていれば、それも候補に加える
     if (0 >= min_dwa_vel && 0 <= max_dwa_ang && 0 >= min_dwa_ang && 0 <= max_dwa_ang)
     {
@@ -377,7 +377,7 @@ void MyDWA::DWAloop()
                 //say_time("proposed", loop_start_time);
 #endif
 
-                if (sensor.joy_cmd_vel[0] > -0)
+                if (sensor.joy_cmd_vel[0] > -0 && (sensor.odom.twist.twist.linear.x > 0))
                 {
 #ifdef PUB_MARKER
                     visualization_msgs::MarkerArray markers;
