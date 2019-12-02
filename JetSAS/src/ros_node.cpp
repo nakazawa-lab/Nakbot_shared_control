@@ -140,7 +140,7 @@ void JetSAS::Odom::cal_now_vel(const double this_loop_time){
     // std::cout << "this loop time " <<this_loop_time <<std::endl;
     // // ここの符号は実験の結果変わるかもしれない
     // v = (right_v + left_v) / 2.0;
-    // w = (right_v - left_v) / robot_width;
+    // w = (right_v - left_v) / (2.0*robot_width);
 
     // std::cout << "from position encoder, (v,w) is " << v  << ", " << w << std::endl;
     // std::cout << "right v left v " <<right_v << " " << left_v  <<std::endl;
@@ -151,7 +151,7 @@ void JetSAS::Odom::cal_now_vel(const double this_loop_time){
     std::cout << ros_serial.encoder.r_ref << " " << ros_serial.encoder.r_ref - INTERCEPT_ENCODER << " " << encoder_multiplier << std::endl;
     std::cout << "v[m/s] from enc " << right_v << " " << left_v << std::endl; 
     v = (right_v + left_v) / 2.0;
-    w = (right_v - left_v) / robot_width;
+    w = (right_v - left_v) / (2.0*robot_width);
 
     std::cout << "from vel encoder, (v,w) is " << v  << ", " << w << std::endl;
 }
