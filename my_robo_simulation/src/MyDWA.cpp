@@ -6,43 +6,16 @@
 #include <cassert>
 
 using namespace std;
+extern double cal_euclid(double x0, double y0, double x1, double y1);
 
-double MyDWA::cal_Dist(MyPoint query, int idx)
-{
-    return sqrt((LRFpoints[idx][0] - query[0]) * (LRFpoints[idx][0] - query[0]) + (LRFpoints[idx][1] - query[1]) * (LRFpoints[idx][1] - query[1]));
-}
+// double MyDWA::cal_Dist(MyPoint query, int idx)
+// {
+//     return sqrt((LRFpoints[idx][0] - query[0]) * (LRFpoints[idx][0] - query[0]) + (LRFpoints[idx][1] - query[1]) * (LRFpoints[idx][1] - query[1]));
+// }
 
 double cal_coll_thres(double r0, double th0, double r, double th)
 {
     return sqrt(r * r + r0 * r0 - 2 * r * r0 * cos(th - th0));
-}
-
-double MyDWA::cal_head_cost_pro(int candIdx)
-{
-    double cost = fabs(CandVel[candIdx][1] - sensor.joy_cmd_vel[1]) / (spec.z_max_ang);
-
-    // cost = sqrt(1 - (1 - cost) * (1 - cost));
-
-    if (isnan(cost))
-    {
-        cost = 0;
-    }
-    //cout << "head_cost: " << cost <<endl;
-    return cost;
-}
-
-double MyDWA::cal_vel_cost_pro(int candIdx)
-{
-    double cost = fabs(CandVel[candIdx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel;
-
-    // cost = sqrt(1 - (1 - cost) * (1 - cost));
-
-    if (isnan(cost))
-    {
-        cost = 0;
-    }
-    //cout << "vel_h_cost: " << cost <<endl;
-    return cost;
 }
 
 void MyDWA::cal_opt()
@@ -134,6 +107,7 @@ void MyDWA::cal_opt()
     // あまりにきけんなときは停止する
     if (cost > 1)
     {
+        /*TODO 0ではなく最小入力にする*/
         CandVel.push_back(vector<double>());
         dist_lin_ang.push_back(vector<double>());
         cout << "danger. new cand size:" << CandVel.size() << " cost:" << cost << endl;
@@ -165,8 +139,8 @@ void MyDWA::cal_opt()
     // cout << "dist_lin_ang[opt].size " << dist_lin_ang[opt_index].size() <<endl;
     // cout << "dist_lin_ang[opt][2] " <<dist_lin_ang[opt_index][2] <<endl;
 
-    // cout << "opt idx is" << opt_index << endl
-    //     << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
+    cout << "opt idx is" << opt_index << endl
+        << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
 
     // auto now = std::chrono::system_clock::now();
     // auto dur = now - start_time;
@@ -185,14 +159,19 @@ void MyDWA::kd_tree()
     double dist, lin, ang;
     int tmp_scan_id, scan_id_nearest;
     int traj_id_nearest;
+    double x,y;
 
     for (int i = 0; i < sensor.point_num; i++)
     {
         if (!isinf(sensor.latest_scan.ranges[i]))
         {
-            LRFpoints.push_back(MyPoint(sensor.index_to_rad(i), sensor.latest_scan.ranges[i]));
-            thinout_scan_range.push_back(sensor.latest_scan.ranges[i]);
-            thinout_scan_ang.push_back(sensor.index_to_rad(i));
+            position p = sensor.index_to_pos(i);
+            //LRFpoints.push_back(MyPoint(sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]));
+            LRFpoints.push_back(MyPoint(p.x,p.y));
+            // thinout_scan_range.push_back(sensor.latest_scan.ranges[i]);
+            // thinout_scan_ang.push_back(sensor.index_to_rad(i));
+            thinout_scan_x.push_back(p.x);
+            thinout_scan_y.push_back(p.y);
             IsNoObs = false;
         }
     }
@@ -206,30 +185,33 @@ void MyDWA::kd_tree()
         for (int candId = 0; candId < CandVel.size(); candId++)
         {
             dist_lin_ang.push_back(vector<double>());
-            int traj_size = PredictTraj_r[candId].size();
+            int traj_size = PredictTraj[candId].size();
            
 
             for (int traj_id = 0; traj_id < traj_size; traj_id++)
             {
-                query[0] = PredictTraj_r[candId][traj_id][2];
-                query[1] = PredictTraj_r[candId][traj_id][1];
+                //query[0] = PredictTraj_r[candId][traj_id][2];
+                //query[1] = PredictTraj_r[candId][traj_id][1];
+                query[0]=PredictTraj[candId][traj_id][1];
+                query[1]=PredictTraj[candId][traj_id][2];
                 
                 tmp_scan_id = LRFkdtree.nnSearch(query);
                 // cout << "query:(" << query[0]  << ", " << query[1] << ")" <<endl;
                 // cout << "scan id:" << tmp_scan_id << endl;
                 // cout << "thinout_range:" << thinout_scan_range[tmp_scan_id] << " ang:" << thinout_scan_ang[tmp_scan_id] << endl;
-                tmp_dist = cal_coll_thres(thinout_scan_range[tmp_scan_id], thinout_scan_ang[tmp_scan_id], PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]);
+                //tmp_dist = cal_coll_thres(thinout_scan_range[tmp_scan_id], thinout_scan_ang[tmp_scan_id], PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]);
+                tmp_dist = cal_euclid(thinout_scan_x[tmp_scan_id],thinout_scan_y[tmp_scan_id],PredictTraj[candId][traj_id][1],PredictTraj[candId][traj_id][2]);
                 if (tmp_dist < spec.ROBOT_RAD)
                 {
                     isCollision.push_back(true);
-                    lin = fabs(PredictTraj_r[candId][traj_id][1] / (CandVel[candId][0] * thres_vel_time));
-                    ang = fabs(PredictTraj_r[candId][traj_id][2] / (CandVel[candId][1] * thres_ang_time));
+                    lin = CandVel[candId][0]*PredictTraj[candId][traj_id][0];
+                    ang = CandVel[candId][1]*PredictTraj[candId][traj_id][0];
                     // cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
-                    // cout << "PredictTraj_r: " << PredictTraj_r[candId][traj_id][1] << " " << PredictTraj_r[candId][traj_id][2] <<endl;
+                    // cout << "PredictTraj: " << PredictTraj[candId][traj_id][1] << " " << PredictTraj[candId][traj_id][2] <<endl;
                     // //cout << "sensor: " << thinout_scan_range[tmp_scan_id] << endl;
                     // cout << "lin:" <<lin << " ang:" <<ang <<endl;
                     // cout << "traj_id:" <<traj_id << " scan_id:" <<tmp_scan_id <<endl;
-                    // cout <<endl;
+                    //cout << endl;
                     dist_lin_ang[candId].push_back(lin);
                     dist_lin_ang[candId].push_back(ang);
                     dist_lin_ang[candId].push_back(tmp_scan_id);
@@ -315,13 +297,11 @@ void MyDWA::clear_vector()
 
     std::vector<std::vector<double>>().swap(Joy_PredictTraj);
 
-    vector<line>().swap(sensor.lines);
+    //std::vector<std::vector<std::vector<double>>>().swap(PredictTraj_r);
 
-    std::vector<std::vector<std::vector<double>>>().swap(PredictTraj_r);
+    // vector<double>().swap(lin_normdists);
 
-    vector<double>().swap(lin_normdists);
-
-    vector<double>().swap(ang_normdists);
+    // vector<double>().swap(ang_normdists);
 
     vector<vector<double>>().swap(dist_lin_ang);
 
@@ -329,11 +309,13 @@ void MyDWA::clear_vector()
 
     vector<MyPoint>().swap(LRFpoints);
 
-    vector<double>().swap(LOG);
+    //vector<double>().swap(LOG);
 
-    vector<float>().swap(thinout_scan_range);
+    // vector<float>().swap(thinout_scan_range);
 
-    vector<float>().swap(thinout_scan_ang);
+    // vector<float>().swap(thinout_scan_ang);
+    vector<float>().swap(thinout_scan_x);
+    vector<float>().swap(thinout_scan_y);
 }
 
 void MyDWA::record_param()

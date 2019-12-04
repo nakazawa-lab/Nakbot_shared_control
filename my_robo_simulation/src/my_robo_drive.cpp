@@ -193,14 +193,14 @@ const void my_robo::push_back_traj(const int i, const double time, const positio
     PredictTraj.back().back().push_back(np.sin_th);
     PredictTraj.back().back().push_back(np.cos_th);
 
-    PredictTraj_r.back().push_back(std::vector<double>());
+    //PredictTraj_r.back().push_back(std::vector<double>());
 
     if (CandVel[i][1] < 0)
         theta -= M_PI;
 
-    PredictTraj_r.back().back().push_back(time);
-    PredictTraj_r.back().back().push_back(d);
-    PredictTraj_r.back().back().push_back(theta);
+    // PredictTraj_r.back().back().push_back(time);
+    // PredictTraj_r.back().back().push_back(d);
+    // PredictTraj_r.back().back().push_back(theta);
 
     //std::cout << "PredictTraj r:(" << theta << ", " << d << ")" << std::endl;
     //std::cout << "candVel " << CandVel[i][0] << " " << CandVel[i][1] << std::endl;
@@ -221,7 +221,7 @@ void my_robo::cal_predict_position()
 
         // indexの挿入
         PredictTraj.push_back(std::vector<std::vector<double>>());
-        PredictTraj_r.push_back(std::vector<std::vector<double>>());
+        //PredictTraj_r.push_back(std::vector<std::vector<double>>());
 
         position np;
 
@@ -232,9 +232,9 @@ void my_robo::cal_predict_position()
 
                 np = robot_model(p, CandVel[i][0], CandVel[i][1], dt_traj);
 
-                radius = 0;
-                d = CandVel[i][0] * time;
-                theta = 0;
+                //radius = 0;
+                //d = CandVel[i][0] * time;
+                //theta = 0;
 
                 push_back_traj(i, time, np, d, theta);
 
@@ -248,27 +248,27 @@ void my_robo::cal_predict_position()
             {
                 np = robot_model(p, CandVel[i][0], CandVel[i][1], dt_traj);
 
-                radius = fabs(CandVel[i][0] / CandVel[i][1]);
-                d = sqrt(2 * (1 - cos(CandVel[i][1] * time))) * radius;
-                double temp = radius * sin(CandVel[i][1] * time) / d;
-                if (temp < -1)
-                {
-                    //std::cout << "tmep is lower -1" << std::endl;
-                    temp = -1;
-                }
-                else if (temp > 1)
-                {
-                    //std::cout << "temp is upper 1" <<std::endl;
-                    temp = 1;
-                }
-                theta = acos(temp); // acosは-1から1までの値を受け取り0からpiまでの値を返す
+                //radius = fabs(CandVel[i][0] / CandVel[i][1]);
+                //d = sqrt(2 * (1 - cos(CandVel[i][1] * time))) * radius;
+                //double temp = radius * sin(CandVel[i][1] * time) / d;
+                // if (temp < -1)
+                // {
+                //     //std::cout << "tmep is lower -1" << std::endl;
+                //     temp = -1;
+                // }
+                // else if (temp > 1)
+                // {
+                //     //std::cout << "temp is upper 1" <<std::endl;
+                //     temp = 1;
+                // }
+                // theta = acos(temp); // acosは-1から1までの値を受け取り0からpiまでの値を返す
 
-                if (isnan(theta))
-                {
-                    std::cout << "theta is nan:" << d << "," << radius << "," << temp << ", " << CandVel[i][1] * time << std::endl
-                              << std::endl;
-                    ;
-                }
+                // if (isnan(theta))
+                // {
+                //     std::cout << "theta is nan:" << d << "," << radius << "," << temp << ", " << CandVel[i][1] * time << std::endl
+                //               << std::endl;
+                //     ;
+                // }
 
                 push_back_traj(i, time, np, d, theta);
 
@@ -344,7 +344,7 @@ void MyDWA::DWAloop()
                 clear_vector();
                 control_loop_flag = 0;
 
-                sensor.cal_obs(sensor.latest_scan, POINT_INTERVAL, sensor.odom.pose);
+                //sensor.cal_obs(sensor.latest_scan, POINT_INTERVAL, sensor.odom.pose);
 
                 visualization_msgs::MarkerArray obsmarkers = sensor.make_obs_markers();
                 //pub_marker_array(obsmarkers);
@@ -377,7 +377,7 @@ void MyDWA::DWAloop()
                 //say_time("proposed", loop_start_time);
 #endif
 
-                if (sensor.joy_cmd_vel[0] > -0 && (sensor.odom.twist.twist.linear.x > 0))
+                if (sensor.joy_cmd_vel[0] >= -0 && (sensor.odom.twist.twist.linear.x >= 0))
                 {
 #ifdef PUB_MARKER
                     visualization_msgs::MarkerArray markers;
@@ -398,7 +398,9 @@ void MyDWA::DWAloop()
                     // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
                     // pub_marker(marker);
 #endif
+                }
 
+                if(sensor.joy_cmd_vel[0]>-0){
 #ifdef ISSHARED
 
 #ifdef PABLODWA
@@ -476,30 +478,6 @@ void MyDWA::record_loop_info()
 #endif
 
 #ifdef PABLODWA
-    // LOG.push_back((double)timestanp_ms / 1000);
-
-    // LOG.push_back(sensor.odom.pose.pose.position.x);
-    // LOG.push_back(sensor.odom.pose.pose.position.y);
-    // LOG.push_back(selected.adm);
-    // LOG.push_back(1 - selected.adm);
-    // LOG.push_back(selected.vel_h_cost);
-    // LOG.push_back(selected.head_h_cost);
-    // LOG.push_back(selected.cost);
-    // LOG.push_back(CandVel[opt_index][0]);
-    // LOG.push_back(CandVel[opt_index][1]);
-    // LOG.push_back(sensor.joy_cmd_vel[0]);
-    // LOG.push_back(sensor.joy_cmd_vel[1]);
-    // LOG.push_back(sensor.odom.twist.twist.linear.x);
-    // LOG.push_back(sensor.odom.twist.twist.angular.z);
-    // LOG.push_back(loop_cal_time_ms);
-    // LOG.push_back(*std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()));
-
-    // logfile << LOG[0];
-    // for (int i = 1; i < LOG.size(); i++)
-    // {
-    //     logfile << "," << LOG[i];
-    // }
-    // logfile << std::endl;
 
     logfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.adm
             << "," << 1 - selected.adm << "," << selected.vel_h_cost << ","

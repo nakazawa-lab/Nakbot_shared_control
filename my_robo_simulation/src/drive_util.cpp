@@ -105,10 +105,10 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
       tmp = dist_lin_ang[i][0] + dist_lin_ang[i][1];
     }
   }
-  std::cout << "max dist lin ang:" << max_lin << " " << max_ang << std::endl;
-  std::cout << "cand size: "<<CandVel.size() <<std::endl;
-  std::cout << "traj: " <<  PredictTraj[0].size() << std::endl;
-  std::cout << "maeker size " << marker_array.markers.size() << std::endl;
+  // std::cout << "max dist lin ang:" << max_lin << " " << max_ang << std::endl;
+  // std::cout << "cand size: "<<CandVel.size() <<std::endl;
+  // std::cout << "traj: " <<  PredictTraj[0].size() << std::endl;
+  // std::cout << "maeker size " << marker_array.markers.size() << std::endl;
   // 候補の数ループ
   for (int i = 0; i < CandVel.size(); i += CANDVEL_DIVIDER)
   {    
@@ -117,7 +117,6 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
     //予測時刻の数だけループ
     for (int j = 0; j < PredictTraj[i].size(); j += TRAJ_DIVIDER)
     {
-      std::cout << k <<std::endl;
       //ROS_INFO("start loop.");
       marker_array.markers[k].header.frame_id = "/odom";
       marker_array.markers[k].header.stamp = ros::Time::now();

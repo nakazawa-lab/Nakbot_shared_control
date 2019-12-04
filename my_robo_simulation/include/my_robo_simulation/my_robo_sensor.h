@@ -63,6 +63,8 @@ public:
     // [0]が速度[1]が角速度
     double joy_cmd_vel[2];
 
+    const double CENTER_TO_LRF = 0.15;   //オドメトリの中心からLRFの原点までのx座標
+
     // オドメトリを原点とした障害物の位置 [index][x,y]
     std::vector<std::vector<double>> obs;
 

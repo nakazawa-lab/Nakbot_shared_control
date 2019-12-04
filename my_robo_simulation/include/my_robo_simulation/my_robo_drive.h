@@ -17,7 +17,21 @@
 #ifndef MY_ROBO_DRIVE
 #define MY_ROBO_DRIVE
 
-class my_robo : public DWA_var
+class my_kd_tree{
+public:
+            // LRFのkd木
+    kdt::KDTree<MyPoint> LRFkdtree;
+
+    // LRFについてのPoints
+    std::vector<MyPoint> LRFpoints;
+
+
+    std::vector<float> thinout_scan_x;
+
+    std::vector<float> thinout_scan_y;
+};
+
+class my_robo : public DWA_var, public my_kd_tree
 {
 public:
     struct selected_vel_info
