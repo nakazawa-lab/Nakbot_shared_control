@@ -1,22 +1,7 @@
-#include "my_robo_simulation/kdtree.h"
 #include "my_robo_simulation/my_robo_drive.h"
 
 #ifndef MY_DWA
 #define MY_DWA
-
-// kdtree.hの利用のための、点を表すクラス
-class MyPoint : public std::array<double, 2>
-{
-public:
-    static const int DIM = 2;
-
-    MyPoint() {}
-    MyPoint(double x, double y)
-    {
-        (*this)[0] = x;
-        (*this)[1] = y;
-    }
-};
 
 class MyDWA : public my_robo
 {
@@ -30,12 +15,6 @@ private:
     //const double point_scale_d = 1;
     //const double point_scale_th = 1;        // maxang/maxvel * 2 = 3.75
 
-    // LRFのkd木
-    kdt::KDTree<MyPoint> LRFkdtree;
-
-    // LRFについてのPoints
-    std::vector<MyPoint> LRFpoints;
-
     // distを計算せず、直接d thのcostを計算していくときに保持するコスト
     std::vector<std::vector<double>> dist_lin_ang;
 
@@ -43,18 +22,12 @@ private:
 
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> cal_end_time;
 
-    std::vector<float> thinout_scan_range;
+    // std::vector<float> thinout_scan_range;
 
-    std::vector<float> thinout_scan_ang;
-
-    // DWA_var DWA;
+    // std::vector<float> thinout_scan_ang;
 
     // treeidxのツリーのidx番目の点と、queryの点の距離(を求める。
-    double cal_Dist(MyPoint query, int idx);
-
-    double cal_head_cost_pro(int);
-
-    double cal_vel_cost_pro(int);
+    // double cal_Dist(MyPoint query, int idx);
 
     void cal_opt();
 

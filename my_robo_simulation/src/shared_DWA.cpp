@@ -270,74 +270,154 @@ void my_robo::cal_Dist2()
     double d_lin, d_ang; // sharedDWAの論文における定義
     double d, th;        // レーザセンサに対応した距離と角度
     double d_U;
+    bool IsNoObs = true;
+    int tmp_scan_id, scan_id_nearest;
+    double tmp_dist;
 
-    // 軌道に対する繰り返し
-    for (int i = 0; i < CandVel.size(); i++)
+# pragma region 新しい衝突判定方法
+
+    for (int i = 0; i < sensor.point_num; i++)
     {
-        int trajsize = PredictTraj[i].size();
-
-        std::vector<double> dist;
-        std::vector<double> coltime;
-        // 障害物1つずつに対する繰り返し
-        for (int k = 0; k < sensor.obs.size(); k++)
+        if (!isinf(sensor.latest_scan.ranges[i]))
         {
+            position p = sensor.index_to_pos(i);
+            LRFpoints.push_back(MyPoint(p.x,p.y));
+            thinout_scan_x.push_back(p.x);
+            thinout_scan_y.push_back(p.y);
+            IsNoObs = false;
+        }
+    }
 
-            // 軌道時刻1つずつに対する繰り返し
-            for (int j = 0; j < trajsize; j++)
+    if (!IsNoObs)
+    {
+        kdt::KDTree<MyPoint> LRFkdtree(LRFpoints);
+        MyPoint query;
+
+        for (int candId = 0; candId < CandVel.size(); candId++)
+        {
+            int traj_size = PredictTraj[candId].size();
+            for (int traj_id = 0; traj_id < traj_size; traj_id++)
             {
-                double dist_temp = cal_euclid(PredictTraj[i][j][1], PredictTraj[i][j][2], sensor.obs[k][0], sensor.obs[k][1]);
-
-                // 衝突したら、そのときの距離と時刻を保存しておく
-                if (dist_temp < spec.ROBOT_RAD)
+                query[0]=PredictTraj[candId][traj_id][1];
+                query[1]=PredictTraj[candId][traj_id][2];
+                
+                tmp_scan_id = LRFkdtree.nnSearch(query);
+                // cout << "query:(" << query[0]  << ", " << query[1] << ")" <<endl;
+                // cout << "scan id:" << tmp_scan_id << endl;
+                // cout << "thinout_range:" << thinout_scan_range[tmp_scan_id] << " ang:" << thinout_scan_ang[tmp_scan_id] << endl;
+                //tmp_dist = cal_coll_thres(thinout_scan_range[tmp_scan_id], thinout_scan_ang[tmp_scan_id], PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]);
+                tmp_dist = cal_euclid(thinout_scan_x[tmp_scan_id],thinout_scan_y[tmp_scan_id],PredictTraj[candId][traj_id][1],PredictTraj[candId][traj_id][2]);
+                if (tmp_dist < spec.ROBOT_RAD)
                 {
-                    dist.push_back(dist_temp);
-                    coltime.push_back(PredictTraj[i][j][0]);
-                    // 軌道時刻に対するループを抜ける
+                    d_lin=CandVel[candId][0]*PredictTraj[candId][traj_id][0];
+                    d_ang=CandVel[candId][1]*PredictTraj[candId][traj_id][1];
+                    double v_inev = sqrt(fabs(2 * spec.x_min_acc * d_lin));
+                    double w_inev = sqrt(fabs(2 * spec.z_min_acc * d_ang));
+
+                    if (CandVel[candId][0] >= v_inev || CandVel[candId][1] >= w_inev)
+                    {
+                        d_U = 0;
+                    }
+                    else
+                    {
+                        d_U = std::min(fabs((v_inev - CandVel[candId][0]) / v_inev), fabs((w_inev - CandVel[candId][1]) / w_inev));
+                    }
+
+                    isCollision.push_back(true);
+                    CandVel[candId].push_back(d_U);
                     break;
+                }
+                else if (traj_id == traj_size - 1)
+                {
+                    isCollision.push_back(false);
+                    d_U = 1.0;
+                    CandVel[candId].push_back(d_U);
+
                 }
             }
         }
-
-        // 衝突なし
-        if (dist.size() == 0)
+    }
+    else
+    {
+        for (int candId = 0; candId < CandVel.size(); candId++)
         {
-            d_U = 1.0;
-            CandVel[i].push_back(d_U);
+            CandVel[candId].push_back(1.0);
             isCollision.push_back(false);
-
-            // std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
-            // std::cout << "coltime: nan" << std::endl;
-            // std::cout << "d_U:" << d_U << std::endl
-            //           << std::endl;
-        }
-        //　衝突あり
-        else
-        {
-            int mindistIndex = std::min_element(dist.begin(), dist.end()) - dist.begin();
-            d_lin = CandVel[i][0] * coltime[mindistIndex];
-            d_ang = CandVel[i][1] * coltime[mindistIndex];
-
-            double v_inev = sqrt(fabs(2 * spec.x_min_acc * d_lin));
-            double w_inev = sqrt(fabs(2 * spec.z_min_acc * d_ang));
-
-            if (CandVel[i][0] >= v_inev || CandVel[i][1] >= w_inev)
-            {
-                d_U = 0;
-            }
-            else
-            {
-                d_U = std::min(fabs((v_inev - CandVel[i][0]) / v_inev), fabs((w_inev - CandVel[i][1]) / w_inev));
-            }
-
-            isCollision.push_back(true);
-            CandVel[i].push_back(d_U);
-
-            //std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
-            //std::cout << "coltime:" << coltime[mindistIndex] << std::endl;
-            //std::cout << "d_U:" << d_U << std::endl
-            //          << std::endl;
         }
     }
+    std::cout  << isCollision.size() << " " <<CandVel.size() <<std::endl;  
+    assert(isCollision.size() == CandVel.size());
+# pragma endrefion 
+
+#pragma region 以前の衝突判定法
+    // // 軌道に対する繰り返し
+    // for (int i = 0; i < CandVel.size(); i++)
+    // {
+    //     int trajsize = PredictTraj[i].size();
+
+    //     std::vector<double> dist;
+    //     std::vector<double> coltime;
+    //     // 障害物1つずつに対する繰り返し
+    //     for (int k = 0; k < sensor.obs.size(); k++)
+    //     {
+    //         // 軌道時刻1つずつに対する繰り返し
+    //         for (int j = 0; j < trajsize; j++)
+    //         {
+    //             double dist_temp = cal_euclid(PredictTraj[i][j][1], PredictTraj[i][j][2], sensor.obs[k][0], sensor.obs[k][1]);
+
+    //             // 衝突したら、そのときの距離と時刻を保存しておく
+    //             if (dist_temp < spec.ROBOT_RAD)
+    //             {
+    //                 dist.push_back(dist_temp);
+    //                 coltime.push_back(PredictTraj[i][j][0]);
+    //                 // 軌道時刻に対するループを抜ける
+    //                 break;
+    //             }
+    //         }
+    //     }
+
+    //     // 衝突なし
+    //     if (dist.size() == 0)
+    //     {
+    //         d_U = 1.0;
+    //         CandVel[i].push_back(d_U);
+    //         isCollision.push_back(false);
+
+    //         // std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
+    //         // std::cout << "coltime: nan" << std::endl;
+    //         // std::cout << "d_U:" << d_U << std::endl
+    //         //           << std::endl;
+    //     }
+    //     //　衝突あり
+    //     else
+    //     {
+    //         int mindistIndex = std::min_element(dist.begin(), dist.end()) - dist.begin();
+    //         d_lin = CandVel[i][0] * coltime[mindistIndex];
+    //         d_ang = CandVel[i][1] * coltime[mindistIndex];
+
+    //         double v_inev = sqrt(fabs(2 * spec.x_min_acc * d_lin));
+    //         double w_inev = sqrt(fabs(2 * spec.z_min_acc * d_ang));
+
+    //         if (CandVel[i][0] >= v_inev || CandVel[i][1] >= w_inev)
+    //         {
+    //             d_U = 0;
+    //         }
+    //         else
+    //         {
+    //             d_U = std::min(fabs((v_inev - CandVel[i][0]) / v_inev), fabs((w_inev - CandVel[i][1]) / w_inev));
+    //         }
+
+    //         isCollision.push_back(true);
+    //         CandVel[i].push_back(d_U);
+
+    //         //std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
+    //         //std::cout << "coltime:" << coltime[mindistIndex] << std::endl;
+    //         //std::cout << "d_U:" << d_U << std::endl
+    //         //          << std::endl;
+    //     }
+    // }
+#pragma endrefion
+
 }
 
 // 評価関数を計算する Dはsat係数.あらかじめ計算しておく

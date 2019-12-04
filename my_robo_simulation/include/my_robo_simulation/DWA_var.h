@@ -1,4 +1,5 @@
 #include "ros/ros.h"
+#include "my_robo_simulation/kdtree.h"
 #include <vector>
 
 
@@ -12,6 +13,20 @@ struct position
     double y = 0;
     double sin_th = 0;
     double cos_th = 1;
+};
+
+// kdtree.hの利用のための、点を表すクラス
+class MyPoint : public std::array<double, 2>
+{
+public:
+    static const int DIM = 2;
+
+    MyPoint() {}
+    MyPoint(double x, double y)
+    {
+        (*this)[0] = x;
+        (*this)[1] = y;
+    }
 };
 
 
@@ -31,16 +46,16 @@ public:
     const double k_velocity = 1.0;
 
     // この秒数後の衝突に対して衝突危険正規化距離を１未満にする。これ以上の場合は1で安全
-    const float thres_vel_time = 1.5;
-    const float thres_ang_time = 1.5;
+    const float thres_vel_time = 4.0;
+    const float thres_ang_time = 4.0;
 
     const int POINT_INTERVAL = 2;
 
     //const double DWA_RESOLUTION_DIV = 5;    //(0.8,0)のとき67候補点, (0.8,1.5)のとき31候補点くらい
     const double DWA_RESOLUTION_DIV = 10;
 
-    const int LINSAFE_MULTIPLIER = 2;
-    const int ANGSAFE_MULTIPLIER = 2;
+    const int LINSAFE_MULTIPLIER = 1;
+    const int ANGSAFE_MULTIPLIER = 1;
     const int PUB_TRAJ_MARKER_PER_LOOP =1;
 
     const bool IsREAL = false;
