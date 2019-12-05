@@ -4,8 +4,9 @@
 /index.html
 /my_robo_simulation/log
 /my_robo_description/worlds/sparse_house_model
-/my_robo_description/rviz/urdf.rviz
 /my_robo_simulation/scripts/drive_data
 /my_robo_simulation/scripts/figure
+/my_robo_simulation/scripts/time_result
 /JetSAS/.vscode
 /log_JetSAS
+/my_robo_simulation/scripts/__pycache__
