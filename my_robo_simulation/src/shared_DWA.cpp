@@ -6,7 +6,7 @@ using namespace std;
 // 速度コストのsaturation係数を求める
 double my_robo::cal_vel_sat()
 {
-    int num = CandVel.size();
+    int num = CandVel_v.size();
     // ROS_INFO("start cal sat.");
     // 予測時刻あとに衝突しないような軌道を探す
     // obsからクリアランスを求める
@@ -92,15 +92,15 @@ double my_robo::cal_vel_sat()
 
 //     // <<やること>>
 //     //ROS_INFO("start cal dist.");
-//     int candSize = CandVel.size();
+//     int candSize = CandVel_v.size();
 //     // 1 (v,w)を一つ取り出す
 //     // 5 1から4をすべての候補に対して繰り返す
 //     //   ただ、(v,w)がともに0のときは距離1となる
 //     //ROS_INFO("candsize%d",candSize);
 //     for (int i = 0; i < candSize; i++)
 //     {
-//         v = CandVel[i][0];
-//         w = CandVel[i][1];
+//         v = CandVel_v[i];
+//         w = CandVel_w[i];
 //         //ROS_INFO("i=%d",i);
 //         time = 0;
 //         // 4-b-1 予測時刻を増やしても衝突せず、センサ範囲を超えたら、その(v,w)でのd_uは1とする
@@ -293,7 +293,7 @@ void my_robo::cal_Dist2()
         kdt::KDTree<MyPoint> LRFkdtree(LRFpoints);
         MyPoint query;
 
-        for (int candId = 0; candId < CandVel.size(); candId++)
+        for (int candId = 0; candId < CandVel_v.size(); candId++)
         {
             int traj_size = PredictTraj[candId].size();
             for (int traj_id = 0; traj_id < traj_size; traj_id++)
@@ -309,29 +309,31 @@ void my_robo::cal_Dist2()
                 tmp_dist = cal_euclid(thinout_scan_x[tmp_scan_id],thinout_scan_y[tmp_scan_id],PredictTraj[candId][traj_id][1],PredictTraj[candId][traj_id][2]);
                 if (tmp_dist < spec.ROBOT_RAD)
                 {
-                    d_lin=CandVel[candId][0]*PredictTraj[candId][traj_id][0];
-                    d_ang=CandVel[candId][1]*PredictTraj[candId][traj_id][1];
+                    d_lin=CandVel_v[candId]*PredictTraj[candId][traj_id][0];
+                    d_ang=CandVel_w[candId]*PredictTraj[candId][traj_id][1];
                     double v_inev = sqrt(fabs(2 * spec.x_min_acc * d_lin));
                     double w_inev = sqrt(fabs(2 * spec.z_min_acc * d_ang));
 
-                    if (CandVel[candId][0] >= v_inev || CandVel[candId][1] >= w_inev)
+                    if (CandVel_v[candId] >= v_inev || CandVel_w[candId] >= w_inev)
                     {
                         d_U = 0;
                     }
                     else
                     {
-                        d_U = std::min(fabs((v_inev - CandVel[candId][0]) / v_inev), fabs((w_inev - CandVel[candId][1]) / w_inev));
+                        d_U = std::min(fabs((v_inev - CandVel_v[candId]) / v_inev), fabs((w_inev - CandVel_w[candId]) / w_inev));
                     }
 
                     isCollision.push_back(true);
-                    CandVel[candId].push_back(d_U);
+                    // CandVel[candId].push_back(d_U);
+                    DWA_var::d_U.push_back(d_U);
                     break;
                 }
                 else if (traj_id == traj_size - 1)
                 {
                     isCollision.push_back(false);
                     d_U = 1.0;
-                    CandVel[candId].push_back(d_U);
+                    //CandVel[candId].push_back(d_U);
+                    DWA_var::d_U.push_back(d_U);
 
                 }
             }
@@ -339,19 +341,20 @@ void my_robo::cal_Dist2()
     }
     else
     {
-        for (int candId = 0; candId < CandVel.size(); candId++)
+        for (int candId = 0; candId < CandVel_v.size(); candId++)
         {
-            CandVel[candId].push_back(1.0);
+            //CandVel[candId].push_back(1.0);
+            DWA_var::d_U.push_back(d_U);
             isCollision.push_back(false);
         }
     }
-    std::cout  << isCollision.size() << " " <<CandVel.size() <<std::endl;  
-    assert(isCollision.size() == CandVel.size());
+    std::cout  << isCollision.size() << " " <<CandVel_v.size() <<std::endl;  
+    assert(isCollision.size() == CandVel_v.size());
 # pragma endrefion 
 
 #pragma region 以前の衝突判定法
     // // 軌道に対する繰り返し
-    // for (int i = 0; i < CandVel.size(); i++)
+    // for (int i = 0; i < CandVel_v.size(); i++)
     // {
     //     int trajsize = PredictTraj[i].size();
 
@@ -383,7 +386,7 @@ void my_robo::cal_Dist2()
     //         CandVel[i].push_back(d_U);
     //         isCollision.push_back(false);
 
-    //         // std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
+    //         // std::cout << "i:" << i << " candvel: (" << CandVel_v[i] << ", " << CandVel_w[i] << ")" << std::endl;
     //         // std::cout << "coltime: nan" << std::endl;
     //         // std::cout << "d_U:" << d_U << std::endl
     //         //           << std::endl;
@@ -392,25 +395,25 @@ void my_robo::cal_Dist2()
     //     else
     //     {
     //         int mindistIndex = std::min_element(dist.begin(), dist.end()) - dist.begin();
-    //         d_lin = CandVel[i][0] * coltime[mindistIndex];
-    //         d_ang = CandVel[i][1] * coltime[mindistIndex];
+    //         d_lin = CandVel_v[i] * coltime[mindistIndex];
+    //         d_ang = CandVel_w[i] * coltime[mindistIndex];
 
     //         double v_inev = sqrt(fabs(2 * spec.x_min_acc * d_lin));
     //         double w_inev = sqrt(fabs(2 * spec.z_min_acc * d_ang));
 
-    //         if (CandVel[i][0] >= v_inev || CandVel[i][1] >= w_inev)
+    //         if (CandVel_v[i] >= v_inev || CandVel_w[i] >= w_inev)
     //         {
     //             d_U = 0;
     //         }
     //         else
     //         {
-    //             d_U = std::min(fabs((v_inev - CandVel[i][0]) / v_inev), fabs((w_inev - CandVel[i][1]) / w_inev));
+    //             d_U = std::min(fabs((v_inev - CandVel_v[i]) / v_inev), fabs((w_inev - CandVel_w[i]) / w_inev));
     //         }
 
     //         isCollision.push_back(true);
     //         CandVel[i].push_back(d_U);
 
-    //         //std::cout << "i:" << i << " candvel: (" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << std::endl;
+    //         //std::cout << "i:" << i << " candvel: (" << CandVel_v[i] << ", " << CandVel_w[i] << ")" << std::endl;
     //         //std::cout << "coltime:" << coltime[mindistIndex] << std::endl;
     //         //std::cout << "d_U:" << d_U << std::endl
     //         //          << std::endl;
@@ -440,9 +443,10 @@ void my_robo::cal_J_sharedDWA(double D)
         arctan2_h = atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
     }
 
-    for (int i = 0; i < CandVel.size(); i++)
+    for (int i = 0; i < CandVel_v.size(); i++)
     {
-        double adm = 1 - CandVel[i][2];
+        // double adm = 1 - CandVel[i][2];
+        double adm = 1 - DWA_var::d_U[i];
         double head, velocity;
 
         head = cal_head_cost(i,arctan2_h);
@@ -451,7 +455,7 @@ void my_robo::cal_J_sharedDWA(double D)
         // 最終的なコストの計算
         double temp = adm + (1 - adm) * (k_heading * head + k_velocity * velocity);
 
-        // ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
+        // ROS_INFO("CandVel:%f,%f",CandVel_v[i],CandVel_w[i]);
         // ROS_INFO("joy:%f",sensor.joy_cmd_vel[0],sensor.joy_cmd_vel[1]);
         // ROS_INFO("D:%lf",D);
 
@@ -467,9 +471,9 @@ void my_robo::cal_J_sharedDWA(double D)
             // ROS_INFO("i:%d", i);
             // ROS_INFO("now vel:%f, %f", sensor.odom.twist.twist.linear.x, sensor.odom.twist.twist.angular.z);
             // ROS_INFO("joy vel:%f, %f", sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]);
-            // ROS_INFO("cand vel:%f, %f", CandVel[i][0], CandVel[i][1]);
+            // ROS_INFO("cand vel:%f, %f", CandVel_v[i], CandVel_w[i]);
             // ROS_INFO("joy atan2:%f", atan2(sensor.joy_cmd_vel[0], sensor.joy_cmd_vel[1]));
-            // ROS_INFO("cand atan2:%f ", atan2(CandVel[i][0],CandVel[i][1]));
+            // ROS_INFO("cand atan2:%f ", atan2(CandVel_v[i],CandVel_w[i]));
 
             // ROS_INFO("adm:%lf", adm);
             // ROS_INFO("head:%lf", head);
@@ -516,13 +520,13 @@ double my_robo::cal_head_cost(int candId,double arctan2_h)
     double arctan2_cand,head;
 
     // 候補速度のatan2の計算
-    if (CandVel[candId][0] == 0 && CandVel[candId][1] == 0)
+    if (CandVel_v[candId] == 0 && CandVel_w[candId] == 0)
     {
         arctan2_cand = 0;
     }
     else
     {
-        arctan2_cand = atan2(CandVel[candId][0], CandVel[candId][1]);
+        arctan2_cand = atan2(CandVel_v[candId], CandVel_w[candId]);
     }
 
 
@@ -533,19 +537,19 @@ double my_robo::cal_head_cost(int candId,double arctan2_h)
     // if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] == 0)
     // {
     //     //ROS_INFO("both 0");
-    //     head = fabs(CandVel[candId][1]) / M_PI;
+    //     head = fabs(CandVel_w[candId]) / M_PI;
     // }
     // // 1 角速度指令が0、速度指令値が0ではないとき
     // else if (sensor.joy_cmd_vel[0] != 0 && sensor.joy_cmd_vel[1] == 0)
     // {
     //     //          ROS_INFO("only w 0");
-    //     if(CandVel[candId][0]==0 && CandVel[candId][1]==0) head = M_PI;
+    //     if(CandVel_v[candId]==0 && CandVel_w[candId]==0) head = M_PI;
     //     else head = fabs(M_PI/2 - arctan2) / M_PI;
     // }
     // // 3 角速度指令が0ではなく、速度指令が0のとき
     // else if (sensor.joy_cmd_vel[0] == 0 && sensor.joy_cmd_vel[1] != 0)
     // {
-    //     head = fabs((CandVel[candId][1] - sensor.joy_cmd_vel[1])) / M_PI;
+    //     head = fabs((CandVel_w[candId] - sensor.joy_cmd_vel[1])) / M_PI;
     // }
     // else
     // {
@@ -557,7 +561,7 @@ double my_robo::cal_head_cost(int candId,double arctan2_h)
 
 double my_robo::cal_vel_cost(int trajidx)
 {
-    double cost = fabs(CandVel[trajidx][0] - sensor.joy_cmd_vel[0]) / spec.x_max_vel;
+    double cost = fabs(CandVel_v[trajidx] - sensor.joy_cmd_vel[0]) / spec.x_max_vel;
     if (isnan(cost))
     {
         std::cout << "isnan vel h cost" << std::endl;

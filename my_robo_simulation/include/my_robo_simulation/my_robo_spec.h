@@ -26,7 +26,7 @@ public:
     double z_min_acc;
 
     // ロボットの縦と横の長さ これにより衝突半径を計算する
-    const float ROBOT_WIDTH = 0.3;
+    const float ROBOT_WIDTH = 0.35;
     const float ROBOT_LENGTH = 0.3;
     const float ROBOT_RAD = sqrt((ROBOT_WIDTH * ROBOT_WIDTH)/4 + (ROBOT_LENGTH* ROBOT_LENGTH)/4);        // ロボットの衝突判定となる円 0.35と0.3だと0.230くらい
 

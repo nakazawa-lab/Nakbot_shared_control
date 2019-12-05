@@ -9,18 +9,18 @@
 #include "my_robo_simulation/my_robo_drive.h"
 #include "my_robo_simulation/MyDWA.h"
 
-double cal_average_d_U(std::vector<std::vector<double>> &CandVel)
-{
-  int size = CandVel.size();
-  double sum = 0;
+// double cal_average_d_U(std::vector<std::vector<double>> &CandVel)
+// {
+//   int size = CandVel.size();
+//   double sum = 0;
 
-  for (int i = 0; i < size; i++)
-  {
-    sum += CandVel[i][2];
-  }
+//   for (int i = 0; i < size; i++)
+//   {
+//     sum += CandVel[i][2];
+//   }
 
-  return sum / size;
-}
+//   return sum / size;
+// }
 
 void my_robo::check_joy()
 {
@@ -88,7 +88,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
   visualization_msgs::MarkerArray marker_array;
   const int CANDVEL_DIVIDER = 8;
   const int TRAJ_DIVIDER = 1;
-  marker_array.markers.resize(((PredictTime/dt_traj)/TRAJ_DIVIDER + 2) * (CandVel.size()/CANDVEL_DIVIDER+1));
+  marker_array.markers.resize(((PredictTime/dt_traj)/TRAJ_DIVIDER + 2) * (CandVel_v.size()/CANDVEL_DIVIDER+1));
 
   int k = 0;
   float green = 0;
@@ -110,7 +110,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
   // std::cout << "traj: " <<  PredictTraj[0].size() << std::endl;
   // std::cout << "maeker size " << marker_array.markers.size() << std::endl;
   // 候補の数ループ
-  for (int i = 0; i < CandVel.size(); i += CANDVEL_DIVIDER)
+  for (int i = 0; i < CandVel_v.size(); i += CANDVEL_DIVIDER)
   {    
     //ROS_INFO("start put marker.");
     // if((i==0) || adopt_flag){
@@ -140,7 +140,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
           color = (dist_lin_ang[i][0] + dist_lin_ang[i][1]) / (max_lin + max_ang);
         }
         else{
-          color = CandVel[i][2];
+          color = CandVel_w[i];
         }
         double x = 1;
         if (isCollision[i])
@@ -153,8 +153,8 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
         marker_array.markers[k].scale.z = 0.05;
 
         marker_array.markers[k].color.r = 1.0f;
-        marker_array.markers[k].color.g = x;
-        marker_array.markers[k].color.b = x;
+        marker_array.markers[k].color.g = color;
+        marker_array.markers[k].color.b = color;
         marker_array.markers[k].color.a = 1.0f;
       
       k++;
@@ -162,7 +162,7 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
   }
 
   int marker_num = marker_array.markers.size() - 1;
-  if (opt_index != CandVel.size() - 1)
+  if (opt_index != CandVel_v.size() - 1)
   {
     // 採用軌道のmarkerを作る
     //予測時刻の数だけループ

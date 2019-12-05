@@ -227,7 +227,7 @@ position my_robo_sensor::index_to_pos(int scanId){
         geometry_quat_to_rpy(roll, pitch, yaw, odom.pose.pose.orientation);
 
         // ロボット座標から見たときの座標xs,ys 絶対座標xo,yo
-        double xs = latest_scan.ranges[scanId] * cos(index_to_rad(scanId))-CENTER_TO_LRF;
+        double xs = latest_scan.ranges[scanId] * cos(index_to_rad(scanId))+CENTER_TO_LRF;
         double ys = latest_scan.ranges[scanId] * sin(index_to_rad(scanId));
         double xo = odom.pose.pose.position.x + cos(yaw) * xs - sin(yaw) * ys;
         double yo = odom.pose.pose.position.y + sin(yaw) * xs + cos(yaw) * ys;
