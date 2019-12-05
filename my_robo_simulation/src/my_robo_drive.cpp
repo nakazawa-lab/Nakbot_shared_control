@@ -15,8 +15,8 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-#define PABLODWA
-//#define MYDWA
+//#define PABLODWA
+#define MYDWA
 #define ISSHARED
 #define PUB_MARKER
 
@@ -110,7 +110,7 @@ my_robo::my_robo()
 }
 
 // スペック上の最大加速度と今の速度からDynamicWindowを求める vector<vector<float>>型のCanVelに格納される
-// CandVel[i][0] = v [i][1]=w
+// CandVel_v[i] = v [i][1]=w
 void my_robo::cal_DWA()
 {
     // 現在の速度(odonm)から刻み時間後に到達可能な最大、最小速度を求める。それを一時保存しておく
@@ -138,19 +138,23 @@ void my_robo::cal_DWA()
     //ROS_INFO("puch back candidates.");
 
     // はじめに、現在の速度を入れる
-    CandVel.push_back(std::vector<double>());
-    CandVel[i].push_back(sensor.odom.twist.twist.linear.x);  //[i][0]に速度要素
-    CandVel[i].push_back(sensor.odom.twist.twist.angular.z); //[i][1]に角速度要素
-    //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
+    if (sensor.odom.twist.twist.linear.x >= 0)
+    {
+        //CandVel.push_back(std::vector<double>());
+        // CandVel[i].push_back(sensor.odom.twist.twist.linear.x);  //[i][0]に速度要素
+        // CandVel[i].push_back(sensor.odom.twist.twist.angular.z); //[i][1]に角速度要素
+        CandVel_v.push_back(sensor.odom.twist.twist.linear.x);  //[i][0]に速度要素
+        CandVel_w.push_back(sensor.odom.twist.twist.angular.z); //[i][1]に角速度要素
+        //ROS_INFO("CandVel:%f,%f",CandVel_v[i],CandVel_w[i]);
+    }
     i++;
-    
+
     //もし速度0がDWAに含まれていれば、それも候補に加える
     if (0 >= min_dwa_vel && 0 <= max_dwa_ang && 0 >= min_dwa_ang && 0 <= max_dwa_ang)
     {
-        CandVel.push_back(std::vector<double>());
-        CandVel[i].push_back(0); //[i][0]に速度要素
-        CandVel[i].push_back(0); //[i][1]に角速度要素
-        //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
+        CandVel_v.push_back(0); //[i][0]に速度要素
+        CandVel_w.push_back(0); //[i][1]に角速度要素
+        //ROS_INFO("CandVel:%f,%f",CandVel_v[i],CandVel_w[i]);
         i++;
     }
 
@@ -164,10 +168,9 @@ void my_robo::cal_DWA()
             // 後ろ方向に進む候補に対しては考えない
             if (f >= 0)
             {
-                CandVel.push_back(std::vector<double>());
-                CandVel[i].push_back(f); //[i][0]に速度要素
-                CandVel[i].push_back(g); //[i][1]に角速度要素
-                //ROS_INFO("CandVel:%f,%f",CandVel[i][0],CandVel[i][1]);
+                CandVel_v.push_back(f); //[i][0]に速度要素
+                CandVel_w.push_back(g); //[i][1]に角速度要素
+                //ROS_INFO("CandVel:%f,%f",CandVel_v[i],CandVel_w[i]);
                 i++;
             }
 
@@ -195,7 +198,7 @@ const void my_robo::push_back_traj(const int i, const double time, const positio
 
     //PredictTraj_r.back().push_back(std::vector<double>());
 
-    if (CandVel[i][1] < 0)
+    if (CandVel_w[i] < 0)
         theta -= M_PI;
 
     // PredictTraj_r.back().back().push_back(time);
@@ -203,16 +206,16 @@ const void my_robo::push_back_traj(const int i, const double time, const positio
     // PredictTraj_r.back().back().push_back(theta);
 
     //std::cout << "PredictTraj r:(" << theta << ", " << d << ")" << std::endl;
-    //std::cout << "candVel " << CandVel[i][0] << " " << CandVel[i][1] << std::endl;
+    //std::cout << "candVel " << CandVel_v[i] << " " << CandVel_w[i] << std::endl;
 }
 
 // 予測軌道を計算する関数 内部でmy_robo.robot_modelを呼びだす
 void my_robo::cal_predict_position()
 {
     double time, d, theta, radius;
-    ROS_INFO("candidate size is %d", CandVel.size());
+    ROS_INFO("candidate size is %d", CandVel_v.size());
     // すべての候補に対して
-    for (int i = 0; i < CandVel.size(); i++)
+    for (int i = 0; i < CandVel_v.size(); i++)
     {
         time = dt_traj;
 
@@ -225,15 +228,15 @@ void my_robo::cal_predict_position()
 
         position np;
 
-        if (CandVel[i][1] == 0)
+        if (CandVel_w[i] == 0)
         {
             while (time <= PredictTime)
             {
 
-                np = robot_model(p, CandVel[i][0], CandVel[i][1], dt_traj);
+                np = robot_model(p, CandVel_v[i], CandVel_w[i], dt_traj);
 
                 //radius = 0;
-                //d = CandVel[i][0] * time;
+                //d = CandVel_v[i] * time;
                 //theta = 0;
 
                 push_back_traj(i, time, np, d, theta);
@@ -246,11 +249,11 @@ void my_robo::cal_predict_position()
         {
             while (time <= PredictTime)
             {
-                np = robot_model(p, CandVel[i][0], CandVel[i][1], dt_traj);
+                np = robot_model(p, CandVel_v[i], CandVel_w[i], dt_traj);
 
-                //radius = fabs(CandVel[i][0] / CandVel[i][1]);
-                //d = sqrt(2 * (1 - cos(CandVel[i][1] * time))) * radius;
-                //double temp = radius * sin(CandVel[i][1] * time) / d;
+                //radius = fabs(CandVel_v[i] / CandVel_w[i]);
+                //d = sqrt(2 * (1 - cos(CandVel_w[i] * time))) * radius;
+                //double temp = radius * sin(CandVel_w[i] * time) / d;
                 // if (temp < -1)
                 // {
                 //     //std::cout << "tmep is lower -1" << std::endl;
@@ -265,7 +268,7 @@ void my_robo::cal_predict_position()
 
                 // if (isnan(theta))
                 // {
-                //     std::cout << "theta is nan:" << d << "," << radius << "," << temp << ", " << CandVel[i][1] * time << std::endl
+                //     std::cout << "theta is nan:" << d << "," << radius << "," << temp << ", " << CandVel_w[i] * time << std::endl
                 //               << std::endl;
                 //     ;
                 // }
@@ -332,11 +335,6 @@ void MyDWA::DWAloop()
 
             //trans_inf(sensor.latest_scan);
 
-            //say_time("check joy", loop_start_time);
-            // std::cout <<  (control_loop_flag/looprate) << std::endl;
-            // std::cout << control_loop_flag <<std::endl;
-            // std::cout << (dt == (control_loop_flag/looprate)) << std::endl;
-            // std::cout << ((dt == (control_loop_flag/looprate)) || (control_loop_flag == 0)) << std::endl;
             if ((dt == (control_loop_flag / looprate)) || (control_loop_flag == 0))
             {
                 check_joy();
@@ -344,12 +342,11 @@ void MyDWA::DWAloop()
                 clear_vector();
                 control_loop_flag = 0;
 
-                //sensor.cal_obs(sensor.latest_scan, POINT_INTERVAL, sensor.odom.pose);
-
                 visualization_msgs::MarkerArray obsmarkers = sensor.make_obs_markers();
                 //pub_marker_array(obsmarkers);
 
                 cal_DWA();
+                if (CandVel_v.size()==0)goto end;
                 //LOG.push_back(CandVel.size());
                 //say_time("cal DWA", loop_start_time);
 
@@ -357,20 +354,17 @@ void MyDWA::DWAloop()
                 //say_time("predict position", loop_start_time);
 
 #ifdef PABLODWA
-                if (!IsProposed)
-                {
-                    //cal_Dist();
-                    cal_Dist2();
-                    say_time("cal dist", loop_start_time);
+                //cal_Dist();
+                cal_Dist2();
+                say_time("cal dist", loop_start_time);
 
-                    // LOG.push_back(cal_average_d_U(CandVel));
+                // LOG.push_back(cal_average_d_U(CandVel));
 
-                    // double D = cal_vel_sat();
-                    double D = 1;
+                // double D = cal_vel_sat();
+                double D = 1;
 
-                    cal_J_sharedDWA(D);
-                    //say_time("cal J", loop_start_time);
-                }
+                cal_J_sharedDWA(D);
+                say_time("cal J", loop_start_time);
 #endif
 #ifdef MYDWA
                 Proposed();
@@ -390,29 +384,43 @@ void MyDWA::DWAloop()
                         markers = make_joy_traj_marker_array();
                         pub_marker_array(markers);
                         marker_loop_flag = 0;
+
+#ifdef MYDWA
+                        position p;
+                        if ((dist_lin_ang[opt_index][2] == 99999999))
+                        {
+                            p.x = 0;
+                            p.y = 0;
+                        }
+                        else
+                        {
+                            p = sensor.index_to_pos(dist_lin_ang[opt_index][2]);
+                        }
+                        visualization_msgs::Marker marker = make_nearest_LRF_marker(p.x, p.y);
+                        pub_marker(marker);
+
+                        // marker = make_nearest_LRF_marker(sensor.odom.pose.pose.position.x,sensor.odom.pose.pose.position.y);
+                        // pub_marker(marker);
+#endif
                     }
                     say_time("pub marker", loop_start_time);
 #endif
-
-#ifdef MYDWA
-                    // visualization_msgs::Marker marker = make_nearest_LRF_marker(dist_lin_ang[opt_index][2]);
-                    // pub_marker(marker);
-#endif
                 }
 
-                if(sensor.joy_cmd_vel[0]>-0){
+                if (sensor.joy_cmd_vel[0] > -0)
+                {
 #ifdef ISSHARED
 
 #ifdef PABLODWA
-                    vel.linear.x = CandVel[opt_index][0];
-                    vel.angular.z = CandVel[opt_index][1];
+                    vel.linear.x = CandVel_v[opt_index];
+                    vel.angular.z = CandVel_w[opt_index];
 #endif
 
 #ifdef MYDWA
 
-                    //std::cout << "pubvel (" << CandVel[opt_index][0] << ", " << CandVel[opt_index][1] << ")" << std::endl;
-                    vel.linear.x = CandVel[opt_index][0];
-                    vel.angular.z = CandVel[opt_index][1];
+                    //std::cout << "pubvel (" << CandVel_v[opt_index] << ", " << CandVel_w[opt_index] << ")" << std::endl;
+                    vel.linear.x = CandVel_v[opt_index];
+                    vel.angular.z = CandVel_w[opt_index];
 
                     ROS_INFO("opt_idx: %d, pubvel:%f,%f", opt_index, vel.linear.x, vel.angular.z);
 #endif
@@ -426,14 +434,14 @@ void MyDWA::DWAloop()
                     say_time("plot", loop_start_time);
                 }
             }
-
+end:
             pub_cmd.publish(vel);
+            //say_time("pub", loop_start_time);
             cal_end_time = std::chrono::system_clock::now();
             record_loop_info();
+            // say_time("record", loop_start_time);
             control_loop_flag++;
         }
-
-        //say_time("clear vector", loop_start_time);
 
         rate.sleep();
         say_time("waiting", loop_start_time);
@@ -481,7 +489,7 @@ void MyDWA::record_loop_info()
 
     logfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.adm
             << "," << 1 - selected.adm << "," << selected.vel_h_cost << ","
-            << selected.head_h_cost << "," << selected.cost << "," << CandVel[opt_index][0] << "," << CandVel[opt_index][1]
+            << selected.head_h_cost << "," << selected.cost << "," << CandVel_v[opt_index] << "," << CandVel_w[opt_index]
             << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1]
             << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << ","
             << *std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()) << ","

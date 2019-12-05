@@ -47,7 +47,7 @@ private:
 
     void Proposed();
 
-    visualization_msgs::Marker make_nearest_LRF_marker(int optId);
+    visualization_msgs::Marker make_nearest_LRF_marker(float, float);
 
     void record_loop_info();
 

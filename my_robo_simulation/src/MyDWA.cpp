@@ -35,15 +35,8 @@ void MyDWA::cal_opt()
         //std::cout << "human arctan2 " << arctan2_h << std::endl;
     }
 
-    for (int i = 0; i < CandVel.size(); i++)
+    for (int i = 0; i < CandVel_v.size(); i++)
     {
-
-        // // distを0から1までの間にクリッピングする処理
-        // if (dists[i] > 1)
-        // {
-        //     dists[i] = 1;
-        // }
-
         // distを0から1までの間にクリッピングする処理
         if (dist_lin_ang[i][0] > 1)
         {
@@ -51,12 +44,10 @@ void MyDWA::cal_opt()
         }
         if (dist_lin_ang[i][1] > 1)
         {
-            //cout << "dist_lin_ang[i][1]: " << dist_lin_ang[i][1] << endl;
             dist_lin_ang[i][1] = 1;
         }
 
         head_h_cost_tmp = cal_head_cost(i, arctan2_h);
-        //head_h_cost_tmp = cal_head_cost_pro(i);
         vel_h_cost_tmp = cal_vel_cost(i);
 
         double linsafe = pow(dist_lin_ang[i][0], LINSAFE_MULTIPLIER);
@@ -68,7 +59,7 @@ void MyDWA::cal_opt()
 
         temp_cost = linadm + angadm + (k_velocity * linsafe * vel_h_cost_tmp + k_heading * angsafe * head_h_cost_tmp);
 
-        // cout << "CandVel " << i << ":(" << CandVel[i][0] << ", " << CandVel[i][1] << ")" << endl;
+        // cout << "CandVel " << i << ":(" << CandVel_v[i] << ", " << CandVel_w[i] << ")" << endl;
         // cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
         // // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
         // // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
@@ -89,8 +80,8 @@ void MyDWA::cal_opt()
             selected.linsafe = linsafe;
             selected.angadm = angadm;
             selected.angsafe = angsafe;
-            selected.vel = CandVel[i][0];
-            selected.ang = CandVel[i][1];
+            selected.vel = CandVel_v[i];
+            selected.ang = CandVel_w[i];
             selected.vel_h_cost = vel_h_cost_tmp;
             selected.head_h_cost = head_h_cost_tmp;
             selected.cost = cost;
@@ -107,17 +98,20 @@ void MyDWA::cal_opt()
     // あまりにきけんなときは停止する
     if (cost > 1)
     {
-        /*TODO 0ではなく最小入力にする*/
-        CandVel.push_back(vector<double>());
-        dist_lin_ang.push_back(vector<double>());
-        cout << "danger. new cand size:" << CandVel.size() << " cost:" << cost << endl;
-        CandVel.back().push_back(0.0);
-        CandVel.back().push_back(CandVel[opt_index][1]);
-        CandVel.back().push_back(numeric_limits<double>::quiet_NaN());
-        opt_index = CandVel.size() - 1;
+        double min_vel = *std::min_element(CandVel_v.begin(), CandVel_v.end());
+        std::cout << min_vel << std::endl;
+        if(min_vel != 0) std::cout <<"min_vel != 0" <<std::endl <<std::endl;;
 
-        double time =0.0;
-        while(time < PredictTime){
+
+        dist_lin_ang.push_back(vector<double>());
+        cout << "danger. new cand size:" << CandVel_v.size() << " cost:" << cost << endl;
+        CandVel_v.push_back(min_vel);
+        CandVel_w.push_back(CandVel_w[opt_index]);
+        opt_index = CandVel_v.size() - 1;
+
+        double time = 0.0;
+        while (time < PredictTime)
+        {
             PredictTraj.push_back(std::vector<std::vector<double>>());
             // timeとpをPredictTrajに格納する処理
             PredictTraj.back().push_back(std::vector<double>());
@@ -128,19 +122,19 @@ void MyDWA::cal_opt()
             time += dt_traj;
         }
 
-        dist_lin_ang[opt_index].push_back(numeric_limits<double>::quiet_NaN());
-        dist_lin_ang[opt_index].push_back(numeric_limits<double>::quiet_NaN());
-        dist_lin_ang[opt_index].push_back(99999999);
+        dist_lin_ang[opt_index].push_back(dist_lin_ang[opt_index - 1][0]);
+        dist_lin_ang[opt_index].push_back(dist_lin_ang[opt_index - 1][1]);
+        dist_lin_ang[opt_index].push_back(dist_lin_ang[opt_index - 1][2]);
 
-        selected.vel = CandVel[opt_index][0];
-        selected.ang = CandVel[opt_index][1];
+        selected.vel = CandVel_v[opt_index];
+        selected.ang = CandVel_w[opt_index];
     }
 
     // cout << "dist_lin_ang[opt].size " << dist_lin_ang[opt_index].size() <<endl;
     // cout << "dist_lin_ang[opt][2] " <<dist_lin_ang[opt_index][2] <<endl;
 
     cout << "opt idx is" << opt_index << endl
-        << "vel:" << CandVel[opt_index][0] << " ang: " << CandVel[opt_index][1] << endl;
+         << "vel:" << CandVel_v[opt_index] << " ang: " << CandVel_w[opt_index] << endl;
 
     // auto now = std::chrono::system_clock::now();
     // auto dur = now - start_time;
@@ -159,7 +153,11 @@ void MyDWA::kd_tree()
     double dist, lin, ang;
     int tmp_scan_id, scan_id_nearest;
     int traj_id_nearest;
-    double x,y;
+    double x, y;
+
+    visualization_msgs::MarkerArray marker_array;
+    marker_array.markers.resize(684);
+    int k=0;
 
     for (int i = 0; i < sensor.point_num; i++)
     {
@@ -167,14 +165,39 @@ void MyDWA::kd_tree()
         {
             position p = sensor.index_to_pos(i);
             //LRFpoints.push_back(MyPoint(sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]));
-            LRFpoints.push_back(MyPoint(p.x,p.y));
-            // thinout_scan_range.push_back(sensor.latest_scan.ranges[i]);
-            // thinout_scan_ang.push_back(sensor.index_to_rad(i));
+            LRFpoints.push_back(MyPoint(p.x, p.y));
             thinout_scan_x.push_back(p.x);
             thinout_scan_y.push_back(p.y);
             IsNoObs = false;
-        }
+
+            marker_array.markers[k].header.frame_id = "/odom";
+            marker_array.markers[k].header.stamp = ros::Time::now();
+            marker_array.markers[k].ns = "LRF";
+            marker_array.markers[k].id = k;
+            marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP * dt);
+
+            // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
+            marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
+            marker_array.markers[k].action = visualization_msgs::Marker::ADD;
+            marker_array.markers[k].scale.x = 0.1;
+            marker_array.markers[k].scale.y = 0.1;
+            marker_array.markers[k].scale.z = 0.1;
+            marker_array.markers[k].pose.position.x = p.x;
+            marker_array.markers[k].pose.position.y = p.y;
+            marker_array.markers[k].pose.position.z = 0;
+            marker_array.markers[k].pose.orientation.x = 0;
+            marker_array.markers[k].pose.orientation.y = 0;
+            marker_array.markers[k].pose.orientation.z = 0;
+            marker_array.markers[k].pose.orientation.w = 1;
+
+            marker_array.markers[k].color.r = 0.0f;
+            marker_array.markers[k].color.g = 1.0f;
+            marker_array.markers[k].color.b = 0.0f;
+            marker_array.markers[k].color.a = 1.0f;
+            k++;
+        } 
     }
+    pub_marker_array(marker_array);
 
     if (!IsNoObs)
     {
@@ -182,31 +205,30 @@ void MyDWA::kd_tree()
         MyPoint query;
         //cout << "make kd tree" << endl;
 
-        for (int candId = 0; candId < CandVel.size(); candId++)
+        for (int candId = 0; candId < CandVel_v.size(); candId++)
         {
             dist_lin_ang.push_back(vector<double>());
             int traj_size = PredictTraj[candId].size();
-           
 
             for (int traj_id = 0; traj_id < traj_size; traj_id++)
             {
                 //query[0] = PredictTraj_r[candId][traj_id][2];
                 //query[1] = PredictTraj_r[candId][traj_id][1];
-                query[0]=PredictTraj[candId][traj_id][1];
-                query[1]=PredictTraj[candId][traj_id][2];
-                
+                query[0] = PredictTraj[candId][traj_id][1];
+                query[1] = PredictTraj[candId][traj_id][2];
+
                 tmp_scan_id = LRFkdtree.nnSearch(query);
                 // cout << "query:(" << query[0]  << ", " << query[1] << ")" <<endl;
                 // cout << "scan id:" << tmp_scan_id << endl;
                 // cout << "thinout_range:" << thinout_scan_range[tmp_scan_id] << " ang:" << thinout_scan_ang[tmp_scan_id] << endl;
                 //tmp_dist = cal_coll_thres(thinout_scan_range[tmp_scan_id], thinout_scan_ang[tmp_scan_id], PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]);
-                tmp_dist = cal_euclid(thinout_scan_x[tmp_scan_id],thinout_scan_y[tmp_scan_id],PredictTraj[candId][traj_id][1],PredictTraj[candId][traj_id][2]);
+                tmp_dist = cal_euclid(thinout_scan_x[tmp_scan_id], thinout_scan_y[tmp_scan_id], PredictTraj[candId][traj_id][1], PredictTraj[candId][traj_id][2]);
                 if (tmp_dist < spec.ROBOT_RAD)
                 {
                     isCollision.push_back(true);
-                    lin = CandVel[candId][0]*PredictTraj[candId][traj_id][0];
-                    ang = CandVel[candId][1]*PredictTraj[candId][traj_id][0];
-                    // cout << "CandVel " << candId << ":(" << CandVel[candId][0] << ", " << CandVel[candId][1] << ")" << endl;
+                    lin = fabs(CandVel_v[candId] * PredictTraj[candId][traj_id][0] / (CandVel_v[candId] * PredictTime));
+                    ang = fabs(CandVel_w[candId] * PredictTraj[candId][traj_id][0] / (CandVel_w[candId] * PredictTime));
+                    // cout << "CandVel " << candId << ":(" << CandVel_v[candId] << ", " << CandVel_w[candId] << ")" << endl;
                     // cout << "PredictTraj: " << PredictTraj[candId][traj_id][1] << " " << PredictTraj[candId][traj_id][2] <<endl;
                     // //cout << "sensor: " << thinout_scan_range[tmp_scan_id] << endl;
                     // cout << "lin:" <<lin << " ang:" <<ang <<endl;
@@ -230,7 +252,7 @@ void MyDWA::kd_tree()
     }
     else
     {
-        for (int candId = 0; candId < CandVel.size(); candId++)
+        for (int candId = 0; candId < CandVel_v.size(); candId++)
         {
             dist_lin_ang.push_back(vector<double>());
             dist_lin_ang[candId].push_back(1);
@@ -240,8 +262,8 @@ void MyDWA::kd_tree()
             isCollision.push_back(false);
         }
     }
-    assert(isCollision.size() == CandVel.size());
-    assert(dist_lin_ang.size() == CandVel.size());
+    assert(isCollision.size() == CandVel_v.size());
+    assert(dist_lin_ang.size() == CandVel_v.size());
 }
 
 void MyDWA::Proposed()
@@ -251,12 +273,10 @@ void MyDWA::Proposed()
     cal_opt();
 }
 
-visualization_msgs::Marker MyDWA::make_nearest_LRF_marker(int optId)
+visualization_msgs::Marker MyDWA::make_nearest_LRF_marker(float x, float y)
 {
-    cout << "make nearest LRF marker optId " << optId << endl;
-    position p = sensor.index_to_pos(optId);
-
     visualization_msgs::Marker marker;
+    std::cout << "start make marker" << std::endl;
     marker.header.frame_id = "/odom";
     marker.header.stamp = ros::Time::now();
     marker.ns = "basic_shapes";
@@ -266,11 +286,11 @@ visualization_msgs::Marker MyDWA::make_nearest_LRF_marker(int optId)
     marker.action = visualization_msgs::Marker::ADD;
     marker.lifetime = (ros::Duration)0.5;
 
-    marker.scale.x = 0.3;
-    marker.scale.y = 0.3;
-    marker.scale.z = 0.3;
-    marker.pose.position.x = p.x;
-    marker.pose.position.y = p.y;
+    marker.scale.x = 0.2;
+    marker.scale.y = 0.2;
+    marker.scale.z = 0.2;
+    marker.pose.position.x = x;
+    marker.pose.position.y = y;
     marker.pose.position.z = 0;
     marker.pose.orientation.x = 0;
     marker.pose.orientation.y = 0;
@@ -281,6 +301,7 @@ visualization_msgs::Marker MyDWA::make_nearest_LRF_marker(int optId)
     marker.color.b = 0.0f;
     marker.color.a = 1.0f;
     // pub_mark.publish(marker);
+    std::cout << "fin make marker" << std::endl;
     return marker;
 }
 
@@ -289,7 +310,11 @@ void MyDWA::clear_vector()
     std::vector<double> tmp_double;
     std::vector<bool> tmp_bool;
 
-    std::vector<std::vector<double>>().swap(CandVel);
+    std::vector<double>().swap(CandVel_v);
+
+    std::vector<double>().swap(CandVel_w);
+
+    std::vector<double>().swap(d_U);
 
     std::vector<std::vector<std::vector<double>>>().swap(PredictTraj);
 
@@ -344,4 +369,3 @@ void MyDWA::record_param()
     std::string mylogRowName = "timestep[s],pos.x,pos.y,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,lindist,angdist,now_v,now_w,cal_time[ms],nearest[m],direction[rad]";
     mylogfile << mylogRowName << std::endl;
 }
-
