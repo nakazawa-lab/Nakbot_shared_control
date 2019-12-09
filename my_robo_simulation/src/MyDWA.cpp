@@ -133,8 +133,8 @@ void MyDWA::cal_opt()
     // cout << "dist_lin_ang[opt].size " << dist_lin_ang[opt_index].size() <<endl;
     // cout << "dist_lin_ang[opt][2] " <<dist_lin_ang[opt_index][2] <<endl;
 
-    cout << "opt idx is" << opt_index << endl
-         << "vel:" << CandVel_v[opt_index] << " ang: " << CandVel_w[opt_index] << endl;
+    // cout << "opt idx is" << opt_index << endl
+    //      << "vel:" << CandVel_v[opt_index] << " ang: " << CandVel_w[opt_index] << endl;
 
     // auto now = std::chrono::system_clock::now();
     // auto dur = now - start_time;
@@ -170,31 +170,31 @@ void MyDWA::kd_tree()
             thinout_scan_y.push_back(p.y);
             IsNoObs = false;
 
-            marker_array.markers[k].header.frame_id = "/odom";
-            marker_array.markers[k].header.stamp = ros::Time::now();
-            marker_array.markers[k].ns = "LRF";
-            marker_array.markers[k].id = k;
-            marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP * dt);
+            // marker_array.markers[k].header.frame_id = "/odom";
+            // marker_array.markers[k].header.stamp = ros::Time::now();
+            // marker_array.markers[k].ns = "LRF";
+            // marker_array.markers[k].id = k;
+            // marker_array.markers[k].lifetime = (ros::Duration)(PUB_TRAJ_MARKER_PER_LOOP * dt);
 
-            // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
-            marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
-            marker_array.markers[k].action = visualization_msgs::Marker::ADD;
-            marker_array.markers[k].scale.x = 0.1;
-            marker_array.markers[k].scale.y = 0.1;
-            marker_array.markers[k].scale.z = 0.1;
-            marker_array.markers[k].pose.position.x = p.x;
-            marker_array.markers[k].pose.position.y = p.y;
-            marker_array.markers[k].pose.position.z = 0;
-            marker_array.markers[k].pose.orientation.x = 0;
-            marker_array.markers[k].pose.orientation.y = 0;
-            marker_array.markers[k].pose.orientation.z = 0;
-            marker_array.markers[k].pose.orientation.w = 1;
+            // // marker_array.markers[j].type = visualization_msgs::Marker::CUBE;
+            // marker_array.markers[k].type = visualization_msgs::Marker::SPHERE;
+            // marker_array.markers[k].action = visualization_msgs::Marker::ADD;
+            // marker_array.markers[k].scale.x = 0.1;
+            // marker_array.markers[k].scale.y = 0.1;
+            // marker_array.markers[k].scale.z = 0.1;
+            // marker_array.markers[k].pose.position.x = p.x;
+            // marker_array.markers[k].pose.position.y = p.y;
+            // marker_array.markers[k].pose.position.z = 0;
+            // marker_array.markers[k].pose.orientation.x = 0;
+            // marker_array.markers[k].pose.orientation.y = 0;
+            // marker_array.markers[k].pose.orientation.z = 0;
+            // marker_array.markers[k].pose.orientation.w = 1;
 
-            marker_array.markers[k].color.r = 0.0f;
-            marker_array.markers[k].color.g = 1.0f;
-            marker_array.markers[k].color.b = 0.0f;
-            marker_array.markers[k].color.a = 1.0f;
-            k++;
+            // marker_array.markers[k].color.r = 0.0f;
+            // marker_array.markers[k].color.g = 1.0f;
+            // marker_array.markers[k].color.b = 0.0f;
+            // marker_array.markers[k].color.a = 1.0f;
+            // k++;
         } 
     }
     pub_marker_array(marker_array);
@@ -349,7 +349,7 @@ void MyDWA::record_param()
     logfile << property << std::endl;
 
     logfile << dt << "," << dt_traj << "," << PredictTime << "," << looprate << "," << k_heading << "," << k_velocity
-            << "," << thres_vel_time << "," << thres_ang_time << endl
+            << endl
             << endl;
 
     // std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
@@ -360,7 +360,7 @@ void MyDWA::record_param()
 
     mylogfile << property << std::endl;
     mylogfile << dt << "," << dt_traj << "," << PredictTime << "," << looprate << "," << k_heading << "," << k_velocity
-              << "," << thres_vel_time << "," << thres_ang_time << endl
+              << endl
               << endl;
 
     // std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost";
