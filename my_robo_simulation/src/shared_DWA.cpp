@@ -344,6 +344,7 @@ void my_robo::cal_Dist2()
         for (int candId = 0; candId < CandVel_v.size(); candId++)
         {
             //CandVel[candId].push_back(1.0);
+            d_U=1.0;
             DWA_var::d_U.push_back(d_U);
             isCollision.push_back(false);
         }

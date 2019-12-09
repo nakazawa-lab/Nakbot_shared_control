@@ -15,8 +15,8 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-//#define PABLODWA
-#define MYDWA
+#define PABLODWA
+//#define MYDWA
 #define ISSHARED
 #define PUB_MARKER
 
@@ -505,11 +505,13 @@ int main(int argc, char **argv)
 
 #ifdef MYDWA
     robot.IsProposed = true;
+    robot.k_heading = 2.0;
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
     robot.mylogfile.open(mylogfilename);
 #endif
 #ifdef PABLODWA
     robot.IsProposed = false;
+    robot.k_heading=1.0;
     std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
     robot.logfile.open(logfilename);
 #endif
