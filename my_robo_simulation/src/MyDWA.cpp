@@ -207,7 +207,6 @@ void MyDWA::kd_tree()
             // marker_array.markers[k].color.a = 1.0f;
             // k++;
         } 
-        }
     }
     //pub_marker_array(marker_array);
 
