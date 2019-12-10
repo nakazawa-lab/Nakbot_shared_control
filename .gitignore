@@ -10,3 +10,5 @@
 /JetSAS/.vscode
 /log_JetSAS
 /my_robo_simulation/scripts/__pycache__
+/JetSAS/log
+/JetSAS/scripts/result.csv
