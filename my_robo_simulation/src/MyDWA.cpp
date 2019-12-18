@@ -163,13 +163,24 @@ void MyDWA::kd_tree()
     {
         if (!isinf(sensor.latest_scan.ranges[i]))
         {
+            if(IsREAL){
+                if(sensor.latest_scan.ranges[i]!=0){
+            position p = sensor.index_to_pos(i);
+            //LRFpoints.push_back(MyPoint(sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]));
+            LRFpoints.push_back(MyPoint(p.x/10.0, p.y/10.0));
+            thinout_scan_x.push_back(p.x/10.0);
+            thinout_scan_y.push_back(p.y/10.0);
+            IsNoObs = false;
+            }
+            }
+            else{
             position p = sensor.index_to_pos(i);
             //LRFpoints.push_back(MyPoint(sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]));
             LRFpoints.push_back(MyPoint(p.x, p.y));
             thinout_scan_x.push_back(p.x);
             thinout_scan_y.push_back(p.y);
             IsNoObs = false;
-
+            }
             // marker_array.markers[k].header.frame_id = "/odom";
             // marker_array.markers[k].header.stamp = ros::Time::now();
             // marker_array.markers[k].ns = "LRF";
@@ -197,7 +208,7 @@ void MyDWA::kd_tree()
             // k++;
         } 
     }
-    pub_marker_array(marker_array);
+    //pub_marker_array(marker_array);
 
     if (!IsNoObs)
     {
