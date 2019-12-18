@@ -129,8 +129,12 @@ int main(int argc, char *argv[])
     //jetsas('v',4800,4900);
     jetsas('e',0001,0001);
 
-    do
-    {
+ros::spinOnce();
+ros::Rate rate(1);
+    while(ros::ok())
+{
+    //do
+    //{
 ///        jetsas('v',node.temp,node.temp);
 
            //jetsas('v',5200,5200);
@@ -152,9 +156,11 @@ int main(int argc, char *argv[])
         //std::cout << "left" << ros_serial.encoder.l_sum - ros_serial.encoder.l_init  << std::endl;
         ///end ros added by kitajima
 
-        value=gpio_sw(SW1);
-    }
-    while (value==HIGH);
+        //value=gpio_sw(SW1);
+    //}
+    //while (value==HIGH);
+rate.sleep();
+}
 
     cout << endl <<  "Button was just pressed!" << endl;
     cout << "Finished Testing the GPIO Pins" << endl;

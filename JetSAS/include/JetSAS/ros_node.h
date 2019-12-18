@@ -19,6 +19,7 @@ namespace JetSAS
 const double INTERCEPT_ENCODER = 5000000.0;
 const double WHEEL_LENGTH = 0.0254*6.0*M_PI;    // 6インチ径のタイヤの長さ
 const double ENCODER_PER_ROT = 5120.0;
+const double ENCODER_VEL_DIVIDER = 100.0;
 extern const double robot_width;
 
 // 予備実験によってだいたいの値を書いておく
@@ -45,6 +46,17 @@ struct Serial_sh{
     };
     Rc rc;
     Encoder encoder;
+
+    Serial_sh(){
+    rc.rot = 0;
+rc.lin = 0;
+rc.chan3 = 0;
+rc.chan4 = 0;
+encoder.r_ref = 0;
+encoder.l_ref = 0;
+encoder.r_sum = 0;
+encoder.l_sum = 0;    
+}
 };
 
 class Lrf
@@ -57,6 +69,7 @@ private:
     const float urg_angle_increment = (2 * M_PI) / 1024.0;
 
     float scan_calib_multiplier;
+    long long seq_=0;
 
 public:
     Lrf()
@@ -120,7 +133,7 @@ private:
     int encoder_right_ref=0,encoder_left_ref=0;
 
     // 5000000が基本
-    const double encoder_multiplier = WHEEL_LENGTH / ENCODER_PER_ROT ;
+    const double encoder_multiplier = WHEEL_LENGTH / (ENCODER_PER_ROT/ENCODER_VEL_DIVIDER) ;
 
     double v, w;
     double right_v, left_v;
@@ -182,12 +195,16 @@ public:
 
     void set_subscriber(ros::NodeHandle &nh)
     {
-        sub_vel = nh.subscribe("/cmd_vel", 10, &Cmd_vel::cb_vel, this);
+        sub_vel = nh.subscribe("/cmd_vel", 1, &Cmd_vel::cb_vel, this);
+        std::cout << "set sub" <<std::endl;
     }
 
     void cb_vel(const geometry_msgs::Twist::ConstPtr &msgs)
     {
         vel = *msgs;
+std::cout << std::endl;
+        std::cout << "sub cmd" << std::endl;
+std::cout << std::endl;
     }
 
     void cmd_vel_to_encoder();
@@ -259,6 +276,8 @@ public:
         lrf.set_publisher(nh);
         odom.set_publisher(nh);
         joy.set_publisher(nh);
+        cmd_vel.set_subscriber(nh);
+        std::cout << "Jetsas constructor" << std::endl; 
         logfile.open("./log_JetSAS/log_"+get_current_time()+".csv");
         make_log_col();
         start_time = std::chrono::system_clock::now();
@@ -281,9 +300,6 @@ public:
     JetSAS::RC rc;
 
     void controlloop(JET_TIMER&);
-
-    //int temp = 5999;
-
 };
 extern JetSAS::Serial_sh ros_serial;
 #endif /// ROS_NODE

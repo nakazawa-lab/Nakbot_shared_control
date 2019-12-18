@@ -272,4 +272,9 @@ double my_robo_sensor::index_to_rad(int index){
     return latest_scan.angle_increment * (index - center);
 }
 
+void my_robo_sensor::print_deg_range(){
+    for(int i=0; i< latest_scan.ranges.size();i+=4){
+        std::cout << index_to_rad(i)*180.0/3.1415 << " " << latest_scan.ranges[i]<<std::endl;
+    }
+}
 

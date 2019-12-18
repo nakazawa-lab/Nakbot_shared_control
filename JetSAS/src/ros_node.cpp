@@ -115,7 +115,9 @@ void JetSAS::Lrf::make_scan_msgs(long* urg_data,const int scan_num){
     //std::cout << "in make scan msgs, urg_data num is " << scan_num <<std::endl;
 
     //std::cout << "urg_data[0] " << urg_data[0]/100.0 <<" " << urg_angle_increment <<" "<< scan.angle_increment<<std::endl;
-
+    scan.header.frame_id="scan";
+    scan.header.seq = seq_;
+    seq_++;
     if (scan_num ==0){
         std::cout << "no scan msgs" <<std::endl;
     }
@@ -144,16 +146,18 @@ void JetSAS::Odom::cal_now_vel(const double this_loop_time){
 
     // std::cout << "from position encoder, (v,w) is " << v  << ", " << w << std::endl;
     // std::cout << "right v left v " <<right_v << " " << left_v  <<std::endl;
+if(!IsFirstRes){
 
     right_v = (ros_serial.encoder.r_ref - INTERCEPT_ENCODER) * encoder_multiplier / this_loop_time;
     left_v = (ros_serial.encoder.l_ref - INTERCEPT_ENCODER) * encoder_multiplier / this_loop_time;
     
-    std::cout << ros_serial.encoder.r_ref << " " << ros_serial.encoder.r_ref - INTERCEPT_ENCODER << " " << encoder_multiplier << std::endl;
+    std::cout << ros_serial.encoder.r_ref << " " << ros_serial.encoder.l_ref - INTERCEPT_ENCODER << " " << encoder_multiplier << std::endl;
     std::cout << "v[m/s] from enc " << right_v << " " << left_v << std::endl; 
     v = (right_v + left_v) / 2.0;
     w = (right_v - left_v) / (2.0*robot_width);
 
     std::cout << "from vel encoder, (v,w) is " << v  << ", " << w << std::endl;
+}
 }
 
 void JetSAS::Odom::cal_pose(double dt){
@@ -168,6 +172,8 @@ void JetSAS::Odom::cal_pose(double dt){
     now_p.sin_th = add_theorem_sin(old_p.sin_th, sin(w * dt), old_p.cos_th, cos(w * dt));
 
     old_p = now_p;
+
+std::cout << "now p: (" << now_p.x << ", " << now_p.y << ")" << now_p.cos_th << " " << now_p.sin_th << std::endl;
 }
 
 void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const double this_loop_time){
@@ -254,7 +260,7 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
     jetsas('r',0001,0001);
 
     // 値が変化したときだけ実行する
-    if(odom.check_new_encoder() && rc.check_new_rc()){
+    //if(odom.check_new_encoder() && rc.check_new_rc()){
         rc.set_rc(ros_serial.rc.rot);
 
         // urgの値をとってくる
@@ -270,7 +276,7 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
         // エンコーダの値をもとに現在の位置と速度を計算する
         auto dur = std::chrono::system_clock::now() - last_cal_time;
         cal_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(dur).count()/1000.0;
-        std::cout << "cal time " << cal_time << std::endl;
+        //std::cout << "cal time " << cal_time << std::endl;
         odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,cal_time);
 
         last_cal_time = std::chrono::system_clock::now();
@@ -286,9 +292,9 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
 
         // SHに送信する jetsas v
         // jetsas('v',encoder_prm_r,encoder_prm_l);
-        std::cout << std::endl;
+        //std::cout << std::endl;
         write_log();
-    }
+    //}
     
 }
 
