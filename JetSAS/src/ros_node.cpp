@@ -189,10 +189,6 @@ void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const doub
     // y = lambda_y * sin(theta/2)
     // z = lambda_z * sin(theta/2)
     // w = cos(theta/2)
-    //double sin_half_theta = sqrt((1-now_p.cos_th)/2);
-    //double cos_half_theta = sqrt((1-now_p.cos_th)/2);
-    //double sin_theta = 
-    //double cos_theta = 
     double theta;
     if(now_p.sin_th>=0)theta = acos(now_p.cos_th);
     else theta = acos(now_p.cos_th) + M_PI;
@@ -202,8 +198,6 @@ void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const doub
 
     odom.header.frame_id = "/odom";
     odom.header.stamp = ros::Time::now();
-    // odom.header.seq = seq_;
-    // seq_++;
     odom.pose.pose.position.x = now_p.x;
     odom.pose.pose.position.y = now_p.y;
 
@@ -216,20 +210,26 @@ void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const doub
     odom.twist.twist.linear.x = v;
     odom.twist.twist.angular.z = w;
 
-    std::cout << odom.pose.pose.position.x <<" " << odom.pose.pose.position.y << " " << odom.pose.pose.orientation.z << " " << odom.pose.pose.orientation.w << std::endl;
-    std::cout << odom.twist.twist.linear.x <<" " << odom.twist.twist.angular.z << std::endl; 
+    //std::cout << odom.pose.pose.position.x <<" " << odom.pose.pose.position.y << " " << odom.pose.pose.orientation.z << " " << odom.pose.pose.orientation.w << std::endl;
+    //std::cout << odom.twist.twist.linear.x <<" " << odom.twist.twist.angular.z << std::endl; 
 
     //std::cout << "(x, y, sin_th, cos_th) " << now_p.x << ", " << now_p.y << ", "<< now_p.sin_th << ", "<< now_p.cos_th <<std::endl;
 }
 
 //     geometry_msgs::Twist vel;        を
 //     int encoder_prm1, encoder_prm2;　に変換する
-void JetSAS::Cmd_vel::cmd_vel_to_encoder(){
+void JetSAS::Cmd_vel::cmd_vel_to_jetsas_prm(){
     double tmp = vel.angular.z * robot_width / 2.0;
-    encoder_cmd_r = (vel.linear.x + tmp) * cmd_multiplier_to_enc + INTERCEPT_ENCODER;
-    encoder_cmd_l = (vel.linear.x - tmp) * cmd_multiplier_to_enc + INTERCEPT_ENCODER;
+    double encoder_cmd_r = (vel.linear.x + tmp) * cmd_multiplier_to_enc + INTERCEPT_ENCODER;
+    double encoder_cmd_l = (vel.linear.x - tmp) * cmd_multiplier_to_enc + INTERCEPT_ENCODER;
 
     std::cout << "in cmd_vel encoder_prm_r and encoder_prm_l " << encoder_cmd_r << " " << encoder_cmd_l << std::endl; 
+
+    jetsas_e_r = (int)(encoder_cmd_r - INTERCEPT_ENCODER)*10 +5000;
+    jetsas_e_l = (int)(encoder_cmd_l - INTERCEPT_ENCODER)*10+5000;
+
+    std::cout << "in cmd_vel jetsas param " << jetsas_e_r << " " << jetsas_e_l << std::endl; 
+
 }
 
 void JetSAS::RC::rc_to_encoder(){
@@ -240,12 +240,15 @@ void JetSAS::RC::rc_to_encoder(){
 }
 
 void JetSAS::Joy::make_joy_msgs(){
-    joy_axes1 = (ros_serial.rc.lin - center_lin) / (max_rc_lin - min_rc_lin);
-    joy_axes0 = (ros_serial.rc.rot - center_rot) / (max_rc_rot - min_rc_rot);
-    std::cout << "in make joy msgs " << joy_axes1 << " " << joy_axes0 << std::endl;
+    joy_axes1 = -2.0*(ros_serial.rc.lin - center_lin) / (max_rc_lin - min_rc_lin);
+    joy_axes0 = -2.0*(ros_serial.rc.rot - center_rot) / (max_rc_rot - min_rc_rot);
+    //std::cout << "in make joy msgs " << joy_axes1 << " " << joy_axes0 << std::endl;
 
+    joy.header.frame_id = "/joy";
+    joy.header.stamp = ros::Time::now();
     joy.axes[0] = joy_axes0;
     joy.axes[1] = joy_axes1;
+    joy.buttons[0]=0;
 }
 
 bool JetSAS::Odom::check_new_encoder(){
@@ -303,11 +306,11 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
         pub_sensor();
 
         // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
-        //cmd_vel.cmd_vel_to_encoder();
+        cmd_vel.cmd_vel_to_jetsas_prm();
 
         // SHに送信する jetsas v
-        // jetsas('v',encoder_prm_r,encoder_prm_l);
-        //std::cout << std::endl;
+        jetsas('v',cmd_vel.jetsas_e_r,cmd_vel.jetsas_e_l);
+        std::cout << std::endl;
         write_log();
     //}
     
