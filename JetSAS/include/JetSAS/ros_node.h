@@ -27,6 +27,8 @@ const float max_rc_lin = 1237.0;
 const float max_rc_rot = 1234.0;
 const float min_rc_lin = 1134.0;
 const float min_rc_rot = 1136.0;
+const float center_lin =  (max_rc_lin + min_rc_lin)/ 2.0;
+const float center_rot = (max_rc_rot + min_rc_rot)/ 2.0;
 
 struct position
 {
@@ -131,6 +133,7 @@ private:
     int encoder_right=0, encoder_left=0;
     int old_encoder_right=0, old_encoder_left=0;
     int encoder_right_ref=0,encoder_left_ref=0;
+    long long seq_=0;
 
     // 5000000が基本
     const double encoder_multiplier = WHEEL_LENGTH / (ENCODER_PER_ROT/ENCODER_VEL_DIVIDER) ;
@@ -202,9 +205,9 @@ public:
     void cb_vel(const geometry_msgs::Twist::ConstPtr &msgs)
     {
         vel = *msgs;
-std::cout << std::endl;
+        std::cout << std::endl;
         std::cout << "sub cmd" << std::endl;
-std::cout << std::endl;
+        std::cout << std::endl;
     }
 
     void cmd_vel_to_encoder();
@@ -221,7 +224,7 @@ private:
     const double rot_r_int = 702.1;
     const double rc_multiplier_rot_l= 0.5883;
     const double rot_l_int = -697.8;
-    double rc_rot;
+    double rc_rot_;
 
     double v_right_enc,v_left_enc;      // RCの指令値をエンコーダ換算した値
 public:
@@ -230,7 +233,7 @@ public:
     }
 
     void set_rc(const double rc){
-        rc_rot = rc;
+        rc_rot_ = rc;
     };
 
     void rc_to_encoder();

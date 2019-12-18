@@ -9,6 +9,7 @@
 #include "sensor_msgs/LaserScan.h"
 
 #include "JetSAS/ros_node.h"
+#include "tf/transform_datatypes.h"
 
 extern long *urg_data;
 extern urg_t urg;
@@ -99,7 +100,7 @@ void JetSAS_Node::register_vel_param(){
 
 void JetSAS::Odom::set_encoder(const int e_right, const int e_left)
 {
-    std::cout << "in set encoder " << old_encoder_right << " " << encoder_right << " " << e_right << std::endl;
+    //std::cout << "in set encoder " << old_encoder_right << " " << encoder_right << " " << e_right << std::endl;
 
     old_encoder_right = encoder_right;
     old_encoder_left = encoder_left;
@@ -115,7 +116,7 @@ void JetSAS::Lrf::make_scan_msgs(long* urg_data,const int scan_num){
     //std::cout << "in make scan msgs, urg_data num is " << scan_num <<std::endl;
 
     //std::cout << "urg_data[0] " << urg_data[0]/100.0 <<" " << urg_angle_increment <<" "<< scan.angle_increment<<std::endl;
-    scan.header.frame_id="scan";
+    scan.header.frame_id="/scan";
     scan.header.seq = seq_;
     seq_++;
     if (scan_num ==0){
@@ -151,12 +152,12 @@ if(!IsFirstRes){
     right_v = (ros_serial.encoder.r_ref - INTERCEPT_ENCODER) * encoder_multiplier / this_loop_time;
     left_v = (ros_serial.encoder.l_ref - INTERCEPT_ENCODER) * encoder_multiplier / this_loop_time;
     
-    std::cout << ros_serial.encoder.r_ref << " " << ros_serial.encoder.l_ref - INTERCEPT_ENCODER << " " << encoder_multiplier << std::endl;
-    std::cout << "v[m/s] from enc " << right_v << " " << left_v << std::endl; 
+    //std::cout << ros_serial.encoder.r_ref << " " << ros_serial.encoder.l_ref - INTERCEPT_ENCODER << " " << encoder_multiplier << std::endl;
+    //std::cout << "v[m/s] from enc " << right_v << " " << left_v << std::endl; 
     v = (right_v + left_v) / 2.0;
     w = (right_v - left_v) / (2.0*robot_width);
 
-    std::cout << "from vel encoder, (v,w) is " << v  << ", " << w << std::endl;
+    //std::cout << "from vel encoder, (v,w) is " << v  << ", " << w << std::endl;
 }
 }
 
@@ -173,7 +174,7 @@ void JetSAS::Odom::cal_pose(double dt){
 
     old_p = now_p;
 
-std::cout << "now p: (" << now_p.x << ", " << now_p.y << ")" << now_p.cos_th << " " << now_p.sin_th << std::endl;
+    //std::cout << "now p: (" << now_p.x << ", " << now_p.y << ")" << "cos,sin: " << now_p.cos_th << " " << now_p.sin_th << std::endl;
 }
 
 void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const double this_loop_time){
@@ -188,18 +189,35 @@ void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const doub
     // y = lambda_y * sin(theta/2)
     // z = lambda_z * sin(theta/2)
     // w = cos(theta/2)
-    double sin_half_theta = sqrt((1-now_p.cos_th)/2);
-    double cos_half_theta = sqrt((1-now_p.cos_th)/2);
+    //double sin_half_theta = sqrt((1-now_p.cos_th)/2);
+    //double cos_half_theta = sqrt((1-now_p.cos_th)/2);
+    //double sin_theta = 
+    //double cos_theta = 
+    double theta;
+    if(now_p.sin_th>=0)theta = acos(now_p.cos_th);
+    else theta = acos(now_p.cos_th) + M_PI;
+    tf::Quaternion quaternion=tf::createQuaternionFromRPY(/*roll=*/0,/*pitch=*/0,/*yaw=*/theta);
+    geometry_msgs::Quaternion quat_Msg;
+    quaternionTFToMsg(quaternion,quat_Msg);//この関数はROSのライブラリ
+
+    odom.header.frame_id = "/odom";
+    odom.header.stamp = ros::Time::now();
+    // odom.header.seq = seq_;
+    // seq_++;
     odom.pose.pose.position.x = now_p.x;
     odom.pose.pose.position.y = now_p.y;
 
-    odom.pose.pose.orientation.x = sin_half_theta;
-    odom.pose.pose.orientation.y = sin_half_theta;
-    odom.pose.pose.orientation.z = sin_half_theta;
-    odom.pose.pose.orientation.w = cos_half_theta;
+    odom.pose.pose.orientation = quat_Msg;
+    // odom.pose.pose.orientation.x = sin_half_theta;
+    // odom.pose.pose.orientation.y = sin_half_theta;
+    // odom.pose.pose.orientation.z = sin_half_theta;
+    // odom.pose.pose.orientation.w = cos_half_theta;
 
     odom.twist.twist.linear.x = v;
     odom.twist.twist.angular.z = w;
+
+    std::cout << odom.pose.pose.position.x <<" " << odom.pose.pose.position.y << " " << odom.pose.pose.orientation.z << " " << odom.pose.pose.orientation.w << std::endl;
+    std::cout << odom.twist.twist.linear.x <<" " << odom.twist.twist.angular.z << std::endl; 
 
     //std::cout << "(x, y, sin_th, cos_th) " << now_p.x << ", " << now_p.y << ", "<< now_p.sin_th << ", "<< now_p.cos_th <<std::endl;
 }
@@ -222,12 +240,9 @@ void JetSAS::RC::rc_to_encoder(){
 }
 
 void JetSAS::Joy::make_joy_msgs(){
-    float center_lin =  (max_rc_lin + min_rc_lin)/ 2.0;
-    float center_rot = (max_rc_rot + min_rc_rot)/ 2.0;
-
     joy_axes1 = (ros_serial.rc.lin - center_lin) / (max_rc_lin - min_rc_lin);
     joy_axes0 = (ros_serial.rc.rot - center_rot) / (max_rc_rot - min_rc_rot);
-    //std::cout << "in make joy msgs " << joy_axes1 << " " << joy_axes0 << std::endl;
+    std::cout << "in make joy msgs " << joy_axes1 << " " << joy_axes0 << std::endl;
 
     joy.axes[0] = joy_axes0;
     joy.axes[1] = joy_axes1;
@@ -244,7 +259,7 @@ bool JetSAS::Odom::check_new_encoder(){
 }
 
 bool JetSAS::RC::check_new_rc(){
-    if(ros_serial.rc.rot == rc_rot) return false;
+    if(ros_serial.rc.rot == rc_rot_) return false;
     else return true;
 }
 

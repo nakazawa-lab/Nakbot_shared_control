@@ -99,6 +99,8 @@ public:
     position index_to_pos(int);
 
     void print_deg_range();
+
+    void print_odom();
 };
 
 

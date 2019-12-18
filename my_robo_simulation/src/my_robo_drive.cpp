@@ -15,10 +15,10 @@
 
 FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
-#define PABLODWA
-//#define MYDWA
+//#define PABLODWA
+#define MYDWA
 #define ISSHARED
-#define PUB_MARKER
+//#define PUB_MARKER
 #define REAL_TEST
 
 // 何かキーが押されたときにループを抜けるための関数
@@ -427,7 +427,8 @@ void MyDWA::DWAloop()
 #endif
                 }
 #endif      // REAL_TEST
-                sensor.print_deg_range();
+                //sensor.print_deg_range();
+                //sensor.print_odom();
 
                 if (plot_flag)
                 {

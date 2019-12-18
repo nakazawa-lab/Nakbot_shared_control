@@ -278,3 +278,9 @@ void my_robo_sensor::print_deg_range(){
     }
 }
 
+void my_robo_sensor::print_odom(){
+    std::cout << "=====print odom=====" << std::endl;
+    std::cout << odom.pose.pose.position.x <<" " << odom.pose.pose.position.y << " " << odom.pose.pose.orientation.z << " " << odom.pose.pose.orientation.w << std::endl;
+    std::cout << odom.twist.twist.linear.x <<" " << odom.twist.twist.angular.z << std::endl; 
+}
+

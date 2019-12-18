@@ -31,20 +31,49 @@ def read_log(path):
     }
     return log
 
+def save_rc_enc_fig():
+    # plt.scatter(x,LOG["right_vel"],label="raw right")
+    # plt.scatter(x,LOG["left_vel"],label="raw left")
+    # plt.plot(x,est_right,label="est right")
+    # plt.plot(x,est_left,label ="est left")
+    # plt.legend()
+    # plt.show()
+    pass
 
-def main(vel):
-    csv_path = glob.glob("../log/graph_src/*")
-    result = []
+def write_result(result,velname):
+    with open("result/result_"+velname+".csv",mode="w") as f:
+        f.write("path,e_right,e_left\n")
+        for i in range(len(result)):
+            f.write(','.join(result[i]) + '\n')
+
+def write_minmax(result):
+    with open("result/result_minmax.csv",mode="w") as f:
+        f.write("max,min\n")
+        for i in range(len(result)):
+            f.write(','.join(result[i]) + '\n')
+
+def lin_or_rot(velname,LOG):
+    if velname == "lin":
+        return LOG["lin"]
+    elif velname == "rot":
+        return LOG["rot"]
+    else:
+        print("error. arg must be [lin] or [rot]")
+        sys.exit(1)
+
+def cal_max_min(VEL_LOG):
+    np_vel = VEL_LOG.to_numpy()
+    max_ = np.max(np_vel)
+    min_ = np.min(np_vel)
+    return [max_,min_]
+
+
+def cal_rc_to_encoder(csv_path,velname):
+    result_vel_enc = []
+    result_minmax = []
     for path in csv_path:
         LOG = read_log(path)
-
-        if vel == "lin":
-            x = LOG["lin"]
-        elif vel == "rot":
-            x = LOG["rot"]
-        else:
-            print("error. arg must be [lin] or [rot]")
-            sys.exit(1)
+        x = lin_or_rot(velname,LOG)
 
         e_right = np.polyfit(x,LOG["right_vel"],1)
         e_left = np.polyfit(x,LOG["left_vel"],1)
@@ -53,23 +82,24 @@ def main(vel):
 
         # ==TODO== #
         # save_fig()
-        # plt.scatter(x,LOG["right_vel"],label="raw right")
-        # plt.scatter(x,LOG["left_vel"],label="raw left")
-        # plt.plot(x,est_right,label="est right")
-        # plt.plot(x,est_left,label ="est left")
-        # plt.legend()
-        # plt.show()
 
-        print(os.path.basename(path))
-        print(e_right)
-        print(e_left)
+        # print(os.path.basename(path))
+        # print(e_right)
+        # print(e_left)
 
         result.append([os.path.basename(path),str(e_right),str(e_left)])
+
+        result_minmax.append(cal_max_min(x))
     
-    with open("result.csv",mode="w") as f:
-        f.write("path,e_right,e_left\n")
-        for i in range(len(result)):
-            f.write(','.join(result[i]) + '\n')
+    write_result(result_vel_enc,velname)
+    write_minmax(result_minmax)
+
+
+
+def main(velname):
+    csv_path = glob.glob("../../log_JetSAS/log_src/*")
+    cal_rc_to_encoder(csv_path,velname)
+
 
 if __name__=="__main__":
     args = sys.argv
