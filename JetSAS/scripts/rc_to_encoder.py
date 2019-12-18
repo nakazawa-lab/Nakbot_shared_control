@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 def read_log(path):
     csv_file = pd.read_csv(path,header=0)
-    csv = csv_file[csv_file["e1_right_vel"] !=0]
+    csv = csv_file[csv_file["r1_rot"] !=0]
 
     time = csv["time"]
     right_vel = csv["e1_right_vel"]
@@ -46,8 +46,8 @@ def write_result(result,velname):
         for i in range(len(result)):
             f.write(','.join(result[i]) + '\n')
 
-def write_minmax(result):
-    with open("result/result_minmax.csv",mode="w") as f:
+def write_minmax(result,velname):
+    with open("result/result_minmax_"+velname+".csv",mode="w") as f:
         f.write("max,min\n")
         for i in range(len(result)):
             f.write(','.join(result[i]) + '\n')
@@ -65,7 +65,7 @@ def cal_max_min(VEL_LOG):
     np_vel = VEL_LOG.to_numpy()
     max_ = np.max(np_vel)
     min_ = np.min(np_vel)
-    return [max_,min_]
+    return [str(max_),str(min_)]
 
 
 def cal_rc_to_encoder(csv_path,velname):
@@ -83,16 +83,16 @@ def cal_rc_to_encoder(csv_path,velname):
         # ==TODO== #
         # save_fig()
 
-        # print(os.path.basename(path))
-        # print(e_right)
-        # print(e_left)
+        print(os.path.basename(path))
+        print(e_right)
+        print(e_left)
 
-        result.append([os.path.basename(path),str(e_right),str(e_left)])
+        result_vel_enc.append([os.path.basename(path),str(e_right),str(e_left)])
 
         result_minmax.append(cal_max_min(x))
     
     write_result(result_vel_enc,velname)
-    write_minmax(result_minmax)
+    write_minmax(result_minmax,velname)
 
 
 
