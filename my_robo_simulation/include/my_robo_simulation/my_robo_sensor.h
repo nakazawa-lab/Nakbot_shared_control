@@ -97,6 +97,8 @@ public:
     double index_to_rad(int index);
 
     position index_to_pos(int);
+
+    void print_deg_range();
 };
 
 

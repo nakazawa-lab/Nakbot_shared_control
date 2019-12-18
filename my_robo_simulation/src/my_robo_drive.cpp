@@ -19,6 +19,7 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 #define MYDWA
 #define ISSHARED
 #define PUB_MARKER
+#define REAL_TEST
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -334,7 +335,6 @@ void MyDWA::DWAloop()
         {
 
             //trans_inf(sensor.latest_scan);
-
             if ((dt == (control_loop_flag / looprate)) || (control_loop_flag == 0))
             {
                 check_joy();
@@ -352,7 +352,7 @@ void MyDWA::DWAloop()
 
                 cal_predict_position();
                 //say_time("predict position", loop_start_time);
-
+#ifndef REAL_TEST
 #ifdef PABLODWA
                 //cal_Dist();
                 cal_Dist2();
@@ -426,6 +426,8 @@ void MyDWA::DWAloop()
 #endif
 #endif
                 }
+#endif      // REAL_TEST
+                sensor.print_deg_range();
 
                 if (plot_flag)
                 {
@@ -434,6 +436,7 @@ void MyDWA::DWAloop()
                     say_time("plot", loop_start_time);
                 }
             }
+
 end:
             pub_cmd.publish(vel);
             //say_time("pub", loop_start_time);
@@ -514,12 +517,12 @@ int main(int argc, char **argv)
     robot.logfile.open(logfilename);
 #endif
 
-    // gp = popen("gnuplot -persist", "w");
-    // fprintf(gp, "set multiplot\n");
-    // fprintf(gp, "set xrange [-3:3]\n");
-    // fprintf(gp, "set yrange [-0.2:7]\n");
-    // fprintf(gp, "set xlabel \"theta\"\n");
-    // fprintf(gp, "set ylabel \"distance\"\n");
+    gp = popen("gnuplot -persist", "w");
+    fprintf(gp, "set multiplot\n");
+    fprintf(gp, "set xrange [-3:3]\n");
+    fprintf(gp, "set yrange [-0.2:7]\n");
+    fprintf(gp, "set xlabel \"theta\"\n");
+    fprintf(gp, "set ylabel \"distance\"\n");
     robot.DWAloop();
 
     robot.logfile.close();

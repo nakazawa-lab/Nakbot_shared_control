@@ -448,42 +448,6 @@ void say_time(const char *name, std::chrono::time_point<std::chrono::_V2::system
   ROS_INFO("after %s : %d millisec", name, msec);
 }
 
-// void my_robo::plot_d_deg_gnuplot(FILE *gp)
-// {
-//   // ファイルを書き出したいとき
-//   // fprintf(gp,"plot \"d_theta_file.dat\" with points pointsize 10\n");
-
-//   fprintf(gp, "clear\n");
-
-//   // そのまま書き出したいとき
-//   // fprintf(gp,"set key title \"-\"");
-//   // fprintf(gp,"set key at 170,7");
-//   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\"\n");
-//   // 候補軌道の数に対する繰り返し
-//   for (int i = 0; i < PredictTraj_r.size(); i++)
-//   {
-//     // 軌道内の各時刻に対する繰り返し
-//     for (int j = 0; j < PredictTraj_r[i].size(); j++)
-//     {
-//       fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2] * RAD2DEG, PredictTraj_r[i][j][1]);
-//     }
-//   }
-//   fprintf(gp, "e\n");
-//   fflush(gp);
-// }
-
-// void my_robo::plot_d_deg_scan_gnuplot(FILE *gp)
-// {
-//   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
-
-//   for (int i = 0; i < sensor.latest_scan.ranges.size(); i++)
-//   {
-//     fprintf(gp, "%f\t%f\n", sensor.index_to_rad(i) * 0.53, sensor.latest_scan.ranges[i]);
-//   }
-//   fprintf(gp, "e\n");
-//   fflush(gp);
-// }
-
 void MyDWA::plot_gnuplot(FILE *gp)
 {
   fprintf(gp, "clear\n");

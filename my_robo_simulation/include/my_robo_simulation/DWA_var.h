@@ -58,7 +58,7 @@ public:
     const int ANGSAFE_MULTIPLIER = 2;
     const int PUB_TRAJ_MARKER_PER_LOOP =1;
 
-    const bool IsREAL = false;
+    const bool IsREAL = true;
 
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
 
