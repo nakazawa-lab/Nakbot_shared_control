@@ -140,13 +140,13 @@ visualization_msgs::MarkerArray MyDWA::make_traj_marker_array(int opt_index)
           color = (dist_lin_ang[i][0] + dist_lin_ang[i][1]) / (max_lin + max_ang);
         }
         else{
-          color = CandVel_w[i];
+          color = d_U[i];
         }
         double x = 1;
-        if (isCollision[i])
-        {
-          x = 0;
-        }
+        // if (isCollision[i])
+        // {
+        //   x = 0;
+        // }
 
         marker_array.markers[k].scale.x = 0.05;
         marker_array.markers[k].scale.y = 0.05;
