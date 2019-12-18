@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     jetsas('e',0001,0001);
 
 ros::spinOnce();
-ros::Rate rate(1);
+ros::Rate rate(4);
     while(ros::ok())
 {
     //do
@@ -159,7 +159,7 @@ ros::Rate rate(1);
         //value=gpio_sw(SW1);
     //}
     //while (value==HIGH);
-rate.sleep();
+    rate.sleep();
 }
 
     cout << endl <<  "Button was just pressed!" << endl;
