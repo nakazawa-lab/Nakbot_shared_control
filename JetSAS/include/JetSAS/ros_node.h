@@ -23,10 +23,10 @@ const double ENCODER_VEL_DIVIDER = 100.0;
 extern const double robot_width;
 
 // 予備実験によってだいたいの値を書いておく
-const float max_rc_lin = 1237.0;
-const float max_rc_rot = 1234.0;
+const float max_rc_lin = 1241.0;
+const float max_rc_rot = 1240.0;
 const float min_rc_lin = 1134.0;
-const float min_rc_rot = 1136.0;
+const float min_rc_rot = 1134.0;
 const float center_lin =  (max_rc_lin + min_rc_lin)/ 2.0;
 const float center_rot = (max_rc_rot + min_rc_rot)/ 2.0;
 
@@ -107,6 +107,7 @@ public:
     Joy()
     {
         joy.axes.resize(2);
+        joy.buttons.resize(1);
     }
 
     void set_publisher(ros::NodeHandle &nh)
@@ -177,10 +178,8 @@ public:
 class Cmd_vel
 {
 private:
-    ros::Subscriber sub_vel;
     geometry_msgs::Twist vel;
-
-    int encoder_cmd_r, encoder_cmd_l;
+    ros::Subscriber sub_vel;
 
     // 5000を基準にしている
     const double cmd_multipler_vel = 0.1;
@@ -190,6 +189,8 @@ private:
 
 
 public:
+    int jetsas_e_r, jetsas_e_l;
+
     Cmd_vel()
     {
         vel.linear.x = 0.0;
@@ -198,32 +199,30 @@ public:
 
     void set_subscriber(ros::NodeHandle &nh)
     {
-        sub_vel = nh.subscribe("/cmd_vel", 1, &Cmd_vel::cb_vel, this);
+        sub_vel = nh.subscribe("/cmd_vel", 10, &Cmd_vel::cb_vel, this);
         std::cout << "set sub" <<std::endl;
     }
 
     void cb_vel(const geometry_msgs::Twist::ConstPtr &msgs)
     {
         vel = *msgs;
-        std::cout << std::endl;
-        std::cout << "sub cmd" << std::endl;
-        std::cout << std::endl;
     }
 
-    void cmd_vel_to_encoder();
+    void cmd_vel_to_jetsas_prm();
+
 };
 
 class RC{
 private:
     // 1100くらいに基準がある
-    const double rc_multiplier_vel_r= -0.5910;
-    const double vel_r_int = 703.4;
-    const double rc_multiplier_vel_l= -0.5891;
-    const double vel_l_int = 698.1;
-    const double rc_multiplier_rot_r= -0.5876;
-    const double rot_r_int = 702.1;
-    const double rc_multiplier_rot_l= 0.5883;
-    const double rot_l_int = -697.8;
+    const double rc_multiplier_vel_r= -0.5901;
+    const double vel_r_int = 702.4;
+    const double rc_multiplier_vel_l= -0.5902;
+    const double vel_l_int = 700.2;
+    const double rc_multiplier_rot_r= -0.5091;
+    const double rot_r_int = 702.8;
+    const double rc_multiplier_rot_l= 0.5897;
+    const double rot_l_int = -703.3;
     double rc_rot_;
 
     double v_right_enc,v_left_enc;      // RCの指令値をエンコーダ換算した値

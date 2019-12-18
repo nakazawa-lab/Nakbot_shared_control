@@ -34,6 +34,7 @@ void my_robo::check_joy()
     // ジョイスティック左側
     // 上→axes[1]の正方向
     // 左→axes[0]の正方向
+    //std::cout << "in check_joy " << sensor.joy_cmd_vel
     sensor.joy_cmd_vel[0] = spec.x_max_vel * sensor.joy.axes[1];
     //cmd_vel.linear.y =joy_msg.axes[2];
 

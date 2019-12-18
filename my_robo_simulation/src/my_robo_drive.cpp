@@ -19,7 +19,7 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 #define MYDWA
 #define ISSHARED
 //#define PUB_MARKER
-#define REAL_TEST
+//#define REAL_TEST
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)

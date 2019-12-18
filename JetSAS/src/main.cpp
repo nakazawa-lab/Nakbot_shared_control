@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
     usleep(1000000);         // on for 1s
 
-//    jetsas('v',5100,5100);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
+    //jetsas('v',5100,5100);      // コマンドvで速度指令 vel1=5010-5000,vel2=5010-5000 値の範囲は4000から5999
 
     // Wait for the push button to be pressed
     cout << "Please press the button!" << endl;
@@ -125,14 +125,15 @@ int main(int argc, char *argv[])
     int j=0;
     int vel_i =0;
     
-    jetsas('L',5200,5200);
-    //jetsas('v',4800,4900);
+    jetsas('L',5400,5400);
+    jetsas('v',4800,4900);
     jetsas('e',0001,0001);
 
-ros::spinOnce();
+
 ros::Rate rate(4);
     while(ros::ok())
 {
+    ros::spinOnce();
     //do
     //{
 ///        jetsas('v',node.temp,node.temp);

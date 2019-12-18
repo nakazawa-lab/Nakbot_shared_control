@@ -182,8 +182,8 @@ void* th_receive(void* pParam)
                   +deci(dat[b+2])*10000+deci(dat[b+3])*1000
                   +deci(dat[b+4])*100+deci(dat[b+5])*10+deci(dat[b+6]);
 
-                 printf("Decoded data %c %8d %8d %8d %8d\n",
-                        RS_cmd,RS_prm[0],RS_prm[1],RS_prm[2],RS_prm[3]);
+                 //printf("Decoded data %c %8d %8d %8d %8d\n",
+                 //       RS_cmd,RS_prm[0],RS_prm[1],RS_prm[2],RS_prm[3]);
 
                 save_serial(RS_cmd, RS_prm);        /// added by kitajima 
                 num=0;
