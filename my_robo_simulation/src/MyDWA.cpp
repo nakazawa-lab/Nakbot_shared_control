@@ -7,7 +7,7 @@
 
 using namespace std;
 extern double cal_euclid(double x0, double y0, double x1, double y1);
-
+extern FILE *gp;
 // double MyDWA::cal_Dist(MyPoint query, int idx)
 // {
 //     return sqrt((LRFpoints[idx][0] - query[0]) * (LRFpoints[idx][0] - query[0]) + (LRFpoints[idx][1] - query[1]) * (LRFpoints[idx][1] - query[1]));
@@ -164,22 +164,25 @@ void MyDWA::kd_tree()
         if (!isinf(sensor.latest_scan.ranges[i]))
         {
             if(IsREAL){
-                if(sensor.latest_scan.ranges[i]!=0){
-            position p = sensor.index_to_pos(i);
-            //LRFpoints.push_back(MyPoint(sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]));
-            LRFpoints.push_back(MyPoint(p.x/10.0, p.y/10.0));
-            thinout_scan_x.push_back(p.x/10.0);
-            thinout_scan_y.push_back(p.y/10.0);
-            IsNoObs = false;
-            }
+                if((sensor.latest_scan.ranges[i]!=0) && (sensor.latest_scan.ranges[i]>0.02)){
+                    position p = sensor.index_to_pos(i);
+                    LRFpoints.push_back(MyPoint(p.x, p.y));
+                    thinout_scan_x.push_back(p.x);
+                    thinout_scan_y.push_back(p.y);
+                    IsNoObs = false;
+
+                    cout << "in kdtree " << i << " " << p.x << " " << p.y << " "<<sensor.latest_scan.ranges[i] << " " << sensor.index_to_rad(i)*RAD2DEG<<endl;
+                }
+                else{
+                    cout << "is 0. index:" << i <<endl;
+                }
             }
             else{
-            position p = sensor.index_to_pos(i);
-            //LRFpoints.push_back(MyPoint(sensor.index_to_rad(i)*RAD2DEG, sensor.latest_scan.ranges[i]));
-            LRFpoints.push_back(MyPoint(p.x, p.y));
-            thinout_scan_x.push_back(p.x);
-            thinout_scan_y.push_back(p.y);
-            IsNoObs = false;
+                position p = sensor.index_to_pos(i);
+                LRFpoints.push_back(MyPoint(p.x, p.y));
+                thinout_scan_x.push_back(p.x);
+                thinout_scan_y.push_back(p.y);
+                IsNoObs = false;
             }
             // marker_array.markers[k].header.frame_id = "/odom";
             // marker_array.markers[k].header.stamp = ros::Time::now();
@@ -209,6 +212,7 @@ void MyDWA::kd_tree()
         } 
     }
     //pub_marker_array(marker_array);
+    plot_scan_gnuplot(gp,thinout_scan_x,thinout_scan_y);
 
     if (!IsNoObs)
     {
@@ -230,8 +234,8 @@ void MyDWA::kd_tree()
 
                 tmp_scan_id = LRFkdtree.nnSearch(query);
                 // cout << "query:(" << query[0]  << ", " << query[1] << ")" <<endl;
-                // cout << "scan id:" << tmp_scan_id << endl;
-                // cout << "thinout_range:" << thinout_scan_range[tmp_scan_id] << " ang:" << thinout_scan_ang[tmp_scan_id] << endl;
+                cout << "scan id:" << tmp_scan_id << endl;
+                cout << "nearest x:" << thinout_scan_x[tmp_scan_id] << " y:" << thinout_scan_y[tmp_scan_id] << endl;
                 //tmp_dist = cal_coll_thres(thinout_scan_range[tmp_scan_id], thinout_scan_ang[tmp_scan_id], PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]);
                 tmp_dist = cal_euclid(thinout_scan_x[tmp_scan_id], thinout_scan_y[tmp_scan_id], PredictTraj[candId][traj_id][1], PredictTraj[candId][traj_id][2]);
                 if (tmp_dist < spec.ROBOT_RAD)
@@ -244,7 +248,7 @@ void MyDWA::kd_tree()
                     // //cout << "sensor: " << thinout_scan_range[tmp_scan_id] << endl;
                     // cout << "lin:" <<lin << " ang:" <<ang <<endl;
                     // cout << "traj_id:" <<traj_id << " scan_id:" <<tmp_scan_id <<endl;
-                    //cout << endl;
+                    // cout << endl;
                     dist_lin_ang[candId].push_back(lin);
                     dist_lin_ang[candId].push_back(ang);
                     dist_lin_ang[candId].push_back(tmp_scan_id);

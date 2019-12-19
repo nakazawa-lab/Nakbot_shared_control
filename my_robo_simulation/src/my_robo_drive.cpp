@@ -410,15 +410,11 @@ void MyDWA::DWAloop()
                 if (sensor.joy_cmd_vel[0] > -0)
                 {
 #ifdef ISSHARED
-
 #ifdef PABLODWA
                     vel.linear.x = CandVel_v[opt_index];
                     vel.angular.z = CandVel_w[opt_index];
 #endif
-
 #ifdef MYDWA
-
-                    //std::cout << "pubvel (" << CandVel_v[opt_index] << ", " << CandVel_w[opt_index] << ")" << std::endl;
                     vel.linear.x = CandVel_v[opt_index];
                     vel.angular.z = CandVel_w[opt_index];
 
@@ -440,6 +436,8 @@ void MyDWA::DWAloop()
 
 end:
             pub_cmd.publish(vel);
+            std::cout << "pubvel (" << vel.linear.x << ", " << vel.angular.z << ")" << std::endl;
+            std::cout << "joy vel:" << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << std::endl;
             //say_time("pub", loop_start_time);
             cal_end_time = std::chrono::system_clock::now();
             record_loop_info();
@@ -522,8 +520,8 @@ int main(int argc, char **argv)
 
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
-    fprintf(gp, "set xrange [-3:3]\n");
-    fprintf(gp, "set yrange [-0.2:7]\n");
+    fprintf(gp, "set xrange [-4:4]\n");
+    fprintf(gp, "set yrange [-4:4]\n");
     fprintf(gp, "set xlabel \"theta\"\n");
     fprintf(gp, "set ylabel \"distance\"\n");
     robot.DWAloop();

@@ -453,20 +453,20 @@ void MyDWA::plot_gnuplot(FILE *gp)
 {
   fprintf(gp, "clear\n");
 
-#pragma region 予測起動の描画
-  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
-  // 候補軌道の数に対する繰り返し
-  for (int i = 0; i < PredictTraj_r.size(); i += 2)
-  {
-    // 軌道内の各時刻に対する繰り返し
-    for (int j = 0; j < PredictTraj_r[i].size(); j += 2)
-    {
-      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2], PredictTraj_r[i][j][1]);
-    }
-  }
-  fprintf(gp, "e\n");
-  fflush(gp);
-#pragma endregion
+// #pragma region 予測起動の描画
+//   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
+//   // 候補軌道の数に対する繰り返し
+//   for (int i = 0; i < PredictTraj_r.size(); i += 2)
+//   {
+//     // 軌道内の各時刻に対する繰り返し
+//     for (int j = 0; j < PredictTraj_r[i].size(); j += 2)
+//     {
+//       fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2], PredictTraj_r[i][j][1]);
+//     }
+//   }
+//   fprintf(gp, "e\n");
+//   fflush(gp);
+// #pragma endregion
 
 #pragma region スキャン点の描画
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
@@ -487,4 +487,15 @@ void MyDWA::plot_gnuplot(FILE *gp)
   // fprintf(gp, "e\n");
   // fflush(gp);
 #pragma endregion
+}
+
+void MyDWA::plot_scan_gnuplot(FILE *gp,std::vector<float>& x,std::vector<float>& y){
+  fprintf(gp, "clear\n");
+  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
+  for (int i = 0; i < x.size(); i += 3)
+  {
+    fprintf(gp, "%f\t%f\n", x[i], y[i]);
+  }
+  fprintf(gp, "e\n");
+  fflush(gp);
 }

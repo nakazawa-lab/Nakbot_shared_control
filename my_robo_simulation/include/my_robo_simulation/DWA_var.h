@@ -35,7 +35,7 @@ class DWA_var
 {
 public:
     // DWA設定の刻み.ループレイトと同じが望ましい
-    const double dt = 0.4;
+    const double dt = 0.3;
     // 軌道計算の刻み
     const double dt_traj = 0.1;
     // 軌道予測時刻
