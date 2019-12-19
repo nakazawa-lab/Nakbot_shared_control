@@ -50,15 +50,15 @@ struct Serial_sh{
     Encoder encoder;
 
     Serial_sh(){
-    rc.rot = 0;
-rc.lin = 0;
-rc.chan3 = 0;
-rc.chan4 = 0;
-encoder.r_ref = 0;
-encoder.l_ref = 0;
-encoder.r_sum = 0;
-encoder.l_sum = 0;    
-}
+        rc.rot = center_rot;
+        rc.lin = center_lin;
+        rc.chan3 = 0;
+        rc.chan4 = 0;
+        encoder.r_ref = INTERCEPT_ENCODER;
+        encoder.l_ref = INTERCEPT_ENCODER;
+        encoder.r_sum = INTERCEPT_ENCODER;
+        encoder.l_sum = INTERCEPT_ENCODER;    
+    }
 };
 
 class Lrf
@@ -69,8 +69,6 @@ private:
 
     const int urg_data_num = 682; // 実機で得られる点の数
     const float urg_angle_increment = (2 * M_PI) / 1024.0;
-
-    float scan_calib_multiplier;
     long long seq_=0;
 
 public:
@@ -107,7 +105,6 @@ public:
     Joy()
     {
         joy.axes.resize(2);
-        joy.buttons.resize(1);
     }
 
     void set_publisher(ros::NodeHandle &nh)
@@ -137,7 +134,7 @@ private:
     long long seq_=0;
 
     // 5000000が基本
-    const double encoder_multiplier = WHEEL_LENGTH / (ENCODER_PER_ROT/ENCODER_VEL_DIVIDER) ;
+    const double enc_to_vel = WHEEL_LENGTH / (ENCODER_PER_ROT/ENCODER_VEL_DIVIDER) ;
 
     double v, w;
     double right_v, left_v;
@@ -168,11 +165,6 @@ public:
     void make_odom_msgs(const int, const int, const double);
     
     bool check_new_encoder();
-
-    // エンコーダの値から今のv,wを求める
-    // 昔のx,yの情報と, 今のv,wとこの1ループの時間から新しい位置x,y を求める
-
-    // set_encoder → cal_now_vel → cal_pose
 };
 
 class Cmd_vel
@@ -180,16 +172,11 @@ class Cmd_vel
 private:
     geometry_msgs::Twist vel;
     ros::Subscriber sub_vel;
-
-    // 5000を基準にしている
-    const double cmd_multipler_vel = 0.1;
-    const double cmd_multiplier_rot = 0.1;
-
-    const double cmd_multiplier_to_enc = ENCODER_PER_ROT / (WHEEL_LENGTH*10);
+    const double cmd_multiplier_to_enc = ENCODER_PER_ROT / (WHEEL_LENGTH*ENCODER_VEL_DIVIDER);
 
 
 public:
-    int jetsas_e_r, jetsas_e_l;
+    int jetsas_e_r=5000, jetsas_e_l=5000;
 
     Cmd_vel()
     {
@@ -246,7 +233,6 @@ class JetSAS_Node
 private:
     ros::NodeHandle nh;
     double old_time=0.0;
-    //double this_loop_time;
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> last_cal_time;
     double cal_time;
@@ -265,8 +251,6 @@ private:
     void make_log_col();
 
     void write_log();
-
-    void register_vel_param();
 
     // void clear_vector(){
     //     std::vector<double>().swap(LOG);
