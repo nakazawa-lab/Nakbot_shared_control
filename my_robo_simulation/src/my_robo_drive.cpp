@@ -439,7 +439,6 @@ end:
             std::cout << "pubvel (" << vel.linear.x << ", " << vel.angular.z << ")" << std::endl;
             std::cout << "joy vel:" << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << std::endl;
             //say_time("pub", loop_start_time);
-            cal_end_time = std::chrono::system_clock::now();
             record_loop_info();
             // say_time("record", loop_start_time);
             control_loop_flag++;
@@ -462,7 +461,6 @@ end:
             else if (c == 'q')
                 plot_flag = false;
         }
-
         ROS_INFO("\n");
     }
 }
@@ -478,31 +476,96 @@ void MyDWA::record_loop_info()
     std::vector<float>::iterator minIt = std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end());
     int minScanIdx = std::distance(sensor.latest_scan.ranges.begin(), minIt);
 #ifdef MYDWA
-    mylogfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.linadm
-              << "," << selected.linsafe << "," << selected.angadm << "," << selected.angsafe << "," << selected.vel_h_cost << ","
-              << selected.head_h_cost << "," << selected.cost << "," << selected.vel << "," << selected.ang
-              << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << "," << selected.lindist << "," << selected.angdist
-              << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << ","
-              << *std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()) << ","
-              << sensor.index_to_rad(minScanIdx) * RAD2DEG << std::endl;
+    mylogfile 
+    << (double)(timestanp_ms / 1000.0) << "," 
+    << sensor.odom.pose.pose.position.x << "," 
+    << sensor.odom.pose.pose.position.y << "," 
+    << selected.linadm << "," 
+    << selected.linsafe << "," 
+    << selected.angadm << "," 
+    << selected.angsafe << "," 
+    << selected.vel_h_cost << ","
+    << selected.head_h_cost << "," 
+    << selected.cost << "," 
+    << selected.vel << "," 
+    << selected.ang << "," 
+    << sensor.joy_cmd_vel[0] << "," 
+    << sensor.joy_cmd_vel[1] << "," 
+    << selected.lindist << "," 
+    << selected.angdist << "," 
+    << sensor.odom.twist.twist.linear.x << "," 
+    << sensor.odom.twist.twist.angular.z << "," 
+    << loop_cal_time_ms << ","
+    << *std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()) << ","
+    << sensor.index_to_rad(minScanIdx) * RAD2DEG 
+    << std::endl;
 #endif
 
 #ifdef PABLODWA
 
-    logfile << (double)(timestanp_ms / 1000.0) << "," << sensor.odom.pose.pose.position.x << "," << sensor.odom.pose.pose.position.y << "," << selected.adm
-            << "," << 1 - selected.adm << "," << selected.vel_h_cost << ","
-            << selected.head_h_cost << "," << selected.cost << "," << CandVel_v[opt_index] << "," << CandVel_w[opt_index]
-            << "," << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1]
-            << "," << sensor.odom.twist.twist.linear.x << "," << sensor.odom.twist.twist.angular.z << "," << loop_cal_time_ms << ","
-            << *std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()) << ","
-            << sensor.index_to_rad(minScanIdx) * RAD2DEG << std::endl;
+    logfile 
+    << (double)(timestanp_ms / 1000.0) << "," 
+    << sensor.odom.pose.pose.position.x << "," 
+    << sensor.odom.pose.pose.position.y << "," 
+    << selected.adm << "," 
+    << 1 - selected.adm << "," 
+    << selected.vel_h_cost << ","
+    << selected.head_h_cost << "," 
+    << selected.cost << "," 
+    << CandVel_v[opt_index] << "," 
+    << CandVel_w[opt_index] << "," 
+    << sensor.joy_cmd_vel[0] << "," 
+    << sensor.joy_cmd_vel[1] << "," 
+    << sensor.odom.twist.twist.linear.x << "," 
+    << sensor.odom.twist.twist.angular.z << ","  
+    << loop_cal_time_ms << ","
+    << *std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()) << ","
+    << sensor.index_to_rad(minScanIdx) * RAD2DEG 
+    << std::endl;
 #endif
+}
+
+void log_init(MyDWA& robot){
+    std::string date = get_current_time();
+    #ifdef MYDWA
+    robot.IsProposed = true;
+    robot.k_heading = 2.0;
+    std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
+    robot.mylogfile.open(mylogfilename);
+#endif
+#ifdef PABLODWA
+    robot.IsProposed = false;
+    robot.k_heading=1.0;
+    std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
+    robot.logfile.open(logfilename);
+#endif
+    if(robot.IsREAL){
+        std::string logfilename = "./my_robo_simulation/log/mylog_" + date + ".csv";
+        robot.logfile.open(logfilename);
+    }
+
+}
+
+void gnuplot_init(){
+    gp = popen("gnuplot -persist", "w");
+    fprintf(gp, "set multiplot\n");
+    fprintf(gp, "set xrange [-5:5]\n");
+    fprintf(gp, "set yrange [-5:5]\n");
+    fprintf(gp, "set xlabel \"x[m]\"\n");
+    fprintf(gp, "set ylabel \"y[m]\"\n");
+}
+
+void close_file(MyDWA& robot){
+    robot.logfile.close();
+    robot.mylogfile.close();
+    pclose(gp);
 }
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
     MyDWA robot;
+    //log_init(robot);
     std::string date = get_current_time();
 
 #ifdef MYDWA
@@ -517,19 +580,17 @@ int main(int argc, char **argv)
     std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
     robot.logfile.open(logfilename);
 #endif
+    if(robot.IsREAL){
+        std::string logfilename = "./my_robo_simulation/log/mylog_" + date + ".csv";
+        robot.logfile.open(logfilename);
+    }
 
-    gp = popen("gnuplot -persist", "w");
-    fprintf(gp, "set multiplot\n");
-    fprintf(gp, "set xrange [-4:4]\n");
-    fprintf(gp, "set yrange [-4:4]\n");
-    fprintf(gp, "set xlabel \"theta\"\n");
-    fprintf(gp, "set ylabel \"distance\"\n");
+
+    gnuplot_init();
+
     robot.DWAloop();
 
-    robot.logfile.close();
-    robot.mylogfile.close();
-
-    pclose(gp);
+    // close_file(robot);
 
     return 0;
 }
