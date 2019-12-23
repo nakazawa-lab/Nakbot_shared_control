@@ -155,8 +155,8 @@ void MyDWA::kd_tree()
     int traj_id_nearest;
     double x, y;
 
-    visualization_msgs::MarkerArray marker_array;
-    marker_array.markers.resize(684);
+    //visualization_msgs::MarkerArray marker_array;
+    //marker_array.markers.resize(684);
     int k=0;
 
     for (int i = 0; i < sensor.point_num; i++)
@@ -164,17 +164,17 @@ void MyDWA::kd_tree()
         if (!isinf(sensor.latest_scan.ranges[i]))
         {
             if(IsREAL){
-                if((sensor.latest_scan.ranges[i]!=0) && (sensor.latest_scan.ranges[i]>0.02)){
+                if(sensor.latest_scan.ranges[i]>0.06){
                     position p = sensor.index_to_pos(i);
                     LRFpoints.push_back(MyPoint(p.x, p.y));
                     thinout_scan_x.push_back(p.x);
                     thinout_scan_y.push_back(p.y);
                     IsNoObs = false;
 
-                    cout << "in kdtree " << i << " " << p.x << " " << p.y << " "<<sensor.latest_scan.ranges[i] << " " << sensor.index_to_rad(i)*RAD2DEG<<endl;
+                    //cout << "in kdtree " << i << " " << p.x << " " << p.y << " "<<sensor.latest_scan.ranges[i] << " " << sensor.index_to_rad(i)*RAD2DEG<<endl;
                 }
                 else{
-                    cout << "is 0. index:" << i <<endl;
+                    //cout << "is 0. index:" << i <<endl;
                 }
             }
             else{
@@ -234,8 +234,8 @@ void MyDWA::kd_tree()
 
                 tmp_scan_id = LRFkdtree.nnSearch(query);
                 // cout << "query:(" << query[0]  << ", " << query[1] << ")" <<endl;
-                cout << "scan id:" << tmp_scan_id << endl;
-                cout << "nearest x:" << thinout_scan_x[tmp_scan_id] << " y:" << thinout_scan_y[tmp_scan_id] << endl;
+                //cout << "scan id:" << tmp_scan_id << endl;
+                //cout << "nearest x:" << thinout_scan_x[tmp_scan_id] << " y:" << thinout_scan_y[tmp_scan_id] << endl;
                 //tmp_dist = cal_coll_thres(thinout_scan_range[tmp_scan_id], thinout_scan_ang[tmp_scan_id], PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]);
                 tmp_dist = cal_euclid(thinout_scan_x[tmp_scan_id], thinout_scan_y[tmp_scan_id], PredictTraj[candId][traj_id][1], PredictTraj[candId][traj_id][2]);
                 if (tmp_dist < spec.ROBOT_RAD)
@@ -322,45 +322,26 @@ visualization_msgs::Marker MyDWA::make_nearest_LRF_marker(float x, float y)
 
 void MyDWA::clear_vector()
 {
-    std::vector<double> tmp_double;
-    std::vector<bool> tmp_bool;
-
-    std::vector<double>().swap(CandVel_v);
-
-    std::vector<double>().swap(CandVel_w);
-
-    std::vector<double>().swap(d_U);
-
-    std::vector<std::vector<std::vector<double>>>().swap(PredictTraj);
+    using namespace std;
+    vector<double> tmp_double;
+    vector<bool> tmp_bool;
 
     vector<bool>().swap(isCollision);
-
-    std::vector<std::vector<double>>().swap(Joy_PredictTraj);
-
-    //std::vector<std::vector<std::vector<double>>>().swap(PredictTraj_r);
-
-    // vector<double>().swap(lin_normdists);
-
-    // vector<double>().swap(ang_normdists);
-
-    vector<vector<double>>().swap(dist_lin_ang);
-
-    LRFkdtree.clear();
-
     vector<MyPoint>().swap(LRFpoints);
-
-    //vector<double>().swap(LOG);
-
-    // vector<float>().swap(thinout_scan_range);
-
-    // vector<float>().swap(thinout_scan_ang);
+    vector<double>().swap(CandVel_v);
+    vector<double>().swap(CandVel_w);
+    vector<double>().swap(d_U);
     vector<float>().swap(thinout_scan_x);
     vector<float>().swap(thinout_scan_y);
+    vector<vector<double>>().swap(dist_lin_ang);
+    vector<std::vector<double>>().swap(Joy_PredictTraj);
+    vector<std::vector<std::vector<double>>>().swap(PredictTraj);
+    LRFkdtree.clear();
 }
 
 void MyDWA::record_param()
 {
-    std::string property = "dt,dt_traj,PredictTime,looprate,k_head,k_vel,thres_vel_time,thres_ang_time";
+    std::string property = "dt,dt_traj,PredictTime,looprate,k_head,k_vel";
     logfile << property << std::endl;
 
     logfile << dt << "," << dt_traj << "," << PredictTime << "," << looprate << "," << k_heading << "," << k_velocity

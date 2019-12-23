@@ -36,6 +36,7 @@ struct position
     double y = 0;
     double sin_th = 0;
     double cos_th = 1;
+    double th = 0;
 };
 
 struct Serial_sh{
@@ -71,11 +72,17 @@ private:
     const float urg_angle_increment = (2 * M_PI) / 1024.0;
     long long seq_=0;
 
+    std::ofstream scanlogfile;
+
 public:
     Lrf()
     {
         scan.ranges.resize(urg_data_num);
         scan.angle_increment = urg_angle_increment;
+
+        std::cout << "Jetsas constructor" << std::endl; 
+        scanlogfile.open("./log_JetSAS/scanlog_"+get_current_time()+".csv");
+        make_scan_log_col();
     }
 
     void set_publisher(ros::NodeHandle &nh)
@@ -88,20 +95,26 @@ public:
         lrf_pub.publish(scan);
     };
 
-    void make_scan_msgs(long *, const int);
+    void make_scan_msgs(long *);
+
+    void make_scan_log_col();
+
+    void write_scan_log(const double);
+
+    int scan_num=0;
 };
 
 class Joy
 {
 private:
     ros::Publisher joy_pub;
-    sensor_msgs::Joy joy;
 
     float joy_axes1, joy_axes0; // axes1は前後方向, 前が正, axes0は左右方向, 左が正
 
     float axes1_multiplier, axes0_multiplier;
 
 public:
+    sensor_msgs::Joy joy;
     Joy()
     {
         joy.axes.resize(2);
@@ -126,7 +139,6 @@ class Odom
 {
 private:
     ros::Publisher odom_pub;
-    nav_msgs::Odometry odom;
 
     int encoder_right=0, encoder_left=0;
     int old_encoder_right=0, old_encoder_left=0;
@@ -139,7 +151,6 @@ private:
     double v, w;
     double right_v, left_v;
 
-    position now_p, old_p;
 
     void set_encoder(const int e_right, const int e_left);
 
@@ -148,6 +159,9 @@ private:
     void cal_pose(double dt);
 
 public:
+    position now_p, old_p;
+    nav_msgs::Odometry odom;
+    
     Odom()
     {
     }
@@ -170,13 +184,13 @@ public:
 class Cmd_vel
 {
 private:
-    geometry_msgs::Twist vel;
     ros::Subscriber sub_vel;
     const double cmd_multiplier_to_enc = ENCODER_PER_ROT / (WHEEL_LENGTH*ENCODER_VEL_DIVIDER);
 
 
 public:
     int jetsas_e_r=5000, jetsas_e_l=5000;
+    geometry_msgs::Twist vel;
 
     Cmd_vel()
     {
