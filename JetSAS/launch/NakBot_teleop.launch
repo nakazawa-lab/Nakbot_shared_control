@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+<param name="/my_robo/diff_drive_controller/angular/z/has_acceleration_limits" value="True"/>
+<param name="/my_robo/diff_drive_controller/angular/z/has_velocity_limits" value="True"/>
+<param name="/my_robo/diff_drive_controller/angular/z/max_acceleration" value="7.01"/>
+<param name="/my_robo/diff_drive_controller/angular/z/max_velocity" value="2.03"/>
+<param name="/my_robo/diff_drive_controller/angular/z/min_acceleration" value="-7.01"/>
+<param name="/my_robo/diff_drive_controller/angular/z/min_velocity" value="-2.03"/>
+<param name="/my_robo/diff_drive_controller/cmd_vel_timeout" value="10.0"/>
+<param name="/my_robo/diff_drive_controller/linear/x/has_acceleration_limits" value="True"/>
+<param name="/my_robo/diff_drive_controller/linear/x/has_velocity_limits" value="True"/>
+<param name="/my_robo/diff_drive_controller/linear/x/max_acceleration" value="1.0"/>
+<param name="/my_robo/diff_drive_controller/linear/x/max_velocity" value="0.31"/>
+<param name="/my_robo/diff_drive_controller/linear/x/min_acceleration" value="-1.0"/>
+<param name="/my_robo/diff_drive_controller/linear/x/min_velocity" value="-0.27"/>
+<!-- robot width 0.285-->
+<!-- (0.31 - (0.27))/2.0 = 2.03 -->
+
+<node name="JetSAS_node" pkg="JetSAS" type="JetSAS_node"/>
+
+<node name="my_robo_drive" pkg="my_robo_simulation" type="my_robo_drive"/>
+
+</launch>
