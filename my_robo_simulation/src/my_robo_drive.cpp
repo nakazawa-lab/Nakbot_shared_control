@@ -18,7 +18,7 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 //#define PABLODWA
 #define MYDWA
 #define ISSHARED
-//#define PUB_MARKER
+#define PUB_MARKER
 //#define REAL_TEST
 
 // 何かキーが押されたときにループを抜けるための関数
@@ -570,7 +570,7 @@ int main(int argc, char **argv)
 
 #ifdef MYDWA
     robot.IsProposed = true;
-    robot.k_heading = 2.0;
+    robot.k_heading = 1.5;
     std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
     robot.mylogfile.open(mylogfilename);
 #endif
