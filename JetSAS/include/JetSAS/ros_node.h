@@ -27,8 +27,9 @@ const float max_rc_lin = 1241.0;
 const float max_rc_rot = 1240.0;
 const float min_rc_lin = 1134.0;
 const float min_rc_rot = 1134.0;
-const float center_lin =  (max_rc_lin + min_rc_lin)/ 2.0;
-const float center_rot = (max_rc_rot + min_rc_rot)/ 2.0;
+//const float center_lin =  (max_rc_lin + min_rc_lin)/ 2.0;   // 1187.5
+const float center_rot = (max_rc_rot + min_rc_rot)/ 2.0;    // 1187
+const float center_lin = 1191.0;
 
 struct position
 {

@@ -8,10 +8,6 @@
 using namespace std;
 extern double cal_euclid(double x0, double y0, double x1, double y1);
 extern FILE *gp;
-// double MyDWA::cal_Dist(MyPoint query, int idx)
-// {
-//     return sqrt((LRFpoints[idx][0] - query[0]) * (LRFpoints[idx][0] - query[0]) + (LRFpoints[idx][1] - query[1]) * (LRFpoints[idx][1] - query[1]));
-// }
 
 double cal_coll_thres(double r0, double th0, double r, double th)
 {
@@ -61,8 +57,6 @@ void MyDWA::cal_opt()
 
         // cout << "CandVel " << i << ":(" << CandVel_v[i] << ", " << CandVel_w[i] << ")" << endl;
         // cout << "joy vel: " << sensor.joy_cmd_vel[0] << " " << sensor.joy_cmd_vel[1] << endl;
-        // // cout << "k_vel * linnormdist * velcost: " << k_velocity * lin_normdists[candIdx] * vel_h_cost  <<endl;
-        // // cout << "k_head * angnormdist * headcost: " << k_heading * ang_normdists[candIdx] * head_h_cost  <<endl;
         // cout << "angsafe: " << angsafe << " head_h_cost: " << head_h_cost_tmp << endl;
         // cout << "linsafe: " << linsafe << " vel_h_cost: " << vel_h_cost_tmp << endl;
         // cout << "k_vel*angsafe*vel_h_cost: " << k_velocity * angsafe * vel_h_cost_tmp << endl;
@@ -212,7 +206,7 @@ void MyDWA::kd_tree()
         } 
     }
     //pub_marker_array(marker_array);
-    plot_scan_gnuplot(gp,thinout_scan_x,thinout_scan_y);
+    //plot_scan_gnuplot(gp,thinout_scan_x,thinout_scan_y);
 
     if (!IsNoObs)
     {
@@ -256,7 +250,6 @@ void MyDWA::kd_tree()
                 }
                 else if (traj_id == traj_size - 1)
                 {
-                    //cout << "4" <<endl;
                     isCollision.push_back(false);
                     dist_lin_ang[candId].push_back(1);
                     dist_lin_ang[candId].push_back(1);
@@ -351,7 +344,7 @@ void MyDWA::record_param()
     // std::string logRowName = "timestep,Now vel,now ang,joy vel,joy ang,num cand,ave d_U,pub d_U,velscore,angcore,cost,distance";
     // logfile << logRowName << std::endl;
 
-    std::string logRowName = "timestep[s],pos.x,pos.y,adm,safe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,now_v,now_w,cal_time[ms],nearest[m], direction[rad]";
+    std::string logRowName = "timestep[s],pos.x,pos.y,adm,safe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,now_v,now_w,cal_time[ms],nearest[m],direction[rad]bb";
     logfile << logRowName << std::endl;
 
     mylogfile << property << std::endl;
@@ -362,6 +355,6 @@ void MyDWA::record_param()
     // std::string mylogRowName = "joyvel,joyang,CandVel,CandAng,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost";
     // mylogfile << mylogRowName << std::endl;
 
-    std::string mylogRowName = "timestep[s],pos.x,pos.y,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,lindist,angdist,now_v,now_w,cal_time[ms],nearest[m],direction[rad]";
+    std::string mylogRowName = "timestep[s],pos.x,pos.y,linadm,linsafe,angadm,angsafe,vel_h_cost,ang_h_cost,cost,cal_vel.v,cal_val.w,joy_v,joy_w,lindist,angdist,now_v,now_w,cal_time[ms],nearest[m],direction[rad]aa";
     mylogfile << mylogRowName << std::endl;
 }

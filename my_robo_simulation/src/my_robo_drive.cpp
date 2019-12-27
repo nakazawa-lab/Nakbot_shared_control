@@ -19,7 +19,6 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 #define MYDWA
 #define ISSHARED
 //#define PUB_MARKER
-//#define REAL_TEST
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -71,17 +70,46 @@ std::string get_current_time()
     return std::to_string(month) + std::to_string(day) + std::to_string(hour) + std::to_string(minute);
 }
 
-void trans_inf(sensor_msgs::LaserScan &scan)
-{
-    for (int i = 0; i < scan.ranges.size(); i++)
-    {
-        if (isinf(scan.ranges[i]))
-        {
-            // std::cout << "inf: " << ((scan.angle_increment * i) - (scan.angle_increment * scan.ranges.size() / 2))  * RAD2DEG << std::endl;
-            scan.ranges[i] = 100;
-        }
+void MyDWA::log_init(){
+    std::string date = get_current_time();
+    #ifdef MYDWA
+    IsProposed = true;
+    k_heading = 2.0;
+    std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
+    mylogfile.open(mylogfilename);
+#endif
+#ifdef PABLODWA
+    IsProposed = false;
+    k_heading=1.0;
+    std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
+    logfile.open(logfilename);
+#endif
+    if(IsREAL){
+        std::string logfilename = "./my_robo_simulation/log/mylog_" + date + ".csv";
+        mylogfile.open(logfilename);
     }
-};
+
+}
+
+void gnuplot_init(){
+    gp = popen("gnuplot -persist", "w");
+    fprintf(gp, "set multiplot\n");
+    fprintf(gp, "set xrange [-5:5]\n");
+    fprintf(gp, "set yrange [-5:5]\n");
+    fprintf(gp, "set xlabel \"x[m]\"\n");
+    fprintf(gp, "set ylabel \"y[m]\"\n");
+}
+
+void MyDWA::close_file(){
+#ifdef PABLODWA
+    logfile.close();
+#endif
+#ifdef MYDWA
+    mylogfile.close();
+#endif
+    pclose(gp);
+    std::cout << "close log" << std::endl;
+}
 
 my_robo::my_robo()
 {
@@ -141,9 +169,6 @@ void my_robo::cal_DWA()
     // はじめに、現在の速度を入れる
     if (sensor.odom.twist.twist.linear.x >= 0)
     {
-        //CandVel.push_back(std::vector<double>());
-        // CandVel[i].push_back(sensor.odom.twist.twist.linear.x);  //[i][0]に速度要素
-        // CandVel[i].push_back(sensor.odom.twist.twist.angular.z); //[i][1]に角速度要素
         CandVel_v.push_back(sensor.odom.twist.twist.linear.x);  //[i][0]に速度要素
         CandVel_w.push_back(sensor.odom.twist.twist.angular.z); //[i][1]に角速度要素
         //ROS_INFO("CandVel:%f,%f",CandVel_v[i],CandVel_w[i]);
@@ -201,13 +226,6 @@ const void my_robo::push_back_traj(const int i, const double time, const positio
 
     if (CandVel_w[i] < 0)
         theta -= M_PI;
-
-    // PredictTraj_r.back().back().push_back(time);
-    // PredictTraj_r.back().back().push_back(d);
-    // PredictTraj_r.back().back().push_back(theta);
-
-    //std::cout << "PredictTraj r:(" << theta << ", " << d << ")" << std::endl;
-    //std::cout << "candVel " << CandVel_v[i] << " " << CandVel_w[i] << std::endl;
 }
 
 // 予測軌道を計算する関数 内部でmy_robo.robot_modelを呼びだす
@@ -225,7 +243,6 @@ void my_robo::cal_predict_position()
 
         // indexの挿入
         PredictTraj.push_back(std::vector<std::vector<double>>());
-        //PredictTraj_r.push_back(std::vector<std::vector<double>>());
 
         position np;
 
@@ -235,11 +252,6 @@ void my_robo::cal_predict_position()
             {
 
                 np = robot_model(p, CandVel_v[i], CandVel_w[i], dt_traj);
-
-                //radius = 0;
-                //d = CandVel_v[i] * time;
-                //theta = 0;
-
                 push_back_traj(i, time, np, d, theta);
 
                 p = np;
@@ -251,29 +263,6 @@ void my_robo::cal_predict_position()
             while (time <= PredictTime)
             {
                 np = robot_model(p, CandVel_v[i], CandVel_w[i], dt_traj);
-
-                //radius = fabs(CandVel_v[i] / CandVel_w[i]);
-                //d = sqrt(2 * (1 - cos(CandVel_w[i] * time))) * radius;
-                //double temp = radius * sin(CandVel_w[i] * time) / d;
-                // if (temp < -1)
-                // {
-                //     //std::cout << "tmep is lower -1" << std::endl;
-                //     temp = -1;
-                // }
-                // else if (temp > 1)
-                // {
-                //     //std::cout << "temp is upper 1" <<std::endl;
-                //     temp = 1;
-                // }
-                // theta = acos(temp); // acosは-1から1までの値を受け取り0からpiまでの値を返す
-
-                // if (isnan(theta))
-                // {
-                //     std::cout << "theta is nan:" << d << "," << radius << "," << temp << ", " << CandVel_w[i] * time << std::endl
-                //               << std::endl;
-                //     ;
-                // }
-
                 push_back_traj(i, time, np, d, theta);
 
                 p = np;
@@ -316,6 +305,7 @@ void MyDWA::DWAloop()
     int marker_loop_flag = 0; // n周期に1回trueにする
     int control_loop_flag = 0;
 
+    log_init();
     record_param();
 
     while (ros::ok())
@@ -333,8 +323,6 @@ void MyDWA::DWAloop()
         }
         else
         {
-
-            //trans_inf(sensor.latest_scan);
             if ((dt == (control_loop_flag / looprate)) || (control_loop_flag == 0))
             {
                 check_joy();
@@ -352,7 +340,6 @@ void MyDWA::DWAloop()
 
                 cal_predict_position();
                 //say_time("predict position", loop_start_time);
-#ifndef REAL_TEST
 #ifdef PABLODWA
                 //cal_Dist();
                 cal_Dist2();
@@ -422,9 +409,6 @@ void MyDWA::DWAloop()
 #endif
 #endif
                 }
-#endif      // REAL_TEST
-                //sensor.print_deg_range();
-                //sensor.print_odom();
 
                 if (plot_flag)
                 {
@@ -439,8 +423,9 @@ end:
             std::cout << "pubvel (" << vel.linear.x << ", " << vel.angular.z << ")" << std::endl;
             std::cout << "joy vel:" << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << std::endl;
             //say_time("pub", loop_start_time);
+            cal_end_time = std::chrono::system_clock::now();
             record_loop_info();
-            // say_time("record", loop_start_time);
+            say_time("record", loop_start_time);
             control_loop_flag++;
         }
 
@@ -463,6 +448,7 @@ end:
         }
         ROS_INFO("\n");
     }
+    close_file();
 }
 
 void MyDWA::record_loop_info()
@@ -495,7 +481,7 @@ void MyDWA::record_loop_info()
     << selected.angdist << "," 
     << sensor.odom.twist.twist.linear.x << "," 
     << sensor.odom.twist.twist.angular.z << "," 
-    << loop_cal_time_ms << ","
+    << (double)loop_cal_time_ms << ","
     << *std::min_element(sensor.latest_scan.ranges.begin(), sensor.latest_scan.ranges.end()) << ","
     << sensor.index_to_rad(minScanIdx) * RAD2DEG 
     << std::endl;
@@ -525,72 +511,11 @@ void MyDWA::record_loop_info()
 #endif
 }
 
-void log_init(MyDWA& robot){
-    std::string date = get_current_time();
-    #ifdef MYDWA
-    robot.IsProposed = true;
-    robot.k_heading = 2.0;
-    std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
-    robot.mylogfile.open(mylogfilename);
-#endif
-#ifdef PABLODWA
-    robot.IsProposed = false;
-    robot.k_heading=1.0;
-    std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
-    robot.logfile.open(logfilename);
-#endif
-    if(robot.IsREAL){
-        std::string logfilename = "./my_robo_simulation/log/mylog_" + date + ".csv";
-        robot.logfile.open(logfilename);
-    }
-
-}
-
-void gnuplot_init(){
-    gp = popen("gnuplot -persist", "w");
-    fprintf(gp, "set multiplot\n");
-    fprintf(gp, "set xrange [-5:5]\n");
-    fprintf(gp, "set yrange [-5:5]\n");
-    fprintf(gp, "set xlabel \"x[m]\"\n");
-    fprintf(gp, "set ylabel \"y[m]\"\n");
-}
-
-void close_file(MyDWA& robot){
-    robot.logfile.close();
-    robot.mylogfile.close();
-    pclose(gp);
-}
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
     MyDWA robot;
-    //log_init(robot);
-    std::string date = get_current_time();
-
-#ifdef MYDWA
-    robot.IsProposed = true;
-    robot.k_heading = 2.0;
-    std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
-    robot.mylogfile.open(mylogfilename);
-#endif
-#ifdef PABLODWA
-    robot.IsProposed = false;
-    robot.k_heading=1.0;
-    std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
-    robot.logfile.open(logfilename);
-#endif
-    if(robot.IsREAL){
-        std::string logfilename = "./my_robo_simulation/log/mylog_" + date + ".csv";
-        robot.logfile.open(logfilename);
-    }
-
-
-    gnuplot_init();
-
     robot.DWAloop();
-
-    // close_file(robot);
 
     return 0;
 }
