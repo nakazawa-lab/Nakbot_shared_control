@@ -1,6 +1,7 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from math import ceil
 import seaborn as sns
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.patches as patches
@@ -28,8 +29,13 @@ def main():
         filename_noext = filenames_noext[i]
         os.makedirs("./figure/"+filename_noext,exist_ok=True)
 
+        # 横軸の時間をもとめる
+        # print(LOG["timestep"][len(LOG["timestep"])-1])
+        # print(ceil(LOG["timestep"][len(LOG["timestep"])-1]))
+        max_time = ceil(LOG["timestep"][len(LOG["timestep"])-1])
+
         #########-3D cost graph-###############
-        
+
         # #costfig = plt.figure(figsize=(10, 4.8))
         # costfig = plt.figure()
         # ax = Axes3D(costfig)
@@ -43,7 +49,7 @@ def main():
 
         # #plt.show()
         # plt.close()
-        
+
         ######-3D adm graph-############
         # #admfig = plt.figure(figsize=(10, 4.8))
         # admfig = plt.figure()
@@ -73,37 +79,43 @@ def main():
         #########-2D path graph-###############
         pathfig = plt.figure()
         ax = pathfig.add_subplot(111)
-        ax.set_xlabel("X[m]")
-        ax.set_ylabel("Y[m]")
+        ax.set_xlabel("x[m]")
+        ax.set_ylabel("y[m]")
+
         utils.make_sparse_house()
+        #utils.make_house()
         utils.draw_robot_radius(ax,0.14,LOG["pos_x"],LOG["pos_y"])
         ax.plot(LOG["pos_x"], LOG["pos_y"], label="robot path")
-        plt.legend(bbox_to_anchor=(1, 1.05), loc='upper right',
-                borderaxespad=0, fontsize=11)
-        plt.savefig("./figure/{}/{}_path_figure".format(filename_noext,filename_noext))
-
-        #plt.show()
-        plt.close()
+        plt.gca().yaxis.set_major_formatter(plt.FormatStrFormatter('%.1f'))#y軸小数点以下3桁表示
         
+        plt.legend(bbox_to_anchor=(1, 1.1), loc='upper right',
+                borderaxespad=0, fontsize=11)
+
+        plt.savefig("./figure/{}/{}_path_figure".format(filename_noext,filename_noext))
+        plt.close()
+
         #########-2D linvel graph-###############
         linvelfig = plt.figure(figsize=(11, 4.8),facecolor="white")
 
         ax = linvelfig.add_subplot(111)
-        ax.plot(LOG["timestep"], LOG["joy_v"], label="joy linear vel")
-        ax.plot(LOG["timestep"], LOG["cal_vel_v"], label="calculated linear vel")
+        ax.plot(LOG["timestep"], LOG["joy_v"], label="human input")
+        ax.plot(LOG["timestep"], LOG["cal_vel_v"], label="modified linear velocity")
         ax.set_xlabel("Time[s]")
         ax.set_ylabel("linear velocity[m/s]")
-        #ax.set_xlim([0,30])
         ax.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
+
         ax.set_xlim(left=0)
+        ax.set_ylim(bottom=-1.2)
+        ax.set_xticks(np.arange(0,max_time,2))
+        ax.set_yticks(np.linspace(-1.2,1.2,9))
+        
         ax.legend()
         plt.legend(bbox_to_anchor=(1.03, 1), loc='upper left',
                 borderaxespad=0, fontsize=11)
         pylab.subplots_adjust(right=0.75)
-        plt.savefig("./figure/{}/{}_linvel_figure".format(filename_noext,filename_noext))
 
-        #plt.show()
+        plt.savefig("./figure/{}/{}_linvel_figure".format(filename_noext,filename_noext))
         plt.close()
 
         #########-2D angvel graph-###############
@@ -114,18 +126,22 @@ def main():
         ax.plot(LOG["timestep"], LOG["cal_vel_w"], label="calculated angular velocity")
         ax.set_xlabel("Time[s]")
         ax.set_ylabel("angular velocity[rad/s]")
-        #ax.set_xlim([0,30])
         ax.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
+
         ax.set_xlim(left=0)
+        ax.set_ylim(bottom=-1.6)
+        ax.set_xticks(np.arange(0,max_time,2))
+        ax.set_yticks(np.linspace(-1.8,1.8,9))
+
         ax.legend()
         plt.legend(bbox_to_anchor=(1.03, 1), loc='upper left',
                 borderaxespad=0, fontsize=11)
         pylab.subplots_adjust(right=0.75)
-        plt.savefig("./figure/{}/{}_angnvel_figure".format(filename_noext,filename_noext))
 
-        #plt.show()
+        plt.savefig("./figure/{}/{}_angnvel_figure".format(filename_noext,filename_noext))
         plt.close()
+
         """
         #########-2D cost graph-###############
         costfig = plt.figure(figsize(10,4.8))
@@ -148,34 +164,39 @@ def main():
         linfig = plt.figure(figsize=(11,4.8),facecolor="white")       # default figsize = (6.4, 4.8)
 
         ax1 = linfig.add_subplot(111)
-        ax1.plot(LOG["timestep"], LOG["joy_v"], label="human v")
-        ax1.plot(LOG["timestep"], LOG["cal_vel_v"], label="calculated linear velocity")
-        ax1.plot(LOG["timestep"], LOG["now_v"], label="current v")
+        ax1.plot(LOG["timestep"], LOG["joy_v"], label="human input")
+        ax1.plot(LOG["timestep"], LOG["cal_vel_v"], label="modified linear velocity")
+        ax1.plot(LOG["timestep"], LOG["now_v"], label="current linear velocity")
         ax1.set_xlabel("Time[s]")
         ax1.set_ylabel("linear velocity[m/s]")
-        #ax.set_xlim([0,30])
+
         ax1.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax1.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
-        ax1.set_xlim(left=0)
 
         ax2 = ax1.twinx()
         ax2.grid(False)
-        ax2.plot(LOG["timestep"], LOG["vel_h_cost"], color = "crimson", label="vel difference cost")
-        
+        ax2.plot(LOG["timestep"], LOG["vel_h_cost"], color = "crimson", label="velocity difference cost")
+
+        ax1.set_xlim(left=0)
+        ax1.set_ylim(bottom=-1.2)
+        ax2.set_ylim(bottom=-0.1)
+        ax1.set_yticks(np.linspace(-1.2,1.2,9))
+        ax2.set_yticks(np.linspace(-0.1,1.1,9))
+        ax1.set_xticks(np.arange(0,max_time,2))
+
         h1, l1 = ax1.get_legend_handles_labels()
         h2, l2 = ax2.get_legend_handles_labels()
-        
-        ax2.set_ylabel("cost")
-        ax1.legend(h1+h2, l1+l2,bbox_to_anchor=(1.10, 1), loc='upper left',
-                borderaxespad=0, fontsize=11)
 
-        pylab.subplots_adjust(right=0.75)
+        ax2.set_ylabel("cost")
+        ax1.legend(h1+h2, l1+l2,bbox_to_anchor=(1.09, 1), loc='upper left',
+                borderaxespad=0, fontsize=11)
+        pylab.subplots_adjust(left= 0.09, right=0.7,bottom=0.15, top=0.95)
+
         plt.savefig("./figure/{}/{}_linfig_figure".format(filename_noext,filename_noext))
-        #plt.show()
         plt.close()
 
         #########-2D head graph-###############
-        angfig = plt.figure(figsize=(11,4.8)) 
+        angfig = plt.figure(figsize=(11,4.8))
         angfig.patch.set_facecolor('red')
 
         ax1 = angfig.add_subplot(111)
@@ -186,22 +207,26 @@ def main():
         ax1.set_ylabel("angular velocity[rad/s]")
         ax1.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax1.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
-        ax1.set_xlim(left=0)
 
         ax2 = ax1.twinx()
         ax2.grid(False)
-        ax2.plot(LOG["timestep"], LOG["ang_h_cost"], color = "crimson", label="angular difference cost")
+        ax2.plot(LOG["timestep"], LOG["ang_h_cost"], color = "crimson", label="heading difference cost")
         
+        ax1.set_xlim(left=0)
+        ax1.set_ylim(bottom=-1.6)
+        ax2.set_ylim(bottom=-0.1)
+        ax1.set_yticks(np.linspace(-1.8,1.8,9))
+        ax2.set_yticks(np.linspace(-0.1,1.1,9))
+        ax1.set_xticks(np.arange(0,max_time,2))
+
         h1, l1 = ax1.get_legend_handles_labels()
         h2, l2 = ax2.get_legend_handles_labels()
-        
+
         ax2.set_ylabel("cost")
         ax1.legend(h1+h2, l1+l2,bbox_to_anchor=(1.09, 1), loc='upper left',
                 borderaxespad=0, fontsize=11)
-
         pylab.subplots_adjust(left= 0.09, right=0.7,bottom=0.15, top=0.95)
-        ax1.set_yticks(np.linspace(-1.6,1.6,9))
-        ax2.set_yticks(np.linspace(-0.1,1.1,9))
+
         plt.savefig("./figure/{}/{}_angfig_figure".format(filename_noext,filename_noext))
         plt.close()
 
