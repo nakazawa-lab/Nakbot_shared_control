@@ -23,10 +23,10 @@ const double ENCODER_VEL_DIVIDER = 100.0;
 extern const double robot_width;
 
 // 予備実験によってだいたいの値を書いておく
-const float max_rc_lin = 1237.0;
-const float max_rc_rot = 1234.0;
+const float max_rc_lin = 1241.0;
+const float max_rc_rot = 1240.0;
 const float min_rc_lin = 1134.0;
-const float min_rc_rot = 1136.0;
+const float min_rc_rot = 1134.0;
 const float center_lin =  (max_rc_lin + min_rc_lin)/ 2.0;
 const float center_rot = (max_rc_rot + min_rc_rot)/ 2.0;
 
@@ -36,6 +36,7 @@ struct position
     double y = 0;
     double sin_th = 0;
     double cos_th = 1;
+    double th = 0;
 };
 
 struct Serial_sh{
@@ -50,15 +51,15 @@ struct Serial_sh{
     Encoder encoder;
 
     Serial_sh(){
-    rc.rot = 0;
-rc.lin = 0;
-rc.chan3 = 0;
-rc.chan4 = 0;
-encoder.r_ref = 0;
-encoder.l_ref = 0;
-encoder.r_sum = 0;
-encoder.l_sum = 0;    
-}
+        rc.rot = center_rot;
+        rc.lin = center_lin;
+        rc.chan3 = 0;
+        rc.chan4 = 0;
+        encoder.r_ref = INTERCEPT_ENCODER;
+        encoder.l_ref = INTERCEPT_ENCODER;
+        encoder.r_sum = INTERCEPT_ENCODER;
+        encoder.l_sum = INTERCEPT_ENCODER;    
+    }
 };
 
 class Lrf
@@ -69,15 +70,19 @@ private:
 
     const int urg_data_num = 682; // 実機で得られる点の数
     const float urg_angle_increment = (2 * M_PI) / 1024.0;
-
-    float scan_calib_multiplier;
     long long seq_=0;
+
+    std::ofstream scanlogfile;
 
 public:
     Lrf()
     {
         scan.ranges.resize(urg_data_num);
         scan.angle_increment = urg_angle_increment;
+
+        std::cout << "Jetsas constructor" << std::endl; 
+        scanlogfile.open("./log_JetSAS/scanlog_"+get_current_time()+".csv");
+        make_scan_log_col();
     }
 
     void set_publisher(ros::NodeHandle &nh)
@@ -90,20 +95,26 @@ public:
         lrf_pub.publish(scan);
     };
 
-    void make_scan_msgs(long *, const int);
+    void make_scan_msgs(long *);
+
+    void make_scan_log_col();
+
+    void write_scan_log(const double);
+
+    int scan_num=0;
 };
 
 class Joy
 {
 private:
     ros::Publisher joy_pub;
-    sensor_msgs::Joy joy;
 
     float joy_axes1, joy_axes0; // axes1は前後方向, 前が正, axes0は左右方向, 左が正
 
     float axes1_multiplier, axes0_multiplier;
 
 public:
+    sensor_msgs::Joy joy;
     Joy()
     {
         joy.axes.resize(2);
@@ -128,7 +139,6 @@ class Odom
 {
 private:
     ros::Publisher odom_pub;
-    nav_msgs::Odometry odom;
 
     int encoder_right=0, encoder_left=0;
     int old_encoder_right=0, old_encoder_left=0;
@@ -136,12 +146,11 @@ private:
     long long seq_=0;
 
     // 5000000が基本
-    const double encoder_multiplier = WHEEL_LENGTH / (ENCODER_PER_ROT/ENCODER_VEL_DIVIDER) ;
+    const double enc_to_vel = WHEEL_LENGTH / (ENCODER_PER_ROT/ENCODER_VEL_DIVIDER) ;
 
     double v, w;
     double right_v, left_v;
 
-    position now_p, old_p;
 
     void set_encoder(const int e_right, const int e_left);
 
@@ -150,6 +159,9 @@ private:
     void cal_pose(double dt);
 
 public:
+    position now_p, old_p;
+    nav_msgs::Odometry odom;
+    
     Odom()
     {
     }
@@ -167,29 +179,19 @@ public:
     void make_odom_msgs(const int, const int, const double);
     
     bool check_new_encoder();
-
-    // エンコーダの値から今のv,wを求める
-    // 昔のx,yの情報と, 今のv,wとこの1ループの時間から新しい位置x,y を求める
-
-    // set_encoder → cal_now_vel → cal_pose
 };
 
 class Cmd_vel
 {
 private:
     ros::Subscriber sub_vel;
-    geometry_msgs::Twist vel;
-
-    int encoder_cmd_r, encoder_cmd_l;
-
-    // 5000を基準にしている
-    const double cmd_multipler_vel = 0.1;
-    const double cmd_multiplier_rot = 0.1;
-
-    const double cmd_multiplier_to_enc = ENCODER_PER_ROT / (WHEEL_LENGTH*10);
+    const double cmd_multiplier_to_enc = ENCODER_PER_ROT / (WHEEL_LENGTH*ENCODER_VEL_DIVIDER);
 
 
 public:
+    int jetsas_e_r=5000, jetsas_e_l=5000;
+    geometry_msgs::Twist vel;
+
     Cmd_vel()
     {
         vel.linear.x = 0.0;
@@ -198,32 +200,30 @@ public:
 
     void set_subscriber(ros::NodeHandle &nh)
     {
-        sub_vel = nh.subscribe("/cmd_vel", 1, &Cmd_vel::cb_vel, this);
+        sub_vel = nh.subscribe("/cmd_vel", 10, &Cmd_vel::cb_vel, this);
         std::cout << "set sub" <<std::endl;
     }
 
     void cb_vel(const geometry_msgs::Twist::ConstPtr &msgs)
     {
         vel = *msgs;
-        std::cout << std::endl;
-        std::cout << "sub cmd" << std::endl;
-        std::cout << std::endl;
     }
 
-    void cmd_vel_to_encoder();
+    void cmd_vel_to_jetsas_prm();
+
 };
 
 class RC{
 private:
     // 1100くらいに基準がある
-    const double rc_multiplier_vel_r= -0.5910;
-    const double vel_r_int = 703.4;
-    const double rc_multiplier_vel_l= -0.5891;
-    const double vel_l_int = 698.1;
-    const double rc_multiplier_rot_r= -0.5876;
-    const double rot_r_int = 702.1;
-    const double rc_multiplier_rot_l= 0.5883;
-    const double rot_l_int = -697.8;
+    const double rc_multiplier_vel_r= -0.5901;
+    const double vel_r_int = 702.4;
+    const double rc_multiplier_vel_l= -0.5902;
+    const double vel_l_int = 700.2;
+    const double rc_multiplier_rot_r= -0.5091;
+    const double rot_r_int = 702.8;
+    const double rc_multiplier_rot_l= 0.5897;
+    const double rot_l_int = -703.3;
     double rc_rot_;
 
     double v_right_enc,v_left_enc;      // RCの指令値をエンコーダ換算した値
@@ -247,7 +247,6 @@ class JetSAS_Node
 private:
     ros::NodeHandle nh;
     double old_time=0.0;
-    //double this_loop_time;
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time;
     std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> last_cal_time;
     double cal_time;
@@ -266,8 +265,6 @@ private:
     void make_log_col();
 
     void write_log();
-
-    void register_vel_param();
 
     // void clear_vector(){
     //     std::vector<double>().swap(LOG);
