@@ -11,6 +11,13 @@ import glob
 import pylab
 import utils
 
+ANGULAR_MAX=1.8
+LINEAR_MAX =1.2
+TIME_INTERVAL=4
+COST_MAX=1.1
+COST_MIN=-0.1
+Y_SCALE_NUM=9
+
 def main():
     log_dir = "../log/graph_src"
     plt.rcParams["font.size"] = 14
@@ -82,11 +89,20 @@ def main():
         ax.set_xlabel("x[m]")
         ax.set_ylabel("y[m]")
 
-        utils.make_sparse_house()
-        #utils.make_house()
+        #utils.make_sparse_house()
+        #utils.make_house
+
+        # 実機実験のとき
+        ax.set_xlim(left=-1.0,right=4.0)                     
+        ax.set_ylim(bottom=-3.0,top=1.0)         
+        ax.set_xticks(np.arange(-1,4,1))
+        ax.set_yticks(np.arange(-3,1,1))
+
+        # できたグラフに応じて
+        #plt.gca().yaxis.set_major_formatter(plt.FormatStrFormatter('%.1f'))#y軸小数点以下3桁表示
+        
         utils.draw_robot_radius(ax,0.14,LOG["pos_x"],LOG["pos_y"])
         ax.plot(LOG["pos_x"], LOG["pos_y"], label="robot path")
-        plt.gca().yaxis.set_major_formatter(plt.FormatStrFormatter('%.1f'))#y軸小数点以下3桁表示
         
         plt.legend(bbox_to_anchor=(1, 1.1), loc='upper right',
                 borderaxespad=0, fontsize=11)
@@ -106,9 +122,9 @@ def main():
         ax.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
 
         ax.set_xlim(left=0)
-        ax.set_ylim(bottom=-1.2)
-        ax.set_xticks(np.arange(0,max_time,2))
-        ax.set_yticks(np.linspace(-1.2,1.2,9))
+        ax.set_ylim(bottom=-LINEAR_MAX)
+        ax.set_xticks(np.arange(0,max_time,TIME_INTERVAL))
+        ax.set_yticks(np.linspace(-LINEAR_MAX,LINEAR_MAX,Y_SCALE_NUM))
         
         ax.legend()
         plt.legend(bbox_to_anchor=(1.03, 1), loc='upper left',
@@ -130,9 +146,9 @@ def main():
         ax.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
 
         ax.set_xlim(left=0)
-        ax.set_ylim(bottom=-1.6)
-        ax.set_xticks(np.arange(0,max_time,2))
-        ax.set_yticks(np.linspace(-1.8,1.8,9))
+        ax.set_ylim(bottom=-ANGULAR_MAX)
+        ax.set_xticks(np.arange(0,max_time,TIME_INTERVAL))
+        ax.set_yticks(np.linspace(-ANGULAR_MAX,ANGULAR_MAX,Y_SCALE_NUM))
 
         ax.legend()
         plt.legend(bbox_to_anchor=(1.03, 1), loc='upper left',
@@ -142,24 +158,51 @@ def main():
         plt.savefig("./figure/{}/{}_angnvel_figure".format(filename_noext,filename_noext))
         plt.close()
 
-        """
+        
         #########-2D cost graph-###############
-        costfig = plt.figure(figsize(10,4.8))
+        costfig = plt.figure(figsize=(11,4.8),facecolor="white")
         ax = costfig.add_subplot(111)
         ax.plot(LOG["timestep"], LOG["cost"], label="cost")
+        ax.plot(LOG["timestep"], LOG["ang_h_cost"], label="heading difference cost")
+        #ax.plot(LOG["timestep"], LOG["vel_h_cost"], label="velocity difference cost")
+        
         ax.set_xlabel("Time[s]")
         ax.set_ylabel("cost")
         ax.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
         ax.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
+
+        ax.set_xlim(left=0)
+        ax.set_xticks(np.arange(0,max_time,TIME_INTERVAL))
         ax.legend()
         plt.legend(bbox_to_anchor=(1.07, 1), loc='upper left',
                 borderaxespad=0, fontsize=11)
         pylab.subplots_adjust(right=0.75)
-        plt.savefig("./figure/{}/{}_cost2d_figure".format(filename_noext,filename_noext))
 
-        #plt.show()
+        plt.savefig("./figure/{}/{}_cost2d_figure".format(filename_noext,filename_noext))
         plt.close()
-        """
+
+        #########-2D danger graph-###############
+        ## mylogのみ有効 ## 
+        dangerfig = plt.figure(figsize=(11,4.8),facecolor="white")
+        ax = dangerfig.add_subplot(111)
+        #ax.plot(LOG["timestep"], LOG["linadm"], label="linear danger")
+        ax.plot(LOG["timestep"], LOG["angadm"], label="angular danger")
+        
+        ax.set_xlabel("Time[s]")
+        ax.set_ylabel("cost")
+        ax.xaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
+        ax.yaxis.grid(True, which= "major", linestyle ="-", color = "#CFCFCF")
+
+        ax.set_xlim(left=0)
+        ax.set_xticks(np.arange(0,max_time,TIME_INTERVAL))
+        ax.legend()
+        plt.legend(bbox_to_anchor=(1.07, 1), loc='upper left',
+                borderaxespad=0, fontsize=11)
+        pylab.subplots_adjust(right=0.75)
+
+        plt.savefig("./figure/{}/{}_danger_figure".format(filename_noext,filename_noext))
+        plt.close()
+        
         #########-2D lin graph-###############
         linfig = plt.figure(figsize=(11,4.8),facecolor="white")       # default figsize = (6.4, 4.8)
 
@@ -178,11 +221,11 @@ def main():
         ax2.plot(LOG["timestep"], LOG["vel_h_cost"], color = "crimson", label="velocity difference cost")
 
         ax1.set_xlim(left=0)
-        ax1.set_ylim(bottom=-1.2)
-        ax2.set_ylim(bottom=-0.1)
-        ax1.set_yticks(np.linspace(-1.2,1.2,9))
-        ax2.set_yticks(np.linspace(-0.1,1.1,9))
-        ax1.set_xticks(np.arange(0,max_time,2))
+        ax1.set_ylim(bottom=-LINEAR_MAX)
+        ax2.set_ylim(bottom=-COST_MIN)
+        ax1.set_yticks(np.linspace(-LINEAR_MAX,LINEAR_MAX,Y_SCALE_NUM))
+        ax2.set_yticks(np.linspace(-COST_MIN,COST_MAX,Y_SCALE_NUM))
+        ax1.set_xticks(np.arange(0,max_time,TIME_INTERVAL))
 
         h1, l1 = ax1.get_legend_handles_labels()
         h2, l2 = ax2.get_legend_handles_labels()
@@ -213,11 +256,11 @@ def main():
         ax2.plot(LOG["timestep"], LOG["ang_h_cost"], color = "crimson", label="heading difference cost")
         
         ax1.set_xlim(left=0)
-        ax1.set_ylim(bottom=-1.6)
-        ax2.set_ylim(bottom=-0.1)
-        ax1.set_yticks(np.linspace(-1.8,1.8,9))
-        ax2.set_yticks(np.linspace(-0.1,1.1,9))
-        ax1.set_xticks(np.arange(0,max_time,2))
+        ax1.set_ylim(bottom=-ANGULAR_MAX)
+        ax2.set_ylim(bottom=COST_MIN)
+        ax1.set_yticks(np.linspace(-ANGULAR_MAX,ANGULAR_MAX,Y_SCALE_NUM))
+        ax2.set_yticks(np.linspace(-COST_MIN,COST_MAX,Y_SCALE_NUM))
+        ax1.set_xticks(np.arange(0,max_time,TIME_INTERVAL))
 
         h1, l1 = ax1.get_legend_handles_labels()
         h2, l2 = ax2.get_legend_handles_labels()

@@ -235,8 +235,12 @@ void MyDWA::kd_tree()
                 if (tmp_dist < spec.ROBOT_RAD)
                 {
                     isCollision.push_back(true);
-                    lin = fabs(CandVel_v[candId] * PredictTraj[candId][traj_id][0] / (CandVel_v[candId] * PredictTime));
-                    ang = fabs(CandVel_w[candId] * PredictTraj[candId][traj_id][0] / (CandVel_w[candId] * PredictTime));
+                    //lin = fabs(CandVel_v[candId] * PredictTraj[candId][traj_id][0] / (CandVel_v[candId] * PredictTime));
+                    //ang = fabs(CandVel_w[candId] * PredictTraj[candId][traj_id][0] / (CandVel_w[candId] * PredictTime));
+                    
+                    lin = fabs(CandVel_v[candId] * PredictTraj[candId][traj_id][0] / (spec.x_max_vel * PredictTime));
+                    ang = fabs(CandVel_w[candId] * PredictTraj[candId][traj_id][0] / (spec.z_max_ang * PredictTime));
+                    
                     // cout << "CandVel " << candId << ":(" << CandVel_v[candId] << ", " << CandVel_w[candId] << ")" << endl;
                     // cout << "PredictTraj: " << PredictTraj[candId][traj_id][1] << " " << PredictTraj[candId][traj_id][2] <<endl;
                     // //cout << "sensor: " << thinout_scan_range[tmp_scan_id] << endl;
