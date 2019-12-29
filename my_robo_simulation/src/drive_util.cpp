@@ -34,6 +34,7 @@ void my_robo::check_joy()
     // ジョイスティック左側
     // 上→axes[1]の正方向
     // 左→axes[0]の正方向
+    //std::cout << "in check_joy " << sensor.joy_cmd_vel
     sensor.joy_cmd_vel[0] = spec.x_max_vel * sensor.joy.axes[1];
     //cmd_vel.linear.y =joy_msg.axes[2];
 
@@ -452,20 +453,20 @@ void MyDWA::plot_gnuplot(FILE *gp)
 {
   fprintf(gp, "clear\n");
 
-#pragma region 予測起動の描画
-  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
-  // 候補軌道の数に対する繰り返し
-  for (int i = 0; i < PredictTraj_r.size(); i += 2)
-  {
-    // 軌道内の各時刻に対する繰り返し
-    for (int j = 0; j < PredictTraj_r[i].size(); j += 2)
-    {
-      fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2], PredictTraj_r[i][j][1]);
-    }
-  }
-  fprintf(gp, "e\n");
-  fflush(gp);
-#pragma endregion
+// #pragma region 予測起動の描画
+//   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
+//   // 候補軌道の数に対する繰り返し
+//   for (int i = 0; i < PredictTraj_r.size(); i += 2)
+//   {
+//     // 軌道内の各時刻に対する繰り返し
+//     for (int j = 0; j < PredictTraj_r[i].size(); j += 2)
+//     {
+//       fprintf(gp, "%f\t%f\n", PredictTraj_r[i][j][2], PredictTraj_r[i][j][1]);
+//     }
+//   }
+//   fprintf(gp, "e\n");
+//   fflush(gp);
+// #pragma endregion
 
 #pragma region スキャン点の描画
   fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" title \"scan\"\n");
@@ -486,4 +487,39 @@ void MyDWA::plot_gnuplot(FILE *gp)
   // fprintf(gp, "e\n");
   // fflush(gp);
 #pragma endregion
+}
+
+void MyDWA::plot_scan_gnuplot(FILE *gp,std::vector<float>& x,std::vector<float>& y){
+  fprintf(gp, "clear\n");
+  //fprintf(gp,"set nokey");
+
+  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"red\" notitle\n");
+  for (int i = 0; i < x.size(); i += 1)
+  {
+    fprintf(gp, "%f\t%f\n", x[i], y[i]);
+  }
+  fprintf(gp, "e\n");
+  fflush(gp);
+
+  // fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.5 lc rgb \"blue\" title \"trajectories\" \n");
+  // for (int i = 0; i < PredictTraj.size(); i += 8)
+  // {
+  //   for (int j = 0; j < PredictTraj[i].size(); j += 2)
+  //   {
+  //     fprintf(gp, "%f\t%f\n", PredictTraj[i][j][2], PredictTraj[i][j][1]);
+  //   }
+  // }
+  // fprintf(gp, "e\n");
+  // fflush(gp);
+
+  fprintf(gp, "plot \"-\" with points pointtype 7 pointsize 0.2 lc rgb \"blue\" notitle\n");
+  double px = sensor.odom.pose.pose.position.x;
+  double py = sensor.odom.pose.pose.position.y;
+  float r = 0.15;
+  for(float rad=0.0; rad <2*M_PI;rad+=M_PI/60.0){
+    fprintf(gp, "%f\t%f\n", px + r*cos(rad), py + r*sin(rad));
+  }
+  fprintf(gp, "e\n");
+  fflush(gp);
+
 }

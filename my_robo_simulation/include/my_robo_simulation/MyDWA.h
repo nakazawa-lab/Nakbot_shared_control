@@ -44,6 +44,7 @@ private:
     visualization_msgs::MarkerArray make_joy_traj_marker_array();
 
     void plot_gnuplot(FILE *gp);
+    void plot_scan_gnuplot(FILE *gp,std::vector<float>&,std::vector<float>&);
 
     void Proposed();
 
