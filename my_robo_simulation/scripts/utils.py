@@ -133,8 +133,13 @@ def make_sparse_house():
 
     plt.fill(fill_list_1_x, fill_list_1_y, color="gray")
     plt.fill(fill_list_2_x, fill_list_2_y, color="gray")
-    pass
+    
+    start = [7.1, 5.1]
+    rad = np.arange(0, 2*np.pi, np.pi/100)
 
+    sx = start[0] + 0.2*np.cos(rad)
+    sy = start[1] + 0.2*np.sin(rad)
+    plt.plot(sx, sy, color="blue")
 
 #- TODO -#
 def draw_robot_radius(ax,r,x,y):
@@ -173,12 +178,12 @@ def make_house():
             boxes_center[i][0], boxes_center[i][1])
         plt.fill(line_range_x, line_range_y, color="gray")
 
-    plot_start_goal()
+    plot_start_goal(0,0,14,0)
 
 
-def plot_start_goal():
-    goal = [14, 0]
-    start = [0, 0]
+def plot_start_goal(x_start,y_start,x_goal,y_goal):
+    goal = [x_goal, y_goal]
+    start = [x_start, y_start]
 
     rad = np.arange(0, 2*np.pi, np.pi/100)
     gx = goal[0] + 0.2*np.cos(rad)
