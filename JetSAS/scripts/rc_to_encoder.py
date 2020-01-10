@@ -81,7 +81,35 @@ def cal_rc_to_encoder(csv_path,velname):
         est_left = np.poly1d(e_left)(x)
 
         # ==TODO== #
-        # save_fig()
+        plt.rcParams['font.family'] ='Times New Roman'#使用するフォント
+        plt.rcParams['xtick.direction'] = 'in'#x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+        plt.rcParams['ytick.direction'] = 'in'#y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+        MIN_RC=1130
+        MAX_RC=1250
+        RC_INTERVAL=20
+        MIN_ENC=4999960
+        MAX_ENC=5000040
+        ENC_INTERVAL=10
+
+        #xp = np.arange(np.min(x),np.max(x),1)
+        #fig = plt.figure(figsize=(10,4.8))
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(x,LOG["right_vel"],label="right wheel velocity",marker='o')
+        ax.plot(x,LOG["left_vel"],label="left wheel velocity",marker='o')
+        ax.plot(x,est_right,label="estimated function(right wheel)")
+        ax.plot(x,est_left,label="estimated function(left wheel)")
+
+        ax.set_xlabel("RC pulse width")
+        ax.set_ylabel("Encoder pulse value")
+        ax.set_xlim([MIN_RC,MAX_RC])
+        ax.set_ylim([MIN_ENC,MAX_ENC])
+        ax.set_xticks(np.arange(MIN_RC,MAX_RC,RC_INTERVAL))
+        ax.set_yticks(np.arange(MIN_ENC,MAX_ENC,ENC_INTERVAL))
+        ax.legend()
+        ax.grid()
+        plt.savefig("./figure/{}_regression_fig.png".format((os.path.basename(path)).split('.')[0]))
+        plt.close()
 
         print(os.path.basename(path))
         print(e_right)
@@ -97,7 +125,7 @@ def cal_rc_to_encoder(csv_path,velname):
 
 
 def main(velname):
-    csv_path = glob.glob("../../log_JetSAS/log_src/*")
+    csv_path = glob.glob("../log/graph_src/*")
     cal_rc_to_encoder(csv_path,velname)
 
 
