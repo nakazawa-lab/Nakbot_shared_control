@@ -16,6 +16,8 @@ extern long *urg_data;
 extern urg_t urg;
 extern int jetsas(char, int, int);
 bool IsFirstRes = true;
+std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> last_res_time_r, last_res_time_e;
+std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> res_start_time;
 
 double add_theorem_sin(double sin_a, double sin_b, double cos_a, double cos_b)
 {
@@ -29,6 +31,11 @@ double add_theorem_cos(double sin_a, double sin_b, double cos_a, double cos_b)
   return a;
 }
 
+void disp_pros_time(std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time, std::string str){
+    auto cal_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_res_time_r).count()/1000.0;
+    std::cout << str << "  " << "time interval " << cal_time << std::endl;
+}
+
 void save_serial(const char &RS_cmd, const int (&RS_prm)[4])
 {
     if (RS_cmd == 'r')
@@ -37,6 +44,9 @@ void save_serial(const char &RS_cmd, const int (&RS_prm)[4])
         ros_serial.rc.lin = RS_prm[1];
         ros_serial.rc.chan3 = RS_prm[2];
         ros_serial.rc.chan4 = RS_prm[3];
+
+        disp_pros_time(last_res_time_r, "res: r");
+        last_res_time_r = std::chrono::system_clock::now();
     }
     else if (RS_cmd == 'e')
     {
@@ -44,6 +54,9 @@ void save_serial(const char &RS_cmd, const int (&RS_prm)[4])
         ros_serial.encoder.l_ref = RS_prm[1];
         ros_serial.encoder.r_sum = RS_prm[2];
         ros_serial.encoder.l_sum = RS_prm[3];
+
+        disp_pros_time(last_res_time_e, "res: e");
+        last_res_time_e = std::chrono::system_clock::now();
 
         if(IsFirstRes){
             std::cout << "IsFirstRes" << std::endl;
@@ -77,8 +90,6 @@ void JetSAS::Odom::set_encoder(const int e_right, const int e_left)
 
 void JetSAS::Lrf::make_scan_msgs(long* urg_data){
     scan.header.frame_id="/scan";
-    // scan.header.seq = seq_;
-    // seq_++;
     if (scan_num ==0){
         std::cout << "no scan msgs" <<std::endl;
     }
@@ -112,7 +123,7 @@ void JetSAS::Odom::cal_now_vel(const double this_loop_time){
         left_v = (ros_serial.encoder.l_ref - INTERCEPT_ENCODER) * enc_to_vel;
 
         //std::cout << ros_serial.encoder.r_ref << " " << ros_serial.encoder.l_ref - INTERCEPT_ENCODER << " " << enc_to_vel << std::endl;
-        std::cout << "v[m/s] from enc " << right_v << " " << left_v << std::endl; 
+        //std::cout << "v[m/s] from enc " << right_v << " " << left_v << std::endl; 
         v = (right_v + left_v) / 2.0;
         w = (right_v - left_v) / (robot_width);
 
@@ -161,10 +172,10 @@ void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const doub
     odom.twist.twist.linear.x = v;
     odom.twist.twist.angular.z = w;
 
-    std::cout << "pose " <<std::endl;
-    std::cout << odom.pose.pose.position.x <<" " << odom.pose.pose.position.y << " " << now_p.th << std::endl;
-    std::cout << odom.twist.twist.linear.x <<" " << odom.twist.twist.angular.z << std::endl; 
-    //std::cout << "(x, y, sin_th, cos_th) " << now_p.x << ", " << now_p.y << ", "<< now_p.sin_th << ", "<< now_p.cos_th <<std::endl;
+    // std::cout << "pose " <<std::endl;
+    // std::cout << odom.pose.pose.position.x <<" " << odom.pose.pose.position.y << " " << now_p.th << std::endl;
+    // std::cout << odom.twist.twist.linear.x <<" " << odom.twist.twist.angular.z << std::endl; 
+    // //std::cout << "(x, y, sin_th, cos_th) " << now_p.x << ", " << now_p.y << ", "<< now_p.sin_th << ", "<< now_p.cos_th <<std::endl;
 }
 
 //     geometry_msgs::Twist vel;        を
@@ -188,7 +199,7 @@ void JetSAS::RC::rc_to_encoder(){
     v_right_enc = ros_serial.rc.lin *rc_multiplier_vel_r + vel_r_int + ros_serial.rc.rot * rc_multiplier_rot_r + rot_r_int + INTERCEPT_ENCODER;
     v_left_enc = ros_serial.rc.lin *rc_multiplier_vel_l + vel_l_int + ros_serial.rc.rot * rc_multiplier_rot_l + rot_l_int + INTERCEPT_ENCODER;
 
-    std::cout << "rc to encoder" << v_right_enc << " " << v_left_enc <<std::endl;
+    //std::cout << "rc to encoder" << v_right_enc << " " << v_left_enc <<std::endl;
 }
 
 void JetSAS::Joy::make_joy_msgs(){
@@ -200,7 +211,7 @@ void JetSAS::Joy::make_joy_msgs(){
     joy.axes[0] = joy_axes0;
     joy.axes[1] = joy_axes1;
     
-    std::cout << "in make joy msgs " << joy_axes1 << " " << joy_axes0 << std::endl;
+    //std::cout << "in make joy msgs " << joy_axes1 << " " << joy_axes0 << std::endl;
 }
 
 bool JetSAS::Odom::check_new_encoder(){
@@ -218,47 +229,46 @@ bool JetSAS::RC::check_new_rc(){
     else return true;
 }
 
+void JetSAS_Node::res_urg()
+{
+  int i;
+  long time_stamp;
+//   while(1){
+    // urgの値をとってくる
+    urg_start_measurement(&urg, URG_DISTANCE, 1, 0);
+    lrf.scan_num = urg_get_distance(&urg, urg_data, &time_stamp);
+    if (lrf.scan_num < 0)
+    {
+        printf("urg_get_distance: %s\n", urg_error(&urg));
+        urg_close(&urg);
+    }
+  //}
+}
+
 
 void JetSAS_Node::controlloop(JET_TIMER &jt){
-    long time_stamp;
-    jetsas('e',0001,0001);
-    jetsas('r',0001,0001);
-
-    //if(odom.check_new_encoder() && rc.check_new_rc()){
-        rc.set_rc(ros_serial.rc.rot);
-
-        // urgの値をとってくる
-        urg_start_measurement(&urg, URG_DISTANCE, 1, 0);
-        lrf.scan_num = urg_get_distance(&urg, urg_data, &time_stamp);
-        if (lrf.scan_num < 0)
-        {
-            printf("urg_get_distance: %s\n", urg_error(&urg));
-            urg_close(&urg);
-        }
-        lrf.make_scan_msgs(urg_data);
-
-        // エンコーダの値をもとに現在の位置と速度を計算する
-        auto dur = std::chrono::system_clock::now() - last_cal_time;
-        last_cal_time = std::chrono::system_clock::now();
-        cal_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(dur).count()/1000.0;
-        std::cout << "cal time " << cal_time << std::endl;
-        odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,cal_time);
-
-        // RCの値をもとに現在の人間からの速度指令値を計算する
-        joy.make_joy_msgs();
-
-        // odom, lrf, joyをpublish
-        pub_sensor();
-
-        // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
-        cmd_vel.cmd_vel_to_jetsas_prm();
-
-        // SHに送信する jetsas v
-        //jetsas('v',cmd_vel.jetsas_e_r,cmd_vel.jetsas_e_l);
-        std::cout << std::endl;
-        write_log();
-    //}
     
+    auto start = std::chrono::system_clock::now();
+    res_urg();
+
+    lrf.make_scan_msgs(urg_data);
+
+    // エンコーダの値をもとに現在の位置と速度を計算する
+    auto dur = std::chrono::system_clock::now() - last_cal_time;
+    last_cal_time = std::chrono::system_clock::now();
+    cal_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(dur).count()/1000.0;
+    //std::cout << "cal time " << cal_time << std::endl;
+    odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,cal_time);
+
+    // RCの値をもとに現在の人間からの速度指令値を計算する
+    rc.set_rc(ros_serial.rc.rot);
+    joy.make_joy_msgs();
+
+    // odom, lrf, joyをpublish
+    pub_sensor();
+
+    // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
+    cmd_vel.cmd_vel_to_jetsas_prm(); 
 }
 
 void JetSAS_Node::make_log_col(){
@@ -306,8 +316,8 @@ void JetSAS_Node::write_log(){
     << odom.odom.pose.pose.position.x << ","
     << odom.odom.pose.pose.position.y << ","
     << odom.now_p.th << ","
-    << joy.joy.axes[0] << ","
     << joy.joy.axes[1] << ","
+    << joy.joy.axes[0] << ","
     << cmd_vel.vel.linear.x << ","
     << cmd_vel.vel.angular.z << ","
     <<std::endl;

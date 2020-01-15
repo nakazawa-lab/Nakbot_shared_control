@@ -72,23 +72,21 @@ std::string get_current_time()
 
 void MyDWA::log_init(){
     std::string date = get_current_time();
+    std::string logfilename;
+
     #ifdef MYDWA
     IsProposed = true;
-    k_heading = 2.0;
-    std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
-    mylogfile.open(mylogfilename);
+    k_heading = 1.5;
+    if(IsREAL) logfilename = "./my_robo_simulation/log/mylog_" + date + ".csv";
+    else logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
+    mylogfile.open(logfilename);
 #endif
 #ifdef PABLODWA
     IsProposed = false;
     k_heading=1.0;
-    std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
+    logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
     logfile.open(logfilename);
 #endif
-    if(IsREAL){
-        std::string logfilename = "./my_robo_simulation/log/mylog_" + date + ".csv";
-        mylogfile.open(logfilename);
-    }
-
 }
 
 void gnuplot_init(){
@@ -307,6 +305,7 @@ void MyDWA::DWAloop()
 
     log_init();
     record_param();
+    // gnuplot_init();
 
     while (ros::ok())
     {

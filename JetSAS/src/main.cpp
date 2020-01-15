@@ -39,6 +39,7 @@
 #include "sensor_msgs/LaserScan.h"
 #include "JetSAS/ros_node.h"
 #include <random>
+#include <chrono>
 
 using namespace std;
 void* thread1(void* pParam); ///
@@ -92,8 +93,13 @@ int main(int argc, char *argv[])
     int n;
 
     /// ros
+    const float ros_loop_time = 0.05;
+    const float ctl_loop_time = 0.2;
+    int node_counter=0;
+
     ros::init(argc, argv, "JetSAS_node");
     JetSAS_Node node;
+    ros::Rate rate(1/ros_loop_time);
     /// end ros
 
     pthread_t tid1, tid2, tid3;
@@ -113,7 +119,7 @@ int main(int argc, char *argv[])
     printf("jt time0 %d[sec] %d[nsec]\n",jt.get_sec(),jt.get_nsec());
 
     jetsas('m',0001,0000);  // コマンド(m,0001,0000) でmortor_on = 1
-    usleep(1000000);         // on for 1s
+    //usleep(1000000);         // on for 1s
 
     // Wait for the push button to be pressed
     cout << "Please press the button!" << endl;
@@ -126,29 +132,33 @@ int main(int argc, char *argv[])
     // jetsas('v',4830,4830);
     // jetsas('e',0001,0001);
 
-    const float ros_loop_time = 0.1;
-    const float ctl_loop_time = 0.3;
-    int counter=0;
-    ros::Rate rate(1/ros_loop_time);
     while(ros::ok())
     {
+        auto start = std::chrono::system_clock::now();
         ros::spinOnce();
         //do
         //{
             /// ros addedby kitajima
-            if(counter==(ctl_loop_time/ros_loop_time)){
-                counter=0;
-                node.controlloop(jt);
+            jetsas('e',0001,0001);
+            jetsas('r',0001,0001);
+            if(node_counter==(ctl_loop_time/ros_loop_time)){
+                node_counter=0;
                 cout << "Is Control" << endl;
+                node.controlloop(jt);
             }
             jetsas('v',node.cmd_vel.jetsas_e_r,node.cmd_vel.jetsas_e_l);
-            counter++;
+            node_counter++;
             rate.sleep();
             ///end ros added by kitajima
 
             //value=gpio_sw(SW1);
         //}
         //while (value==HIGH);
+
+        node.write_log(); 
+        // auto cal_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count()/1000.0;
+        // std::cout << "this loop time " << cal_time << std::endl;
+        std::cout << std::endl;
     }
 
     cout << endl <<  "Button was just pressed!" << endl;

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <chrono>
+#include <pthread.h>
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
@@ -265,8 +266,6 @@ private:
 
     void make_log_col();
 
-    void write_log();
-
     // void clear_vector(){
     //     std::vector<double>().swap(LOG);
     // };
@@ -301,6 +300,18 @@ public:
     JetSAS::RC rc;
 
     void controlloop(JET_TIMER&);
+
+    void res_urg();
+
+    void write_log();
+
+    // ランチャ
+    static void* executeLauncher(void* args){
+      std::cout << "executeLauncher" << std::endl;
+      // 引数に渡されたインスタンスを無理やりキャストして、インスタンスメソッドを実行
+      reinterpret_cast<JetSAS_Node*>(args)->res_urg();
+      return (void*)NULL;
+    }
 };
 extern JetSAS::Serial_sh ros_serial;
 #endif /// ROS_NODE

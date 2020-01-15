@@ -38,10 +38,11 @@ void my_robo::check_joy()
     sensor.joy_cmd_vel[0] = spec.x_max_vel * sensor.joy.axes[1];
     //cmd_vel.linear.y =joy_msg.axes[2];
 
-    if (sensor.joy.axes[1] >= 0)
-      sensor.joy_cmd_vel[1] = spec.z_max_ang * sensor.joy.axes[0];
-    else
-      sensor.joy_cmd_vel[1] = -1 * spec.z_max_ang * sensor.joy.axes[0];
+    // if (sensor.joy.axes[1] >= 0)
+    //   sensor.joy_cmd_vel[1] = spec.z_max_ang * sensor.joy.axes[0];
+    // else
+    //   sensor.joy_cmd_vel[1] = -1 * spec.z_max_ang * sensor.joy.axes[0];
+    sensor.joy_cmd_vel[1] = spec.z_max_ang * sensor.joy.axes[0];
 
     // ROS_INFO("spec.x: %f",spec.x_max_vel);
     // ROS_INFO("spec.z: %f\n",spec.z_max_ang);

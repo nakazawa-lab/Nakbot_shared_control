@@ -22,11 +22,15 @@
 #include "JetSAS/jetsas.h"
 
 #include "JetSAS/ros_node.h"       // addded by kitajima
+#include <pthread.h>
 
 int tty_fd0, tty_fd1 ;
 
 JetSAS::Serial_sh ros_serial;       // added by kitajima
+extern pthread_mutex_t mutex; ///
 extern void save_serial(const char &RS_cmd, const int (&RS_prm)[4]);
+extern std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> res_start_time;
+extern void disp_pros_time(std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time, std::string str);
 
 /*************************************************************** UART_init ***/
 int UART_init(void)
@@ -72,6 +76,7 @@ int UART_init(void)
 int jetsas(char cmd,int prm1, int prm2)
 {
     static int c=0x45, ret;
+    // res_start_time = std::chrono::system_clock::now();
 ///    int dat[]= {'v',',','5','0','1','0',',','5','0','1','0',0x0d};
 ///    int dat[]= {'m',',','0','0','0','1',',','0','0','0','0',0x0d};
 ///    char dat[]= {'m',',','0','0','0','1',',','0','0','0','0',0x0d};
@@ -86,6 +91,7 @@ int jetsas(char cmd,int prm1, int prm2)
 
     send(dt1,12);
     usleep(1000);
+    // disp_pros_time(res_start_time,"end of jetsas");
 ///    send(dt2,12);
 //    printf("%d ret=%d\n",c,ret);
 //    if(c>100)c=32;
@@ -105,6 +111,7 @@ int send(char dat[], int n)
 ///     printf("ret=%d",ret);
         usleep(5);
     }
+    // disp_pros_time(res_start_time,"end of send");
     return 0;
 }/****************************************************************** END ***/
 /*************************************************************** jetsas ***/
@@ -151,7 +158,7 @@ void* th_receive(void* pParam)
         while(read(tty_fd0,&r,1)>0)
         {
             //printf("received from NakBot %x %c\n",r,r);
-            gpio_led(LED_RED,LED_ON);
+            //gpio_led(LED_RED,LED_ON);
 
             dat[num]=r;
             num++;
@@ -182,15 +189,16 @@ void* th_receive(void* pParam)
                   +deci(dat[b+2])*10000+deci(dat[b+3])*1000
                   +deci(dat[b+4])*100+deci(dat[b+5])*10+deci(dat[b+6]);
 
-                 printf("Decoded data %c %8d %8d %8d %8d\n",
-                        RS_cmd,RS_prm[0],RS_prm[1],RS_prm[2],RS_prm[3]);
+                //printf("Decoded data %c %8d %8d %8d %8d\n",
+                //        RS_cmd,RS_prm[0],RS_prm[1],RS_prm[2],RS_prm[3]);
 
                 save_serial(RS_cmd, RS_prm);        /// added by kitajima 
                 num=0;
             }
-            gpio_led(LED_RED,LED_OFF);
-
+            //gpio_led(LED_RED,LED_OFF);
+            // disp_pros_time(res_start_time,"end of read tty");
         }
+        
 
         if(ct>500)
         {
@@ -198,7 +206,7 @@ void* th_receive(void* pParam)
             ct=0;
         }
         ct++;
-        usleep(1000);
+        //usleep(1000);
 //       printf("pass ");
     }
 }/****************************************************************** END ***/
