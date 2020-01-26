@@ -18,6 +18,30 @@ extern int jetsas(char, int, int);
 bool IsFirstRes = true;
 std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> last_res_time_r, last_res_time_e;
 std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> res_start_time;
+std::vector<double> e_res_time;
+std::vector<double> r_res_time;
+
+void flush_res_time(){
+    std::ofstream res_time_file;
+    res_time_file.open("./log_JetSAS/restime_log_"+get_current_time()+".csv");
+
+    res_time_file << "e res time,r res time" << std::endl;
+
+    for(int i = 0; i<e_res_time.size();i++){
+        res_time_file 
+        << e_res_time[i] << ',' 
+        << r_res_time[i] << ','
+        << std::endl;
+    }
+    res_time_file.close();
+}
+
+JetSAS_Node::~JetSAS_Node(){
+    std::cout << "JetSAS destructor" <<std::endl;
+    logfile.close();
+
+    flush_res_time();
+};
 
 double add_theorem_sin(double sin_a, double sin_b, double cos_a, double cos_b)
 {
@@ -34,6 +58,12 @@ double add_theorem_cos(double sin_a, double sin_b, double cos_a, double cos_b)
 void disp_pros_time(std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::nanoseconds> start_time, std::string str){
     auto cal_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_res_time_r).count()/1000.0;
     std::cout << str << "  " << "time interval " << cal_time << std::endl;
+    if(str == "res: e"){
+        e_res_time.push_back(cal_time);
+    }
+    else if(str == "res: r"){
+        r_res_time.push_back(cal_time);
+    }
 }
 
 void save_serial(const char &RS_cmd, const int (&RS_prm)[4])

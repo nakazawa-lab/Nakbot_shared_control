@@ -284,10 +284,7 @@ public:
         last_cal_time = start_time;
     };
 
-    ~JetSAS_Node(){
-        std::cout << "JetSAS destructor" <<std::endl;
-        logfile.close();
-    };
+    ~JetSAS_Node();
 
     JetSAS::Lrf lrf;
 

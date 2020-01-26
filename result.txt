@@ -1,0 +1,41 @@
+JET_TIMER Constructor 
+Jetsas constructor
+set sub
+Jetsas constructor
+Start JetSAS on NakBot
+i2c-8=12 for LCD
+tty_fd0=18 
+i2c-0=12 for sensors 
+Print LCD
+1579143860 630407840 
+jt time0 0[sec] 116292[nsec]
+Please press the button!
+
+
+
+
+Is Control
+res: e  time interval 1.57914e+09
+IsFirstRes
+res: r  time interval 1.57914e+09
+
+
+
+
+Is Control
+
+
+
+
+Is Control
+res: e  time interval 0.366
+res: r  time interval 0.396
+
+
+
+
+Button was just pressed!
+Finished Testing the GPIO Pins
+time2 0[sec] 828075738[nsec]
+JetSAS destructor
+JET_TIMER Destructor 
