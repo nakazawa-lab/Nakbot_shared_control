@@ -18,7 +18,7 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 //#define PABLODWA
 #define MYDWA
 #define ISSHARED
-#define PUB_MARKER
+//#define PUB_MARKER
 //#define REAL_TEST
 
 // 何かキーが押されたときにループを抜けるための関数
@@ -439,6 +439,7 @@ end:
             std::cout << "pubvel (" << vel.linear.x << ", " << vel.angular.z << ")" << std::endl;
             std::cout << "joy vel:" << sensor.joy_cmd_vel[0] << "," << sensor.joy_cmd_vel[1] << std::endl;
             //say_time("pub", loop_start_time);
+            cal_end_time = std::chrono::system_clock::now();
             record_loop_info();
             // say_time("record", loop_start_time);
             control_loop_flag++;
@@ -586,7 +587,7 @@ int main(int argc, char **argv)
     }
 
 
-    gnuplot_init();
+    //gnuplot_init();
 
     robot.DWAloop();
 
