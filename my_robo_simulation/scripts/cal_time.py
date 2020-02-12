@@ -15,8 +15,9 @@ def main():
         #filename_noext = filenames_noext[i]
         #os.makedirs("./cal_time_result/"+filename_noext, exist_ok=True)
 
+        joy_v_nd = LOG["joy_v"].to_numpy()
         time_all_nd = LOG["cal_time"].to_numpy()
-        time_nd = time_all_nd[time_all_nd > 0]
+        time_nd = time_all_nd[(time_all_nd > 0) & (joy_v_nd > 0)]
 
         m_time = np.mean(time_nd)
         std_time = np.std(time_nd)

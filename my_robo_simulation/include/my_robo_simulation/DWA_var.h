@@ -42,7 +42,7 @@ public:
     const double PredictTime = 2.0;
     const double looprate = 10.0;
 
-    double k_heading = 1.0;
+    double k_heading = 1.0;     //mainで変えているのでそちらを参照
     const double k_velocity = 0.7;
 
     // この秒数後の衝突に対して衝突危険正規化距離を１未満にする。これ以上の場合は1で安全
