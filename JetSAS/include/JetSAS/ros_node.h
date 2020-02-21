@@ -8,6 +8,7 @@
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/Joy.h"
+#include "tf/transform_broadcaster.h"
 
 #ifndef ROS_NODE
 #define ROS_NODE
@@ -68,17 +69,24 @@ private:
     ros::Publisher lrf_pub;
     sensor_msgs::LaserScan scan;
 
-    const int urg_data_num = 682; // 実機で得られる点の数
-    const float urg_angle_increment = (2 * M_PI) / 1024.0;
-    long long seq_=0;
+    const int URG_DATA_NUM = 682; // 実機で得られる点の数
+    const int URG_FREQ = 10;
+    const double URG_ANGLE_INCREMENT = (2 * M_PI) / 1024.0;
+    const double ANGLE_MAX = M_PI*240.0/180.0;
+    const double ANGLE_MIN = -M_PI*240.0/180.0;
+    const double RANGE_MAX = 4.0;
+    const double RANGE_MIN = 0.06;
 
     std::ofstream scanlogfile;
 
 public:
     Lrf()
     {
-        scan.ranges.resize(urg_data_num);
-        scan.angle_increment = urg_angle_increment;
+        scan.ranges.resize(URG_DATA_NUM);
+        scan.angle_increment = URG_ANGLE_INCREMENT;
+        scan.angle_min = ANGLE_MIN;
+        scan.angle_max = ANGLE_MAX;
+        scan.time_increment = (1/URG_FREQ) / URG_DATA_NUM;
 
         std::cout << "Jetsas constructor" << std::endl; 
         scanlogfile.open("./log_JetSAS/scanlog_"+get_current_time()+".csv");
@@ -215,7 +223,6 @@ public:
 
 class RC{
 private:
-    // 1100くらいに基準がある
     const double rc_multiplier_vel_r= -0.5901;
     const double vel_r_int = 702.4;
     const double rc_multiplier_vel_l= -0.5902;
@@ -301,5 +308,6 @@ public:
 
     void controlloop(JET_TIMER&);
 };
+
 extern JetSAS::Serial_sh ros_serial;
 #endif /// ROS_NODE
