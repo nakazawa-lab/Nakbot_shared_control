@@ -76,9 +76,9 @@ void JetSAS::Odom::set_encoder(const int e_right, const int e_left)
 }
 
 void JetSAS::Lrf::make_scan_msgs(long* urg_data){
-    scan.header.frame_id="/scan";
-    // scan.header.seq = seq_;
-    // seq_++;
+    scan.header.stamp = ros::Time::now();
+    scan.header.frame_id = "/scan";
+
     if (scan_num ==0){
         std::cout << "no scan msgs" <<std::endl;
     }
@@ -224,40 +224,39 @@ void JetSAS_Node::controlloop(JET_TIMER &jt){
     jetsas('e',0001,0001);
     jetsas('r',0001,0001);
 
-    //if(odom.check_new_encoder() && rc.check_new_rc()){
-        rc.set_rc(ros_serial.rc.rot);
+    rc.set_rc(ros_serial.rc.rot);
+    
+    // urgの値をとってくる
+    urg_start_measurement(&urg, URG_DISTANCE, 1, 0);
+    lrf.scan_num = urg_get_distance(&urg, urg_data, &time_stamp);
+    if (lrf.scan_num < 0)
+    {
+        printf("urg_get_distance: %s\n", urg_error(&urg));
+        urg_close(&urg);
+    }
+    lrf.make_scan_msgs(urg_data);
 
-        // urgの値をとってくる
-        urg_start_measurement(&urg, URG_DISTANCE, 1, 0);
-        lrf.scan_num = urg_get_distance(&urg, urg_data, &time_stamp);
-        if (lrf.scan_num < 0)
-        {
-            printf("urg_get_distance: %s\n", urg_error(&urg));
-            urg_close(&urg);
-        }
-        lrf.make_scan_msgs(urg_data);
+    // エンコーダの値をもとに現在の位置と速度を計算する
+    auto dur = std::chrono::system_clock::now() - last_cal_time;
+    last_cal_time = std::chrono::system_clock::now();
+    cal_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(dur).count()/1000.0;
+    std::cout << "cal time " << cal_time << std::endl;
+    odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,cal_time);
 
-        // エンコーダの値をもとに現在の位置と速度を計算する
-        auto dur = std::chrono::system_clock::now() - last_cal_time;
-        last_cal_time = std::chrono::system_clock::now();
-        cal_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(dur).count()/1000.0;
-        std::cout << "cal time " << cal_time << std::endl;
-        odom.make_odom_msgs(ros_serial.encoder.r_sum, ros_serial.encoder.l_sum,cal_time);
+    // RCの値をもとに現在の人間からの速度指令値を計算する
+    joy.make_joy_msgs();
 
-        // RCの値をもとに現在の人間からの速度指令値を計算する
-        joy.make_joy_msgs();
+    // odom, lrf, joyをpublish
+    pub_sensor();
 
-        // odom, lrf, joyをpublish
-        pub_sensor();
+    // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
+    cmd_vel.cmd_vel_to_jetsas_prm();
 
-        // 提案手法に基づき計算された/cmd_velトピックをsubscribeした情報をshが理解できる値に変換する
-        cmd_vel.cmd_vel_to_jetsas_prm();
+    // SHに送信する jetsas v
+    //jetsas('v',cmd_vel.jetsas_e_r,cmd_vel.jetsas_e_l);
+    std::cout << std::endl;
+    write_log();
 
-        // SHに送信する jetsas v
-        //jetsas('v',cmd_vel.jetsas_e_r,cmd_vel.jetsas_e_l);
-        std::cout << std::endl;
-        write_log();
-    //}
     
 }
 

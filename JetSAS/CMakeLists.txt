@@ -9,8 +9,9 @@ project(JetSAS)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  rospy
   std_msgs
+  geometry_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -155,6 +156,10 @@ add_executable(${PROJECT_NAME}_node
     src/util.cpp
     )
 
+add_executable(NakBot_transform_publisher
+    src/NakBot_transform.cpp
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -171,6 +176,10 @@ target_link_libraries(${PROJECT_NAME}_node
   ${OpenCV_LIBS}
   #/usr/local/lib/liburg_c.so
   ${URG_LIB}
+)
+
+target_link_libraries(NakBot_transform_publisher
+  ${catkin_LIBRARIES}
 )
 
 #############
