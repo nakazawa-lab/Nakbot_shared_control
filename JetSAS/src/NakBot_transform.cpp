@@ -4,7 +4,7 @@
 class NakBot_TF
 {
 public:
-    const double BASE_FOOT_TO_BASE_LINK_Z = 0.2;
+    const double BASE_FOOT_TO_BASE_LINK_Z = 0.15;
 
     // 面倒なので未指定 使うことがあれば他と同様にして入れる
     // const double BASE_LINK_TO_BACK_CAS_X = 0.2;
@@ -15,13 +15,13 @@ public:
     // const double BASE_LINK_TO_FRONT_CAS_Y = 0.2;
     // const double BASE_LINK_TO_FRONT_CAS_Z = 0.2;
 
-    const double BASE_LINK_TO_BASE_SCAN_X = 0.2;
-    const double BASE_LINK_TO_BASE_SCAN_Y = 0.2;
-    const double BASE_LINK_TO_BASE_SCAN_Z = 0.2;
+    const double BASE_LINK_TO_BASE_SCAN_X = 0.12;
+    const double BASE_LINK_TO_BASE_SCAN_Y = 0.0;
+    const double BASE_LINK_TO_BASE_SCAN_Z = 0.0;
 
-    const double BASE_LINK_TO_BASE_CAMERA_X = 0.2;
-    const double BASE_LINK_TO_BASE_CAMERA_Y = 0.2;
-    const double BASE_LINK_TO_BASE_CAMERA_Z = 0.2;
+    const double BASE_LINK_TO_BASE_CAMERA_X = 0.03;
+    const double BASE_LINK_TO_BASE_CAMERA_Y = 0.0;
+    const double BASE_LINK_TO_BASE_CAMERA_Z = 0.225;
     tf::StampedTransform make_StampTransform(double x_q,double y_q, double z_q, double w_q, double x,double y ,double z, const char* src, const char* dist){
         return tf::StampedTransform(tf::Transform(tf::Quaternion(x_q, y_q, z_q, w_q), tf::Vector3(x, y, z)), ros::Time::now(),src, dist);
     };
@@ -35,6 +35,7 @@ int main(int argc, char** argv){
   tf::TransformBroadcaster broadcaster;
 
   ros::Rate r(100);
+  ROS_INFO("Launch NakBot Transform Publisher");
 
   while(n.ok()){
     broadcaster.sendTransform(
