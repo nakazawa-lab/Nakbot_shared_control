@@ -132,10 +132,25 @@ int main(int argc, char *argv[])
     // jetsas('v',4830,4830);
     // jetsas('e',0001,0001);
 
+<<<<<<< HEAD
+=======
+    const float ros_loop_time = 0.1;
+    const float ctl_loop_time = 0.3;
+    int counter=0;
+    ros::Rate rate(1/ros_loop_time);
+    
+>>>>>>> 507fe34b02966fe26c63667406ba0ec279b71435
     while(ros::ok())
     {
         auto start = std::chrono::system_clock::now();
         ros::spinOnce();
+
+    //     tf::TransformBroadcaster broadcaster;
+    //     broadcaster.sendTransform(
+    //      tf::StampedTransform(
+    //      tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.1, 0.0, 0.2)),
+    //      ros::Time::now(),"base_link", "base_laser")
+    // );
         //do
         //{
             /// ros addedby kitajima

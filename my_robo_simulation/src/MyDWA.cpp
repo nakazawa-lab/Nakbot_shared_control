@@ -221,17 +221,19 @@ void MyDWA::kd_tree()
 
             for (int traj_id = 0; traj_id < traj_size; traj_id++)
             {
-                //query[0] = PredictTraj_r[candId][traj_id][2];
-                //query[1] = PredictTraj_r[candId][traj_id][1];
                 query[0] = PredictTraj[candId][traj_id][1];
                 query[1] = PredictTraj[candId][traj_id][2];
 
                 tmp_scan_id = LRFkdtree.nnSearch(query);
+
+                // kd-treeを使わない場合に用いるfor文. LRF点を全探索する
+                //for(int scan_id = 0; scan_id < thinout_scan_x.size(); scan_id++){
                 // cout << "query:(" << query[0]  << ", " << query[1] << ")" <<endl;
                 //cout << "scan id:" << tmp_scan_id << endl;
                 //cout << "nearest x:" << thinout_scan_x[tmp_scan_id] << " y:" << thinout_scan_y[tmp_scan_id] << endl;
-                //tmp_dist = cal_coll_thres(thinout_scan_range[tmp_scan_id], thinout_scan_ang[tmp_scan_id], PredictTraj_r[candId][traj_id][1], PredictTraj_r[candId][traj_id][2]);
                 tmp_dist = cal_euclid(thinout_scan_x[tmp_scan_id], thinout_scan_y[tmp_scan_id], PredictTraj[candId][traj_id][1], PredictTraj[candId][traj_id][2]);
+                //tmp_dist = cal_euclid(thinout_scan_x[scan_id], thinout_scan_y[scan_id], PredictTraj[candId][traj_id][1], PredictTraj[candId][traj_id][2]);  // LRF点全探索のとき
+                //cout << candId << " " << traj_id << " x " << thinout_scan_x[scan_id] << " y " << thinout_scan_y[scan_id] << " " << PredictTraj[candId][traj_id][1] << " " << PredictTraj[candId][traj_id][2] << " " << tmp_dist << endl;
                 if (tmp_dist < spec.ROBOT_RAD)
                 {
                     isCollision.push_back(true);
@@ -250,16 +252,21 @@ void MyDWA::kd_tree()
                     dist_lin_ang[candId].push_back(lin);
                     dist_lin_ang[candId].push_back(ang);
                     dist_lin_ang[candId].push_back(tmp_scan_id);
-                    break;
+                    break;    // kdtreeのとき
+                    //goto End;   // LRF点全探索のとき
                 }
                 else if (traj_id == traj_size - 1)
+                //else if ((scan_id == thinout_scan_x.size()-1) && (traj_id == traj_size-1))    //LRF点の全探索のとき
                 {
                     isCollision.push_back(false);
                     dist_lin_ang[candId].push_back(1);
                     dist_lin_ang[candId].push_back(1);
                     dist_lin_ang[candId].push_back(tmp_scan_id);
+                    //goto End;
                 }
+                //}   // LRF点の全探索
             }
+            //End:;
         }
     }
     else
@@ -274,6 +281,7 @@ void MyDWA::kd_tree()
             isCollision.push_back(false);
         }
     }
+    cout << "iscollision size" << isCollision.size() <<endl;
     assert(isCollision.size() == CandVel_v.size());
     assert(dist_lin_ang.size() == CandVel_v.size());
 }

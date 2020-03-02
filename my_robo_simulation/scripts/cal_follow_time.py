@@ -88,7 +88,7 @@ def main():
     csv_paths, _, pro_or_pablo = utils.distinct_log("../log/follow_time_src")
     CalFolTime = FollowTime(csv_paths,pro_or_pablo)
     result = CalFolTime.calculate()
-    save_result(result,"follow_result",)
+    save_result(result,"follow_result")
 
 if __name__=="__main__":
     main()

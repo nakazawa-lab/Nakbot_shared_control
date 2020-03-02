@@ -19,6 +19,7 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 #define MYDWA
 #define ISSHARED
 //#define PUB_MARKER
+//#define REAL_TEST
 
 // 何かキーが押されたときにループを抜けるための関数
 int kbhit(void)
@@ -514,6 +515,29 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "my_robo_drive");
     MyDWA robot;
+    //log_init(robot);
+    std::string date = get_current_time();
+
+#ifdef MYDWA
+    robot.IsProposed = true;
+    robot.k_heading = 1.5;
+    std::string mylogfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/mylog_" + date + ".csv";
+    robot.mylogfile.open(mylogfilename);
+#endif
+#ifdef PABLODWA
+    robot.IsProposed = false;
+    robot.k_heading=1.0;
+    std::string logfilename = "/home/kitajima/catkin_ws/src/Nakbot_shared_control/my_robo_simulation/log/log_" + date + ".csv";
+    robot.logfile.open(logfilename);
+#endif
+    if(robot.IsREAL){
+        std::string logfilename = "./my_robo_simulation/log/mylog_" + date + ".csv";
+        robot.logfile.open(logfilename);
+    }
+
+
+    //gnuplot_init();
+
     robot.DWAloop();
 
     return 0;
