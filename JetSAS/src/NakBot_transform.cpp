@@ -1,6 +1,10 @@
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
 
+tf::Quaternion rpy_to_tf_quat(double roll, double pitch, double yaw){
+    return tf::createQuaternionFromRPY(roll, pitch, yaw);
+}
+
 class NakBot_TF
 {
 public:
@@ -38,14 +42,18 @@ int main(int argc, char** argv){
 
   ros::Rate r(100);
   ROS_INFO("Launch NakBot Transform Publisher");
+  tf::Quaternion rot90byZaxis = rpy_to_tf_quat(0, 0, 1.57);
+  //std::cout << rot90byZaxis << "=================================" << std::endl;
 
   while(n.ok()){
     transform.current_time = ros::Time::now();
+    
     broadcaster.sendTransform(
         std::vector<tf::StampedTransform>{
             //transform.make_StampTransform(0,0,0,1,0,0,0,"odom","base_footprint"),
             transform.make_StampTransform(0,0,0,1,0,0,transform.BASE_FOOT_TO_BASE_LINK_Z,"base_footprint","base_link"),
-            transform.make_StampTransform(0,0,0,1,transform.BASE_LINK_TO_BASE_SCAN_X,transform.BASE_LINK_TO_BASE_SCAN_Y,transform.BASE_LINK_TO_BASE_SCAN_Z,"base_link","scan"),
+            tf::StampedTransform(tf::Transform(rot90byZaxis, tf::Vector3(transform.BASE_LINK_TO_BASE_SCAN_X,transform.BASE_LINK_TO_BASE_SCAN_Y,transform.BASE_LINK_TO_BASE_SCAN_Z)),transform.current_time,"base_link","scan"),
+            //transform.make_StampTransform(0,0,0,1,transform.BASE_LINK_TO_BASE_SCAN_X,transform.BASE_LINK_TO_BASE_SCAN_Y,transform.BASE_LINK_TO_BASE_SCAN_Z,"base_link","scan"),
             transform.make_StampTransform(0,0,0,1,transform.BASE_LINK_TO_BASE_CAMERA_X,transform.BASE_LINK_TO_BASE_CAMERA_Y,transform.BASE_LINK_TO_BASE_CAMERA_Z,"base_link","camera"),
         }
     );
