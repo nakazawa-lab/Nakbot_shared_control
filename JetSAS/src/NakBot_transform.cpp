@@ -43,10 +43,10 @@ int main(int argc, char** argv){
     transform.current_time = ros::Time::now();
     broadcaster.sendTransform(
         std::vector<tf::StampedTransform>{
-            transform.make_StampTransform(0,0,0,1,0,0,0,"odom","base_footprint"),
+            //transform.make_StampTransform(0,0,0,1,0,0,0,"odom","base_footprint"),
             transform.make_StampTransform(0,0,0,1,0,0,transform.BASE_FOOT_TO_BASE_LINK_Z,"base_footprint","base_link"),
-            transform.make_StampTransform(0,0,0,1,transform.BASE_LINK_TO_BASE_SCAN_X,transform.BASE_LINK_TO_BASE_SCAN_Y,transform.BASE_LINK_TO_BASE_SCAN_Z,"base_link","scan_base"),
-            transform.make_StampTransform(0,0,0,1,transform.BASE_LINK_TO_BASE_CAMERA_X,transform.BASE_LINK_TO_BASE_CAMERA_Y,transform.BASE_LINK_TO_BASE_CAMERA_Z,"base_link","camera_base"),
+            transform.make_StampTransform(0,0,0,1,transform.BASE_LINK_TO_BASE_SCAN_X,transform.BASE_LINK_TO_BASE_SCAN_Y,transform.BASE_LINK_TO_BASE_SCAN_Z,"base_link","scan"),
+            transform.make_StampTransform(0,0,0,1,transform.BASE_LINK_TO_BASE_CAMERA_X,transform.BASE_LINK_TO_BASE_CAMERA_Y,transform.BASE_LINK_TO_BASE_CAMERA_Z,"base_link","camera"),
         }
     );
     r.sleep();

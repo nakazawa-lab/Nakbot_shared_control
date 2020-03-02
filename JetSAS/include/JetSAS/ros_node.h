@@ -185,7 +185,7 @@ public:
     void pub_odom()
     {
         odom_pub.publish(odom);
-        //odom_broadcaster.sendTransform(odom_trans);
+        odom_broadcaster.sendTransform(odom_trans);
     };
 
     void make_odom_msgs(const int, const int, const double);
