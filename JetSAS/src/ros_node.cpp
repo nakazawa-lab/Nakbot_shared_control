@@ -77,7 +77,7 @@ void JetSAS::Odom::set_encoder(const int e_right, const int e_left)
 
 void JetSAS::Lrf::make_scan_msgs(long* urg_data){
     scan.header.stamp = ros::Time::now();
-    scan.header.frame_id = "/scan";
+    scan.header.frame_id = "scan";
 
     if (scan_num ==0){
         std::cout << "no scan msgs" <<std::endl;
@@ -153,13 +153,23 @@ void JetSAS::Odom::make_odom_msgs(const int e_right, const int e_left,const doub
     geometry_msgs::Quaternion quat_Msg;
     quaternionTFToMsg(quaternion,quat_Msg);//この関数はROSのライブラリ
 
+    ros::Time current_time=ros::Time::now();
     odom.header.frame_id = "/odom";
-    odom.header.stamp = ros::Time::now();
+    odom.child_frame_id = "/base_footprint";
+    odom.header.stamp = current_time;
     odom.pose.pose.position.x = now_p.x;
     odom.pose.pose.position.y = now_p.y;
     odom.pose.pose.orientation = quat_Msg;
     odom.twist.twist.linear.x = v;
     odom.twist.twist.angular.z = w;
+
+    // odom_trans.header.stamp = current_time;
+    // odom_trans.header.frame_id = "/odom";
+    // odom_trans.child_frame_id = "/base_footprint";
+    // odom_trans.transform.translation.x = now_p.x;
+    // odom_trans.transform.translation.y = now_p.y;
+    // odom_trans.transform.translation.z = 0;
+    // odom_trans.transform.rotation = quat_Msg;
 
     std::cout << "pose " <<std::endl;
     std::cout << odom.pose.pose.position.x <<" " << odom.pose.pose.position.y << " " << now_p.th << std::endl;
