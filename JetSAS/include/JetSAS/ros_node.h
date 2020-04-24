@@ -87,7 +87,8 @@ public:
         scan.angle_min = ANGLE_MIN;
         scan.angle_max = ANGLE_MAX;
         scan.time_increment = (1/URG_FREQ) / URG_DATA_NUM;
-
+        scan.range_min = RANGE_MIN;
+        scan.range_max = RANGE_MAX;
         std::cout << "Jetsas constructor" << std::endl; 
         scanlogfile.open("./log_JetSAS/scanlog_"+get_current_time()+".csv");
         make_scan_log_col();
@@ -147,6 +148,7 @@ class Odom
 {
 private:
     ros::Publisher odom_pub;
+    tf::TransformBroadcaster odom_broadcaster;
 
     int encoder_right=0, encoder_left=0;
     int old_encoder_right=0, old_encoder_left=0;
@@ -169,6 +171,7 @@ private:
 public:
     position now_p, old_p;
     nav_msgs::Odometry odom;
+    geometry_msgs::TransformStamped odom_trans;
     
     Odom()
     {
@@ -182,6 +185,7 @@ public:
     void pub_odom()
     {
         odom_pub.publish(odom);
+        odom_broadcaster.sendTransform(odom_trans);
     };
 
     void make_odom_msgs(const int, const int, const double);
