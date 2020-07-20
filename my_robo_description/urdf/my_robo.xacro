@@ -496,15 +496,16 @@
 
 
 <!--CAMERA-->
-
+<!-- parameter reference https://vision.in.tum.de/data/datasets/rgbd-dataset/file_formats -->
     <gazebo reference="camera">
-      <sensor type="depth" name="Kinectv2">
+      <sensor type="depth" name="Kinectv1">
 	      <always_on>true</always_on>
         <update_rate>30.0</update_rate>
 
-        <camera name="Kinectv2">
+        <camera name="Kinectv1">
           <pose>0 0 0 0 0 0</pose>
-          <horizontal_fov>1.221730</horizontal_fov> <!--viewing angle 70degree-->
+          <!--<horizontal_fov>1.221730</horizontal_fov> --> <!--viewing angle 70degree => kinectV2-->
+          <horizontal_fov>0.994838</horizontal_fov> <!--viewing angle 57degree => kinectV1-->
          <image>
             <width>640</width>
             <height>480</height>
@@ -542,12 +543,12 @@
 <!--        <baseline>0.2</baseline> -->
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
-        <cameraName>kinect_v2</cameraName>
+        <cameraName>kinect_v1</cameraName>
         <frameName>camera</frameName>
 
-        <imageTopicName>/camera/color/image_raw</imageTopicName>
-        <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
-        <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
+        <imageTopicName>/camera/rgb/image_color</imageTopicName>
+        <cameraInfoTopicName>/camera/rgb/camera_info</cameraInfoTopicName>
+        <depthImageTopicName>/camera/depth/image</depthImageTopicName>
         <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
         <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
 
@@ -559,11 +560,11 @@
         <distortionK3>0.00000001</distortionK3>
         <distortionT1>0.00000001</distortionT1>
         <distortionT2>0.00000001</distortionT2>
-        <CxPrime>0.0</CxPrime>
-        <Cx>0.0</Cx>
-        <Cy>0.0</Cy>
-        <focalLength>0</focalLength>
-        <hackBaseline>0</hackBaseline>
+        <!-- <CxPrime>0.0</CxPrime> -->
+        <Cx>319.5</Cx>
+        <Cy>239.5</Cy>
+        <focalLength>525.0</focalLength>
+        <!-- <hackBaseline></hackBaseline> -->
       </plugin>
 
       </sensor>

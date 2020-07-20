@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+<!-- openvslam -->
+<include file="$(find openvslam)/launch/run_slam.launch"/>
+
+
+<!-- darknet_ros -->
+<include file="$(find darknet_ros)/launch/darknet_ros.launch"/>
+
+
+<!-- teleoperation -->
+<node name="my_robo_drive" pkg="my_robo_simulation" type="my_robo_drive"/>
+<node name="teleop" pkg="my_robo_simulation" type="teleop_key.py"/>
+
+
+</launch>

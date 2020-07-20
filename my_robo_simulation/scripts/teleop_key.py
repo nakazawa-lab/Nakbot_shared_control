@@ -91,7 +91,7 @@ if __name__=="__main__":
     
     rospy.init_node('teleop_key')
     pub = rospy.Publisher('~cmd_vel', Twist, queue_size=5)
-    pub_joy = rospy.Publisher('joy', Joy, queue_size=5)
+    pub_joy = rospy.Publisher('joy', Joy, queue_size=1)
 
     x = 0
     th = 0
@@ -102,11 +102,23 @@ if __name__=="__main__":
     target_turn = 0
     control_speed = 0
     control_turn = 0
+    
+    i = 0
+    
     try:
         print(msg)
         print(vels(speed,turn))
-        while(1):
+
+        rate = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            # print('loop', i)
+
+            i += 1
+            th = 0
+            x = 0
+
             key = getKey()
+
             if key in moveBindings.keys():
                 x = moveBindings[key][0]
                 th = moveBindings[key][1]
@@ -123,68 +135,24 @@ if __name__=="__main__":
             elif key == ' ' or key == 'k' :
                 x = 0
                 th = 0
-                control_speed = 0
-                control_turn = 0
             else:
                 count = count + 1
                 if count > 4:
                     x = 0
                     th = 0
                 if (key == '\x03'):
+                    print('break')
                     break
 
-            target_speed = speed * x
-            target_turn = turn * th
-
-            if target_speed > control_speed:
-                control_speed = min( target_speed, control_speed + 0.02 )
-            elif target_speed < control_speed:
-                control_speed = max( target_speed, control_speed - 0.02 )
-            else:
-                control_speed = target_speed
-
-            if target_turn > control_turn:
-                control_turn = min( target_turn, control_turn + 0.1 )
-            elif target_turn < control_turn:
-                control_turn = max( target_turn, control_turn - 0.1 )
-            else:
-                control_turn = target_turn
-
-            # twist = Twist()
-            # twist.linear.x = control_speed; twist.linear.y = 0; twist.linear.z = 0
-            # twist.angular.x = 0; twist.angular.y = 0; twist.angular.z = control_turn
-            # pub.publish(twist)
-
             joy = Joy()
-            # print(speed*x, turn*th)
-            # print()
-            # if turn_target < -1 * MAX_ANG:
-            #     joy0 = -1
-            # elif turn_target > MAX_ANG:
-            #     joy0 = 1
-            # else:
-            #     joy0 = turn_target / MAX_ANG
-            # print('joy0', joy0 )
             joy.axes.append(th)
-
-            # if speed_taraget < -1 * MAX_VEL:
-            #     joy1 = -1
-            # elif speed_taraget > MAX_VEL:
-            #     joy1  = 1
-            # else:
-            #     joy1 = speed_taraget /MAX_VEL
-            # print('joy1', joy1)
             joy.axes.append(x)
-
             pub_joy.publish(joy)
 
-
-            #print("loop: {0}".format(count))
-            #print("target: vx: {0}, wz: {1}".format(target_speed, target_turn))
-            #print("publihsed: vx: {0}, wz: {1}".format(twist.linear.x, twist.angular.z))
+            rate.sleep()
 
     except Exception as e:
-        print(e)
+        print("exception", e)
 
     finally:
         # twist = Twist()

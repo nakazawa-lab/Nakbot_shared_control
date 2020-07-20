@@ -32,7 +32,6 @@
 <!-- set arg for rviz-->
   <arg name="rvizconfig" default="$(find my_robo_description)/rviz/urdf.rviz"/> 
 
-  
  <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />-->
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
