@@ -154,18 +154,18 @@
         0.001
       "/>
       <scaling collision="LeftUpLeg_LeftLeg_collision" scale="
-        8.0
-        8.0
+        18.0
+        18.0
         1.0
       "/>
       <scaling collision="LeftLeg_LeftFoot_collision" scale="
-        8.0
-        8.0
+        18.0
+        18.0
         1.0
       "/>
       <scaling collision="LeftFoot_LeftToeBase_collision" scale="
-        4.0
-        4.0
+        14.0
+        14.0
         1.5
       "/>
       <scaling collision="RHipJoint_RightUpLeg_collision" scale="
@@ -174,18 +174,18 @@
         0.001
       "/>
       <scaling collision="RightUpLeg_RightLeg_collision" scale="
-        8.0
-        8.0
+        18.0
+        18.0
         1.0
       "/>
       <scaling collision="RightLeg_RightFoot_collision" scale="
-        8.0
-        8.0
+        18.0
+        18.0
         1.0
       "/>
       <scaling collision="RightFoot_RightToeBase_collision" scale="
-        4.0
-        4.0
+        14.0
+        14.0
         1.5
       "/>
       <scaling collision="LowerBack_Spine_collision" scale="

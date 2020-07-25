@@ -289,7 +289,7 @@
   <joint name="to_${prefix}_joint" type="fixed">
    <parent link="laser_link"/>
    <child link="laser"/>
-   <origin xyz="0.025 0 0.75"/>
+   <origin xyz="0.025 0 0"/>
  </joint>
 
 <link name="laser"/>
@@ -571,5 +571,12 @@
     
     <allow_auto_disable>0</allow_auto_disable>
     </gazebo>
+
+  <!-- <xacro:arg name="gpu" default="false"/>
+  <xacro:property name="gpu" value="$(arg gpu)" />
+  <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
+  <VLP-16 parent="laser" name="velodyne" topic="/velodyne_points" hz="5" samples="440" gpu="${gpu}">
+    <origin xyz="0 0 0.3" rpy="0 0 0" />
+  </VLP-16> -->
 
 </robot>
