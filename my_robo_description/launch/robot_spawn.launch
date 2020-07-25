@@ -5,7 +5,8 @@
   <arg name="yaw" default="0.71"/>
 
   <arg name="model" default="$(find my_robo_description)/urdf/my_robo.xacro"/> 
-  <param name="robot_description" command="$(find xacro)/xacro $(arg model) --inorder"/>  
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model) --inorder"/> 
+  <env name="GAZEBO_PLUGIN_PATH" value="$(find my_robo_description)/worlds/:${GAZEBO_PLUGIN_PATH}"/>
 
 <!-- world file-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
