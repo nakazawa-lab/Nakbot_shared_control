@@ -225,3 +225,5 @@ target_link_libraries(my_robo_drive ${catkin_LIBRARIES} ${PYTHON_LIBRARIES})
 #install(DIRECTORY launch models rviz worlds
 #  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 #)
+
+add_subdirectory(src/auto_driving)
