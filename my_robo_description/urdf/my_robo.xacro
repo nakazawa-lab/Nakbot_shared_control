@@ -321,11 +321,11 @@
 
 	  <joint name="camera_joint" type="fixed">
 	   <parent link="camera_link"/>
-	   <child link="camera"/>
+	   <child link="openni_camera"/>
 	   <origin xyz="0.0325 0 0" rpy="0 0 0"/>
 	  </joint>
 
-	  <link name="camera"/>
+	  <link name="openni_camera"/>
 
 
 
@@ -497,7 +497,7 @@
 
 <!--CAMERA-->
 <!-- parameter reference https://vision.in.tum.de/data/datasets/rgbd-dataset/file_formats -->
-    <gazebo reference="camera">
+    <gazebo reference="openni_camera">
       <sensor type="depth" name="Kinectv1">
 	      <always_on>true</always_on>
         <update_rate>30.0</update_rate>
@@ -544,7 +544,7 @@
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
         <cameraName>kinect_v1</cameraName>
-        <frameName>camera</frameName>
+        <frameName>openni_camera</frameName>
 
         <imageTopicName>/camera/rgb/image_color</imageTopicName>
         <cameraInfoTopicName>/camera/rgb/camera_info</cameraInfoTopicName>
