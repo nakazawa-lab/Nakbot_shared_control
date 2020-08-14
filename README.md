@@ -4,48 +4,25 @@
 
 - NakBotの遠隔操作支援を行う
 - 遠隔操縦入力を加えた際に、LRFで測定した障害物に衝突しないよう自然に入力を修正する。
-- 論文を参照
+- DWA(Dynamic Window Approach)を人間からの入力を考慮したものにする
 
 
 
 ## パッケージ構成
 
-- 依存パッケージ
-  - ROS標準パッケージであるgmappingメタパッケージを要する
-    - 本来必要ないかもしれないがweb上のチュートリアルに従って開発したら依存してしまった
 - my_robo_descriptionパッケージ
-  - NakBotを表現し、シミュレータ上で表示させるためのパッケージ
+  - NakBotを表現し、シミュレータgazebo上で表示させるためのパッケージ
   - ロボットのモデル、gazeboのモデル、rvizの設定ファイルなどが含まれる
 - my_robo_simulationパッケージ
-  - NakBotを実際にシミュレータで動かし、提案手法を実装させるパッケージ
+  - NakBotを実際にシミュレータで動かし、手法を実装させるパッケージ
   - ジョイスティックからの入力を管理するプログラム、提案手法のプログラムが含まれる
 - JetSASパッケージ
   - 中澤研のサンプルプログラムをもとに、JetSASシステムとシミュレーションで開発したプログラムの橋渡しを行うパッケージ
   - 実機センサ情報の取得、SH2Aボートとの通信を行う
 
-## ビルドまでの手順
-
-- テクノモール時にインストール手順をまとめたので念の為記す
-
-1. ROS公式HPに従ってROS Melodicのインストール
-
-2. 依存パッケージgmapping関連のインストール 
-
-   https://qiita.com/protocol1964/items/1e63aebddd7d5bfd0d1b 
-
-   一番初めの「依存パッケージをインストール」を行う 
-
-3. ```git clone https://github.com/nakazawa-lab/Nakbot_shared_control.git```
-
-4. ビルドする。gazeboのエラーは[これ]([Gazebo [Err\] [REST.cc:205] Error in REST request.](https://www.youtube.com/watch?v=ftDz_EVoatw) )にしたがって直す
-
-
-
 
 
 ## プログラムの実行手順
-
-- 卒論の実験では、シミュレーション実験をmaster, 実機実験をNakBotブランチで行っているので、微妙に挙動が異なる可能性がある
 
 - シミュレータの開始
 
@@ -85,8 +62,6 @@ roslaunch JetSAS JetSAS_node
 
 - src, includeフォルダ内
   - 提案手法のプログラム
-- scriptsフォルダ内
-  - データの解析のために用いたpythonスクリプトたち
 
 ### JetSASパッケージ
 
@@ -95,11 +70,3 @@ roslaunch JetSAS JetSAS_node
   - これをやらないと思うような速度で動かない
 - ros_node.cpp, ros_node.h
   - 研究室のサンプルプログラムに付け加えたファイル。
-
-
-
-
-
-## 備考
-
-- ミス、動かないなどあればkitajima1206[アットマーク]keio.jpまで
