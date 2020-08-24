@@ -372,6 +372,7 @@
     </plugin>
 -->
 
+    <!-- http://docs.ros.org/jade/api/gazebo_plugins/html/gazebo__ros__diff__drive_8cpp_source.html-->
     <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
       <leftJoint>left_wheel_joint</leftJoint>
       <rightJoint>right_wheel_joint</rightJoint>

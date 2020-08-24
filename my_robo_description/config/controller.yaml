@@ -1,3 +1,4 @@
+# http://wiki.ros.org/diff_drive_controller
 my_robo:
   diff_drive_controller:
     type        : "diff_drive_controller/DiffDriveController"

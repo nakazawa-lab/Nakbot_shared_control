@@ -16,6 +16,14 @@
 - my_robo_simulationパッケージ
   - NakBotを実際にシミュレータで動かし、手法を実装させるパッケージ
   - ジョイスティックからの入力を管理するプログラム、提案手法のプログラムが含まれる
+
+```
+sudo apt-get install ros-kinetic-joy
+sudo apt-get install ros-kinetic-joystick-drivers
+```
+
+
+
 - JetSASパッケージ
   - 中澤研のサンプルプログラムをもとに、JetSASシステムとシミュレーションで開発したプログラムの橋渡しを行うパッケージ
   - 実機センサ情報の取得、SH2Aボートとの通信を行う
