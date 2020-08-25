@@ -137,6 +137,10 @@ add_executable(odom_covariance_republisher
   src/odom_covariance.cpp
 )
 
+add_executable(noise_cmd_vel 
+  src/noise_cmd_vel.cpp
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -149,6 +153,10 @@ add_executable(odom_covariance_republisher
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(odom_covariance_republisher
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(noise_cmd_vel
   ${catkin_LIBRARIES}
 )
 

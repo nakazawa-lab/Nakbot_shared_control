@@ -373,29 +373,32 @@
 -->
 
     <!-- http://docs.ros.org/jade/api/gazebo_plugins/html/gazebo__ros__diff__drive_8cpp_source.html-->
-    <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
+    <!-- <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so"> -->
+    <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive_noise.so">
       <leftJoint>left_wheel_joint</leftJoint>
       <rightJoint>right_wheel_joint</rightJoint>
-     <!-- <robotBaseFrame>base_link</robotBaseFrame> -->
+
       <wheelSeparation>0.285</wheelSeparation> 
       <wheelDiameter>0.15</wheelDiameter> 
-      <publishWheelJointState>true</publishWheelJointState>
-      <legacyMode>false</legacyMode>
+      <updateRate>30</updateRate>
+      <wheelAcceleration>1</wheelAcceleration>
+      <wheelTorque>10</wheelTorque>
 
-
-      <robotBaseFrame>base_footprint</robotBaseFrame>
 
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
-      <odometrySource>world</odometrySource>
-      <publishOdomTF>true</publishOdomTF>
+     <!-- <robotBaseFrame>base_link</robotBaseFrame> -->
       <robotBaseFrame>base_footprint</robotBaseFrame>
+
+      <!-- <odometrySource>world</odometrySource> -->
+      <odometrySource>encoder</odometrySource>
+      <publishOdomTF>true</publishOdomTF>
       <publishWheelTF>false</publishWheelTF>
       <publishTf>true</publishTf>
-      <updateRate>30</updateRate>
-      <wheelAcceleration>1</wheelAcceleration>
-      <wheelTorque>10</wheelTorque>
+      <publishWheelJointState>true</publishWheelJointState>
+      <legacyMode>false</legacyMode>
+
       <rosDebugLevel>na</rosDebugLevel>
 
     </plugin>

@@ -17,7 +17,7 @@ FILE *gp; // gnuplotに指令を与えるためのテキストファイル
 
 //#define PABLODWA
 #define MYDWA
-#define ISSHARED
+// #define ISSHARED
 //#define PUB_MARKER
 //#define REAL_TEST
 
