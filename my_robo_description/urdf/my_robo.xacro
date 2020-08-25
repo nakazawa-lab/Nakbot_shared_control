@@ -391,8 +391,8 @@
      <!-- <robotBaseFrame>base_link</robotBaseFrame> -->
       <robotBaseFrame>base_footprint</robotBaseFrame>
 
-      <!-- <odometrySource>world</odometrySource> -->
-      <odometrySource>encoder</odometrySource>
+      <odometrySource>world</odometrySource>
+      <!-- <odometrySource>encoder</odometrySource> -->
       <publishOdomTF>true</publishOdomTF>
       <publishWheelTF>false</publishWheelTF>
       <publishTf>true</publishTf>
