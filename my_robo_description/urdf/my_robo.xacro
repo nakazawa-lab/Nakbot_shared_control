@@ -502,17 +502,18 @@
 <!--CAMERA-->
 <!-- parameter reference https://vision.in.tum.de/data/datasets/rgbd-dataset/file_formats -->
     <gazebo reference="openni_camera">
-      <sensor type="depth" name="Kinectv1">
+      <sensor type="depth" name="Kinectv2">
 	      <always_on>true</always_on>
         <update_rate>30.0</update_rate>
 
-        <camera name="Kinectv1">
+        <camera name="Kinectv2">
           <pose>0 0 0 0 0 0</pose>
-          <!--<horizontal_fov>1.221730</horizontal_fov> --> <!--viewing angle 70degree => kinectV2-->
-          <horizontal_fov>0.994838</horizontal_fov> <!--viewing angle 57degree => kinectV1-->
+          <!-- <horizontal_fov>1.221730</horizontal_fov> viewing angle 70degree => kinectV2 -->
+          <horizontal_fov>1.4813863886</horizontal_fov> <!-- viewing angle 85degree => f=525, width=960 -->
+          <!-- <horizontal_fov>0.994838</horizontal_fov> viewing angle 57degree => kinectV1 -->
          <image>
-            <width>640</width>
-            <height>480</height>
+            <width>960</width>
+            <height>540</height>
             <format>R8G8B8</format>
           </image>
           <clip>
@@ -547,7 +548,7 @@
 <!--        <baseline>0.2</baseline> -->
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
-        <cameraName>kinect_v1</cameraName>
+        <cameraName>kinect_v2</cameraName>
         <frameName>openni_camera</frameName>
 
         <imageTopicName>/camera/rgb/image_color</imageTopicName>
@@ -565,9 +566,9 @@
         <distortionT1>0.00000001</distortionT1>
         <distortionT2>0.00000001</distortionT2>
         <!-- <CxPrime>0.0</CxPrime> -->
-        <Cx>319.5</Cx>
-        <Cy>239.5</Cy>
-        <focalLength>525.0</focalLength>
+        <Cx>477</Cx>
+        <Cy>261</Cy>
+        <focalLength>530</focalLength>
         <!-- <hackBaseline></hackBaseline> -->
       </plugin>
 
