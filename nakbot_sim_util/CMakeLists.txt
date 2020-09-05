@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   nav_msgs
+  sensor_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -120,9 +122,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/nakbot_sim_util.cpp
+# ## Declare a C++ library
+# add_library( ${PROJECT_NAME}
+#     src/joy_nodelet.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -141,6 +143,10 @@ add_executable(noise_cmd_vel
   src/noise_cmd_vel.cpp
 )
 
+add_executable(joy_node 
+  src/joy_node.cpp
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -157,6 +163,10 @@ target_link_libraries(odom_covariance_republisher
 )
 
 target_link_libraries(noise_cmd_vel
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(joy_node
   ${catkin_LIBRARIES}
 )
 
