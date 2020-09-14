@@ -1,5 +1,0 @@
-<launch>
-  <node name="joy_node" pkg="joy" type="joy_node"/>
-  <node name="joy_cmd_vel" pkg="my_robo_joy_teleop" type="my_robo_joy_teleop">
-  </node>
-</launch>

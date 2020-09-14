@@ -32,23 +32,27 @@
   <!-- Dependencies can be catkin packages or system dependencies -->
   <build_depend>message_generation</build_depend> 
   <exec_depend>message_runtime</exec_depend> 
+
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>basic_lecture</build_depend>
   <build_depend>move_base</build_depend>
   <build_depend>my_robo_description</build_depend>
- <build_depend>std_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  
   <build_export_depend>basic_lecture</build_export_depend>
   <build_export_depend>move_base</build_export_depend>
   <build_export_depend>my_robo_description</build_export_depend>
- <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  
   <exec_depend>basic_lecture</exec_depend>
   <exec_depend>move_base</exec_depend>
   <exec_depend>my_robo_description</exec_depend>
- <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>rospy</exec_depend>
 
   <depend>sensor_msgs</depend>
+  <depend>nakbot_sim_util</depend>
 
-<exec_depend>rospy</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

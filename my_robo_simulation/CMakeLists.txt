@@ -10,6 +10,7 @@ project(my_robo_simulation)
 find_package(catkin REQUIRED COMPONENTS
   my_robo_description
   message_generation
+  nakbot_sim_util
 )
 
 ## System dependencies are found with CMake's conventions
