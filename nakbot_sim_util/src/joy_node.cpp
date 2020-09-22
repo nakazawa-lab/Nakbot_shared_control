@@ -41,7 +41,7 @@ private:
 
     void get_spec_param();
 public:
-    DirectJoy(const int loop_rate=10.0)
+    DirectJoy(const int loop_rate=30.0)
     : loop_rate_(loop_rate)
     {
         ROS_INFO("DirectJoy");
