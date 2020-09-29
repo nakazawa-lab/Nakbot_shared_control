@@ -590,26 +590,6 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='plastic_cup'>
-        <pose frame=''>2.8 2.1 1.20664 3.5e-05 -3.1e-05 -6.3e-05</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose frame=''>2.8 2.1 1.27164 3.5e-05 -3.1e-05 -6.3e-05</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0.234079 -0.109316 0.026891 -1.62786 -0.102874 -3.10808</acceleration>
-          <wrench>0.014021 -0.006548 0.001611 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='plastic_cup_0'>
-        <pose frame=''>2.18872 0.008323 0.00725 -0.000181 -0.010604 2.19807</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose frame=''>2.18911 0.007758 0.072247 -0.000181 -0.010604 2.19807</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>2.3e-05 -5.8e-05 -1.7e-05 0.000832 0.000338 2.7e-05</acceleration>
-          <wrench>1e-06 -3e-06 -1e-06 0 -0 0</wrench>
-        </link>
-      </model>
       <model name='table'>
         <pose frame=''>8.75271 1.96419 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -1645,69 +1625,6 @@
         <kinematic>0</kinematic>
       </link>
       <pose frame=''>2.90656 2.39405 0 0 -0 0</pose>
-    </model>
-    <model name='plastic_cup'>
-      <link name='link'>
-        <pose frame=''>0 0 0.065 0 -0 0</pose>
-        <inertial>
-          <mass>0.0599</mass>
-          <inertia>
-            <ixx>0.000302896</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.000302896</iyy>
-            <iyz>0</iyz>
-            <izz>3.28764e-05</izz>
-          </inertia>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <mesh>
-              <uri>model://plastic_cup/meshes/plastic_cup.dae</uri>
-            </mesh>
-          </geometry>
-          <surface>
-            <contact>
-              <poissons_ratio>0.35</poissons_ratio>
-              <elastic_modulus>3.10264e+09</elastic_modulus>
-              <ode>
-                <kp>100000</kp>
-                <kd>100</kd>
-                <max_vel>100</max_vel>
-                <min_depth>0.001</min_depth>
-              </ode>
-            </contact>
-            <friction>
-              <torsional>
-                <coefficient>1</coefficient>
-                <use_patch_radius>0</use_patch_radius>
-                <surface_radius>0.01</surface_radius>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://plastic_cup/meshes/plastic_cup.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/GreyTransparent</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose frame=''>2.70239 1.92642 0 0 -0 0</pose>
     </model>
     <model name='turtlebot'>
       <link name='rack'>
@@ -2975,69 +2892,6 @@
       <static>0</static>
       <allow_auto_disable>1</allow_auto_disable>
       <pose frame=''>5.64734 4.9681 0.5 0 -0 0</pose>
-    </model>
-    <model name='plastic_cup_0'>
-      <link name='link'>
-        <pose frame=''>0 0 0.065 0 -0 0</pose>
-        <inertial>
-          <mass>0.0599</mass>
-          <inertia>
-            <ixx>0.000302896</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.000302896</iyy>
-            <iyz>0</iyz>
-            <izz>3.28764e-05</izz>
-          </inertia>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <mesh>
-              <uri>model://plastic_cup/meshes/plastic_cup.dae</uri>
-            </mesh>
-          </geometry>
-          <surface>
-            <contact>
-              <poissons_ratio>0.35</poissons_ratio>
-              <elastic_modulus>3.10264e+09</elastic_modulus>
-              <ode>
-                <kp>100000</kp>
-                <kd>100</kd>
-                <max_vel>100</max_vel>
-                <min_depth>0.001</min_depth>
-              </ode>
-            </contact>
-            <friction>
-              <torsional>
-                <coefficient>1</coefficient>
-                <use_patch_radius>0</use_patch_radius>
-                <surface_radius>0.01</surface_radius>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://plastic_cup/meshes/plastic_cup.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/GreyTransparent</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <pose frame=''>2.22493 0.02623 0 0 -0 0</pose>
     </model>
   </world>
 </sdf>

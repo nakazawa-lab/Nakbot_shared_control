@@ -11,11 +11,15 @@ Panels:
         - /odom_gt1/Covariance1/Orientation1
         - /odom_bf1/Covariance1/Position1
         - /odom_bf1/Covariance1/Orientation1
+        - /pose_fused1
+        - /pose_fused1/Covariance1
         - /pose_fused1/Covariance1/Position1
         - /pose_fused1/Covariance1/Orientation1
+        - /pose_vis1
         - /pose_vis1/Covariance1
         - /pose_vis1/Covariance1/Position1
         - /pose_vis1/Covariance1/Orientation1
+        - /pose_wheel1
         - /pose_wheel1/Covariance1
         - /pose_wheel1/Covariance1/Position1
         - /pose_wheel1/Covariance1/Orientation1
@@ -490,25 +494,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 12.940195083618164
+      Distance: 11.690838813781738
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 6.056666851043701
-        Y: -1.107380747795105
-        Z: 3.3151774406433105
+        X: 0.07018385827541351
+        Y: -0.41992396116256714
+        Z: 2.811558246612549
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.4547957181930542
+      Pitch: 0.2597959041595459
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.798200845718384
+      Yaw: 4.138202667236328
     Saved: ~
 Window Geometry:
   Camera:
