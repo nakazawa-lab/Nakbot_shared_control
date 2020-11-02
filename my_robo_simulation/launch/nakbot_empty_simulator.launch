@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+   <arg name="X" default="0"/>
+  <arg name="Y" default="0"/>
+  <arg name="yaw" default="0"/>
+
+  <arg name="model" default="$(find my_robo_description)/urdf/my_robo.xacro"/> 
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model) --inorder"/> 
+  <env name="GAZEBO_PLUGIN_PATH" value="$(find my_robo_description)/worlds/${GAZEBO_PLUGIN_PATH}"/>
+
+    <!-- include gazebo.launch,and launch gazebo,diff_drive_controller-->
+    <include file="$(find my_robo_description)/launch/gazebo.launch">
+        <arg name="empty" value="true"/>
+    </include>
+
+    <!-- launch joy controller node-->
+    <node pkg="nakbot_sim_util" type="joy_node" name="joy_node"/> 
+    <node pkg="joy" type="joy_node" name="joy_device_driver"/>
+
+<!-- set arg for rviz-->
+  <arg name="rvizconfig" default="$(find my_robo_description)/rviz/urdf.rviz"/>  
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+
+</launch>
