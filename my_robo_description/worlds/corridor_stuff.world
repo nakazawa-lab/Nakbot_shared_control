@@ -110,7 +110,6 @@
           </waypoint>
         </trajectory>
       </script>
-
     </actor>
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>

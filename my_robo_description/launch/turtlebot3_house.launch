@@ -1,0 +1,37 @@
+<launch>
+<!-- args -->
+  <arg name="model" default="$(find my_robo_description)/urdf/my_robo.xacro"/> 
+  <arg name="x_pos" default="0.0"/>
+  <arg name="y_pos" default="0.0"/>
+  <arg name="z_pos" default="0.0"/>
+
+<!-- world file -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find my_robo_description)/worlds/turtlebot3_house.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+<!-- robot spawn -->
+  <param name="robot_description" command="$(find xacro)/xacro $(find my_robo_description)/urdf/my_robo.xacro" />
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model turtlebot3 -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+
+<!-- robot controller -->
+  <rosparam file="$(find my_robo_description)/config/controller.yaml" command="load"/>
+  <node name="controller_spawner" pkg="controller_manager" respawn="false" type="spawner" 
+		output="screen" args="joint_state_controller diff_drive_controller"/>
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+<!-- set arg for rviz-->
+  <arg name="rvizconfig" default="$(find my_robo_description)/rviz/urdf.rviz"/>  
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+
+<!-- controller using joystick node-->
+<node pkg="nakbot_sim_util" type="joy_node" name="joy_node"/> 
+<node pkg="joy" type="joy_node" name="joy_device_driver"/>
+
+</launch>

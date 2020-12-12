@@ -11,10 +11,14 @@ find_package(catkin REQUIRED COMPONENTS
   my_robo_description
   message_generation
   nakbot_sim_util
+
+  image_transport
+  cv_bridge
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+find_package(OpenCV REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -208,10 +212,16 @@ add_executable(my_robo_drive
     src/shared_DWA.cpp
     src/MyDWA.cpp
     )
+
+# add_executable(matching_node
+#   src/match_template.cpp
+# )
 #add_executable(predictTraj_test src/predictTraj_test.cpp)
 ## add_dependencies(basic_simple_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(my_robo_drive ${catkin_LIBRARIES} ${PYTHON_LIBRARIES})
+
+# target_link_libraries(matching_node ${catkin_LIBRARIES} ${PYTHON_LIBRARIES})
 #target_link_libraries(predictTraj_test ${catkin_LIBRARIES})
 
 #install(TARGETS my_robo_lrf_controller

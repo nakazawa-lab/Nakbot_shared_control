@@ -59,6 +59,10 @@ roslaunch JetSAS JetSAS_node
 
 ## 重要ファイル
 
+### nakbot_shared_control
+
+- メタパッケージ
+
 ### my_robo_descriptionパッケージ
 
 - my_robo.xacro
